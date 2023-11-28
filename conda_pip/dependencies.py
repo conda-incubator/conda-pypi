@@ -1,9 +1,11 @@
 """
 """
-
-from collections import defaultdict
+import os
 import logging
+from collections import defaultdict
+from contextlib import redirect_stdout, redirect_stderr
 
+from conda.exceptions import CondaError
 from grayskull.base.factory import GrayskullFactory
 from grayskull.base.pkg_info import is_pkg_available
 from grayskull.config import Configuration as GrayskullConfiguration
@@ -17,11 +19,11 @@ logging.getLogger("urllib3").setLevel(logging.ERROR)
 keep_refs_alive = []
 
 
-def install(*packages: str):
+def analyze_dependencies(*packages: str):
     conda_deps = defaultdict(set)
     pypi_deps = defaultdict(set)
     for package in packages:
-        conda_deps_map, pypi_deps_map = _install_one(package)
+        conda_deps_map, pypi_deps_map = _recursive_dependencies(package)
         for name, dep_set in conda_deps_map.items():
             conda_deps[name].update(dep_set)
         for name, dep_set in pypi_deps_map.items():
@@ -29,26 +31,31 @@ def install(*packages: str):
     return conda_deps, pypi_deps
 
 
-def _install_one(package, conda_deps_map=None, pypi_deps_map=None):
+def _recursive_dependencies(package, conda_deps_map=None, pypi_deps_map=None):
     conda_deps_map = conda_deps_map or defaultdict(set)
     pypi_deps_map = pypi_deps_map or defaultdict(set)
-    conda_deps, pypi_deps = infer_dependencies_in_conda(package)
+    conda_deps, pypi_deps = _analyze_with_grayskull(package)
 
     for name, dep in conda_deps.items():
         conda_deps_map[name].add(dep)
     for name, dep in pypi_deps.items():
         pypi_deps_map[name].add(dep)
-        _install_one(name, conda_deps_map=conda_deps_map, pypi_deps_map=pypi_deps_map)
+        _recursive_dependencies(name, conda_deps_map=conda_deps_map, pypi_deps_map=pypi_deps_map)
 
     return conda_deps_map, pypi_deps_map
 
 
-def infer_dependencies_in_conda(package):
-    config = GrayskullConfiguration(package, is_strict_cf=True)
-    recipe = GrayskullFactory.create_recipe("pypi", config)
+def _analyze_with_grayskull(package):
+    config = GrayskullConfiguration(name=package, is_strict_cf=True)
+    try:
+        with redirect_stdout(os.devnull), redirect_stderr(os.devnull):
+            recipe = GrayskullFactory.create_recipe("pypi", config)
+    except Exception as e:
+        raise CondaError(f"Could not infer deps for {package}") from e
+    
     global keep_refs_alive
     keep_refs_alive.append(recipe)
-
+    
     requirements = recipe["requirements"]
     in_conda = {}
     not_in_conda = {}

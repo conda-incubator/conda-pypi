@@ -1,0 +1,15 @@
+[project]
+name = "conda-pip"
+version = "0.1.0"
+description = "`pip` wrappers to make it work with `conda` in a better way."
+authors = ["jaimergp <jaimergp@users.noreply.github.com>"]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tasks]
+
+[dependencies]
+python = "3.9"
+conda = ">=23.9"
+pip = "*"
+grayskull = "*"

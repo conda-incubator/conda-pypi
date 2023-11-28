@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "conda-pip"
+description = "`pip` wrappers to make it work with `conda` in a better way."
+readme = "README.md"
+authors = [
+  {name = "Jaime Rodríguez-Guerra", email = "jrodriguez@quansight.com"}
+]
+license = {file = "LICENSE"}
+classifiers = [
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy"
+]
+requires-python = ">=3.8"
+dependencies = [
+  "conda >=23.7.3",
+  "pip",
+  "grayskull",
+]
+dynamic = [
+  "version"
+]
+
+[project.urls]
+homepage = "https://github.com/jaimergp/conda-pip"
+
+[project.entry-points.conda]
+conda-pip = "conda_pip.plugin"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.ruff]
+line-length = 99
