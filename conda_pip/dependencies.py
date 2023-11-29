@@ -23,26 +23,37 @@ def analyze_dependencies(*packages: str):
     conda_deps = defaultdict(set)
     pypi_deps = defaultdict(set)
     for package in packages:
-        conda_deps_map, pypi_deps_map = _recursive_dependencies(package)
+        conda_deps_map, pypi_deps_map, visited_pypi_map = _recursive_dependencies(package)
         for name, dep_set in conda_deps_map.items():
             conda_deps[name].update(dep_set)
         for name, dep_set in pypi_deps_map.items():
             pypi_deps[name].update(dep_set)
+        for _, tuples in visited_pypi_map.items():
+            for name, version in tuples:
+                spec = name
+                if version:
+                    spec += f"=={version}"
+                pypi_deps[name].add(spec)
     return conda_deps, pypi_deps
 
 
-def _recursive_dependencies(package, conda_deps_map=None, pypi_deps_map=None):
+def _recursive_dependencies(package, conda_deps_map=None, pypi_deps_map=None, visited_pypi_map=None):
     conda_deps_map = conda_deps_map or defaultdict(set)
     pypi_deps_map = pypi_deps_map or defaultdict(set)
-    conda_deps, pypi_deps = _analyze_with_grayskull(package)
+    visited_pypi_map = visited_pypi_map or defaultdict(set)
+    if package in visited_pypi_map:
+        return conda_deps_map, pypi_deps_map, visited_pypi_map
+    
+    conda_deps, pypi_deps, config = _analyze_with_grayskull(package)
+    visited_pypi_map[package].add((config.name, config.version))
 
     for name, dep in conda_deps.items():
         conda_deps_map[name].add(dep)
     for name, dep in pypi_deps.items():
         pypi_deps_map[name].add(dep)
-        _recursive_dependencies(name, conda_deps_map=conda_deps_map, pypi_deps_map=pypi_deps_map)
+        _recursive_dependencies(name, conda_deps_map=conda_deps_map, pypi_deps_map=pypi_deps_map, visited_pypi_map=visited_pypi_map)
 
-    return conda_deps_map, pypi_deps_map
+    return conda_deps_map, pypi_deps_map, visited_pypi_map
 
 
 def _analyze_with_grayskull(package):
@@ -50,12 +61,16 @@ def _analyze_with_grayskull(package):
     try:
         with redirect_stdout(os.devnull), redirect_stderr(os.devnull):
             recipe = GrayskullFactory.create_recipe("pypi", config)
+    except AttributeError as e:
+        if "There is no sdist package on pypi" in str(e):
+            return {}, {}, config
+        raise
     except Exception as e:
         raise CondaError(f"Could not infer deps for {package}") from e
-    
+
     global keep_refs_alive
     keep_refs_alive.append(recipe)
-    
+
     requirements = recipe["requirements"]
     in_conda = {}
     not_in_conda = {}
@@ -74,4 +89,4 @@ def _analyze_with_grayskull(package):
             in_conda[name] = dep
         else:
             not_in_conda[name] = dep
-    return in_conda, not_in_conda
+    return in_conda, not_in_conda, config
