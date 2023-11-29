@@ -20,38 +20,53 @@ keep_refs_alive = []
 
 
 def analyze_dependencies(*packages: str):
-    conda_deps = defaultdict(set)
-    pypi_deps = defaultdict(set)
+    conda_deps = defaultdict(list)
+    pypi_deps = defaultdict(list)
     for package in packages:
         conda_deps_map, pypi_deps_map, visited_pypi_map = _recursive_dependencies(package)
-        for name, dep_set in conda_deps_map.items():
-            conda_deps[name].update(dep_set)
-        for name, dep_set in pypi_deps_map.items():
-            pypi_deps[name].update(dep_set)
+        for name, specs in conda_deps_map.items():
+            conda_deps[name].extend(specs)
+        for name, specs in pypi_deps_map.items():
+            pypi_deps[name].extend(specs)
         for _, tuples in visited_pypi_map.items():
             for name, version in tuples:
                 spec = name
                 if version:
                     spec += f"=={version}"
-                pypi_deps[name].add(spec)
+                pypi_deps[name].append(spec)
+
+    # deduplicate
+    conda_deps = {name: list(dict.fromkeys(specs)) for name, specs in conda_deps.items()}
+    pypi_deps = {name: list(dict.fromkeys(specs)) for name, specs in pypi_deps.items()}
+
     return conda_deps, pypi_deps
 
 
-def _recursive_dependencies(package, conda_deps_map=None, pypi_deps_map=None, visited_pypi_map=None):
-    conda_deps_map = conda_deps_map or defaultdict(set)
-    pypi_deps_map = pypi_deps_map or defaultdict(set)
-    visited_pypi_map = visited_pypi_map or defaultdict(set)
+def _recursive_dependencies(
+    package,
+    conda_deps_map=None,
+    pypi_deps_map=None,
+    visited_pypi_map=None,
+):
+    conda_deps_map = conda_deps_map or defaultdict(list)
+    pypi_deps_map = pypi_deps_map or defaultdict(list)
+    visited_pypi_map = visited_pypi_map or defaultdict(list)
     if package in visited_pypi_map:
         return conda_deps_map, pypi_deps_map, visited_pypi_map
-    
+
     conda_deps, pypi_deps, config = _analyze_with_grayskull(package)
-    visited_pypi_map[package].add((config.name, config.version))
+    visited_pypi_map[package].append((config.name, config.version))
 
     for name, dep in conda_deps.items():
-        conda_deps_map[name].add(dep)
+        conda_deps_map[name].append(dep)
     for name, dep in pypi_deps.items():
-        pypi_deps_map[name].add(dep)
-        _recursive_dependencies(name, conda_deps_map=conda_deps_map, pypi_deps_map=pypi_deps_map, visited_pypi_map=visited_pypi_map)
+        pypi_deps_map[name].append(dep)
+        _recursive_dependencies(
+            name,
+            conda_deps_map=conda_deps_map,
+            pypi_deps_map=pypi_deps_map,
+            visited_pypi_map=visited_pypi_map,
+        )
 
     return conda_deps_map, pypi_deps_map, visited_pypi_map
 
@@ -84,9 +99,9 @@ def _analyze_with_grayskull(package):
                 print("skipping", dep)
                 continue
         if name in ("python", "numpy"):
-            in_conda[name] = dep
+            in_conda[name] = str(dep)
         elif is_pkg_available(name):
-            in_conda[name] = dep
+            in_conda[name] = str(dep)
         else:
-            not_in_conda[name] = dep
+            not_in_conda[name] = str(dep)
     return in_conda, not_in_conda, config
