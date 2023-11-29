@@ -1,28 +1,35 @@
 """
 """
 import os
-import logging
+from logging import getLogger, ERROR
 from collections import defaultdict
 from contextlib import redirect_stdout, redirect_stderr
 
 from conda.exceptions import CondaError
+from conda.models.match_spec import MatchSpec
 from grayskull.base.factory import GrayskullFactory
 from grayskull.base.pkg_info import is_pkg_available
 from grayskull.config import Configuration as GrayskullConfiguration
 
-logging.getLogger("grayskull").setLevel(logging.ERROR)
-logging.getLogger("souschef").setLevel(logging.ERROR)
-logging.getLogger("requests").setLevel(logging.ERROR)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
+getLogger("grayskull").setLevel(ERROR)
+getLogger("souschef").setLevel(ERROR)
+getLogger("requests").setLevel(ERROR)
+getLogger("urllib3").setLevel(ERROR)
+logger = getLogger(f"conda.{__name__}")
 
 # workaround for some weakref leak in souschef
 keep_refs_alive = []
 
 
-def analyze_dependencies(*packages: str):
+def analyze_dependencies(*packages: str, prefer_on_conda=True, channel="conda-forge"):
     conda_deps = defaultdict(list)
     pypi_deps = defaultdict(list)
     for package in packages:
+        pkg_name = MatchSpec(package).name
+        if prefer_on_conda and is_pkg_available(pkg_name, channel=channel):
+            logger.info("Package %s is available on %s. Skipping analysis.", pkg_name, channel)
+            conda_deps[pkg_name].append(f"{channel}::{package}")
+            continue
         conda_deps_map, pypi_deps_map, visited_pypi_map = _recursive_dependencies(package)
         for name, specs in conda_deps_map.items():
             conda_deps[name].extend(specs)
