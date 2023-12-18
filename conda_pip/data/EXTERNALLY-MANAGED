@@ -1,0 +1,11 @@
+[externally-managed]
+Error=You are trying to modify a conda environment!
+  
+  If you want to install PyPI packages into this conda environment,
+  please consider using 'conda pip install ...' instead. 
+  This will make a few checks to ensure that the PyPI packages 
+  you want to install will not disrupt your conda environment.
+
+  If you still want to proceed with 'pip install ...', then
+  add the '--break-system-packages' to your command, but be aware
+  that you might experience unexpected issues.
