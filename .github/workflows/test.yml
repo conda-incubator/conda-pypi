@@ -33,10 +33,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows]
-        python-version: [3.8, 3.9, 3.10, 3.11]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
         include:
           - os: macos
-            python-version: 3.9
+            python-version: "3.9"
     
     steps:
       - name: Checkout
