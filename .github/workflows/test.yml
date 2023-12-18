@@ -22,9 +22,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash -el {0}
 jobs:
   tests:
     name: ${{ matrix.os }}, Python ${{ matrix.python-version }}
@@ -47,4 +44,9 @@ jobs:
         with:
           cache: true
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-      - run: pixi run test
+      - name: Setup project
+        run: |
+          pixi add python=${{ matrix.python-version }}
+          pixi run dev
+      - name: Run tests
+        run: pixi run test
