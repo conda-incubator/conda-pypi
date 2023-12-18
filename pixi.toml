@@ -7,9 +7,11 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64"]
 
 [tasks]
+test = "pytest -vvv"
 
 [dependencies]
 python = "3.9"
 conda = ">=23.9"
 pip = "*"
 grayskull = "*"
+pytest = "7.4.3.*"

@@ -134,3 +134,4 @@ def execute(args: argparse.Namespace) -> None:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
         )
+    return 0
