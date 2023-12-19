@@ -17,4 +17,4 @@ def test_conda_pip_install_numpy(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixt
         print(err, file=sys.stderr)
         assert rc == 0
         assert "numpy" in out
-        assert package_is_installed(prefix, "numpy")
+        assert package_is_installed(str(prefix), "numpy")
