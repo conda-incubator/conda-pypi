@@ -1,13 +1,15 @@
-import sys
 import pytest
 
+from conda.base.context import reset_context
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import CondaError
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
 
 
-def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
+def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch):
+    monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false")
+    reset_context()
     with tmp_env("xz") as prefix:
         args = ("pip", "-p", prefix, "--yes", "install", "requests")
         
@@ -27,3 +29,5 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
         PrefixData._cache_.clear()  # clear cache to force re-read of prefix
         assert rc == 0
         assert package_is_installed(str(prefix), "requests")
+    monkeypatch.undo()
+    reset_context()
