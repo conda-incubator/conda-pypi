@@ -48,7 +48,7 @@ jobs:
         run: |
           pixi add python=${{ matrix.python-version }}
           pixi run dev
-          echo "# Make it a detectable conda env" > .pixi/env/conda-meta/history
+          echo "" > .pixi/env/conda-meta/history
           pixi run conda list
           pixi run conda info
       - name: Run tests
