@@ -1600,83 +1600,85 @@ package:
   timestamp: 1700579932017
 - platform: linux-64
   name: fmt
-  version: 10.2.0
+  version: 10.1.1
   category: main
   manager: conda
   dependencies:
   - libgcc-ng >=12
   - libstdcxx-ng >=12
-  url: https://conda.anaconda.org/conda-forge/linux-64/fmt-10.2.0-h00ab1b0_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/fmt-10.1.1-h00ab1b0_1.conda
   hash:
-    md5: 37cb8eb3a94c51987689549cc7a12ad5
-    sha256: f929e44a2da1cdf5f5a3f333707a8be66f58eb3b4699d35f46f624ce3b9dc4d1
-  build: h00ab1b0_0
+    md5: 50a08d74ca45785f3334b175da23fd82
+    sha256: 43ea9342de9f784c86bb01af75c7592a199bf249dcd81292eedc01242e0f471d
+  build: h00ab1b0_1
   arch: x86_64
   subdir: linux-64
-  build_number: 0
+  build_number: 1
   license: MIT
   license_family: MIT
-  size: 192408
-  timestamp: 1704207506738
+  size: 192331
+  timestamp: 1701193923191
 - platform: osx-64
   name: fmt
-  version: 10.2.0
+  version: 10.1.1
   category: main
   manager: conda
   dependencies:
-  - libcxx >=15
-  url: https://conda.anaconda.org/conda-forge/osx-64/fmt-10.2.0-h7728843_0.conda
+  - __osx >=10.9
+  - libcxx >=16.0.6
+  url: https://conda.anaconda.org/conda-forge/osx-64/fmt-10.1.1-he51d815_1.conda
   hash:
-    md5: cacdff4b037b76a409230756bdd488e2
-    sha256: 526130bc675bc2fade8bfcf8f76429f554bc1452ba3635163cdf27d70e6b4b5b
-  build: h7728843_0
+    md5: 358d1774aea76209f251b11b153e6a4b
+    sha256: 4d28c4853720c61c3797e0f6e4c9b67d93ae9bd5072d257451cefa617dbb732e
+  build: he51d815_1
   arch: x86_64
   subdir: osx-64
-  build_number: 0
+  build_number: 1
   license: MIT
   license_family: MIT
-  size: 179350
-  timestamp: 1704207781761
+  size: 177869
+  timestamp: 1701194232989
 - platform: osx-arm64
   name: fmt
-  version: 10.2.0
+  version: 10.1.1
   category: main
   manager: conda
   dependencies:
-  - libcxx >=15
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/fmt-10.2.0-h2ffa867_0.conda
+  - __osx >=10.9
+  - libcxx >=16.0.6
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/fmt-10.1.1-h6aa02a4_1.conda
   hash:
-    md5: 5624e70b7f65a76d1f823f3e5e92d910
-    sha256: e1be6bb8e0f0e0e8cd9ee25f738aa6dd603e44b0690d0f4a389d8ff54a97ad87
-  build: h2ffa867_0
+    md5: 5b0d29200e83c7ec75342d543349e9aa
+    sha256: 8f83e31d65b4407fc1f9f5eaebce2ad9db9a3c287fe4324425f31b8ed0fefcbd
+  build: h6aa02a4_1
   arch: aarch64
   subdir: osx-arm64
-  build_number: 0
+  build_number: 1
   license: MIT
   license_family: MIT
-  size: 175191
-  timestamp: 1704207990518
+  size: 171378
+  timestamp: 1701194113223
 - platform: win-64
   name: fmt
-  version: 10.2.0
+  version: 10.1.1
   category: main
   manager: conda
   dependencies:
   - ucrt >=10.0.20348.0
   - vc >=14.2,<15
   - vc14_runtime >=14.29.30139
-  url: https://conda.anaconda.org/conda-forge/win-64/fmt-10.2.0-h181d51b_0.conda
+  url: https://conda.anaconda.org/conda-forge/win-64/fmt-10.1.1-h181d51b_1.conda
   hash:
-    md5: e50e9afd9c1814ad9bc7cf62d72569c4
-    sha256: 775bb773214561e7f71dbd03ff76adf37cf43e5a032b44d3360fac266c72621e
-  build: h181d51b_0
+    md5: 78dcab83827f41410cf1e70d39d3b36e
+    sha256: ada622e4ae706fb087c8cb293e39bc2bc5ea5ff37cbd5550d768d214c494dda3
+  build: h181d51b_1
   arch: x86_64
   subdir: win-64
-  build_number: 0
+  build_number: 1
   license: MIT
   license_family: MIT
-  size: 184762
-  timestamp: 1704207995269
+  size: 182961
+  timestamp: 1701194476779
 - platform: linux-64
   name: grayskull
   version: 2.5.1
