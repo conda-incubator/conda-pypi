@@ -21,7 +21,7 @@ logger = getLogger(f"conda.{__name__}")
 keep_refs_alive = []
 
 
-def analyze_dependencies(*packages: str, prefer_on_conda=True, channel="conda-forge"):
+def analyze_dependencies(*packages: str, prefer_on_conda=True, channel="conda-forge", backend="grayskull"):
     conda_deps = defaultdict(list)
     pypi_deps = defaultdict(list)
     for package in packages:
