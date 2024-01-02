@@ -21,7 +21,7 @@ def configure_parser(parser: argparse.ArgumentParser):
     add_parser_prefix(parser)
     add_output_and_prompt_options(parser)
 
-    subparser = parser.add_subparsers(dest="subcmd")
+    subparser = parser.add_subparsers(dest="subcmd", required=True)
 
     install = subparser.add_parser(
         "install",
@@ -55,9 +55,6 @@ def configure_parser(parser: argparse.ArgumentParser):
 
 
 def execute(args: argparse.Namespace) -> None:
-    if not args.packages:
-        return
-
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
     from .dependencies import analyze_dependencies
@@ -137,3 +134,4 @@ def execute(args: argparse.Namespace) -> None:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
         )
+    return 0

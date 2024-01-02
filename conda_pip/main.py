@@ -58,7 +58,7 @@ def run_conda_install(
     if not specs:
         return 0
 
-    command = ["install", "--prefix", prefix]
+    command = ["install", "--prefix", str(prefix)]
     if dry_run:
         command.append("--dry-run")
     if quiet:
@@ -100,7 +100,7 @@ def run_pip_install(
         "install",
         "--no-deps",
         "--prefix",
-        prefix,
+        str(prefix),
     ]
     if dry_run:
         command.append("--dry-run")

@@ -21,16 +21,19 @@ logger = getLogger(f"conda.{__name__}")
 keep_refs_alive = []
 
 
-def analyze_dependencies(*packages: str, prefer_on_conda=True, channel="conda-forge"):
+def analyze_dependencies(*packages: str, prefer_on_conda=True, channel="conda-forge", backend="grayskull"):
     conda_deps = defaultdict(list)
     pypi_deps = defaultdict(list)
     for package in packages:
-        pkg_name = MatchSpec(package).name
+        match_spec = MatchSpec(package)
+        pkg_name = match_spec.name
+        pkg_version = match_spec.version
         if prefer_on_conda and is_pkg_available(pkg_name, channel=channel):
+            # TODO: check if version is available too
             logger.info("Package %s is available on %s. Skipping analysis.", pkg_name, channel)
             conda_deps[pkg_name].append(f"{channel}::{package}")
             continue
-        conda_deps_map, pypi_deps_map, visited_pypi_map = _recursive_dependencies(package)
+        conda_deps_map, pypi_deps_map, visited_pypi_map = _recursive_dependencies(pkg_name, pkg_version)
         for name, specs in conda_deps_map.items():
             conda_deps[name].extend(specs)
         for name, specs in pypi_deps_map.items():
@@ -50,7 +53,8 @@ def analyze_dependencies(*packages: str, prefer_on_conda=True, channel="conda-fo
 
 
 def _recursive_dependencies(
-    package,
+    pkg_name,
+    pkg_version="",
     conda_deps_map=None,
     pypi_deps_map=None,
     visited_pypi_map=None,
@@ -58,11 +62,11 @@ def _recursive_dependencies(
     conda_deps_map = conda_deps_map or defaultdict(list)
     pypi_deps_map = pypi_deps_map or defaultdict(list)
     visited_pypi_map = visited_pypi_map or defaultdict(list)
-    if package in visited_pypi_map:
+    if (pkg_name, pkg_version) in visited_pypi_map:
         return conda_deps_map, pypi_deps_map, visited_pypi_map
 
-    conda_deps, pypi_deps, config = _analyze_with_grayskull(package)
-    visited_pypi_map[package].append((config.name, config.version))
+    conda_deps, pypi_deps, config = _analyze_with_grayskull(pkg_name, pkg_version)
+    visited_pypi_map[(pkg_name, pkg_version)].append((config.name, config.version))
 
     for name, dep in conda_deps.items():
         conda_deps_map[name].append(dep)
@@ -78,8 +82,8 @@ def _recursive_dependencies(
     return conda_deps_map, pypi_deps_map, visited_pypi_map
 
 
-def _analyze_with_grayskull(package):
-    config = GrayskullConfiguration(name=package, is_strict_cf=True)
+def _analyze_with_grayskull(package, version=""):
+    config = GrayskullConfiguration(name=package, version=version, is_strict_cf=True)
     try:
         with redirect_stdout(os.devnull), redirect_stderr(os.devnull):
             recipe = GrayskullFactory.create_recipe("pypi", config)
@@ -88,7 +92,7 @@ def _analyze_with_grayskull(package):
             return {}, {}, config
         raise
     except Exception as e:
-        raise CondaError(f"Could not infer deps for {package}") from e
+        raise CondaError(f"Could not infer deps for {package}:\n{e}") from e
 
     global keep_refs_alive
     keep_refs_alive.append(recipe)
