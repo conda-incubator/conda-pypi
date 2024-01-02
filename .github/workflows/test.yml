@@ -42,8 +42,8 @@ jobs:
           fetch-depth: 0
       - uses: prefix-dev/setup-pixi@v0.4.1
         with:
-          cache: true
-          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+          cache: false
+          run-install: false
       - name: Setup project
         run: |
           pixi add python=${{ matrix.python-version }}
