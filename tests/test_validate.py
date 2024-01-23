@@ -57,9 +57,16 @@ def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
         text = (target_site_packages / "EXTERNALLY-MANAGED").read_text().strip()
         assert text.startswith("[externally-managed]")
         assert "conda pip" in text
-        p = run([get_env_python(prefix), "-m", "pip", "install", "ca-certificates"], capture_output=True, text=True)
+        # With EXTERNALLY-MANAGED in place, regular pip installs will fail with a descriptive error
+        p = run([get_env_python(prefix), "-m", "pip", "install", "certifi"], capture_output=True, text=True)
         assert p.returncode != 0
         all_text = p.stderr + p.stdout
         assert "externally-managed-environment" in all_text
         assert "conda pip" in all_text
         assert "--break-system-packages" in all_text
+        # Retrying with --break-system-packages should work. It's a no-op because
+        # certifi is already installed, but it doesn't error out.
+        p = run([get_env_python(prefix), "-m", "pip", "install", "certifi", "--break-system-packages"], capture_output=True, text=True)
+        assert p.returncode == 0
+        all_text = p.stderr + p.stdout
+        assert "Requirement already satisfied: certifi" in all_text
