@@ -1,7 +1,8 @@
 import os
+import shutil
 from logging import getLogger
 from pathlib import Path
-from subprocess import run
+from subprocess import run, check_output
 from typing import Iterable
 
 from conda.base.context import context, locate_prefix_by_name
@@ -11,6 +12,7 @@ from conda.exceptions import CondaError, CondaSystemExit
 from conda.models.match_spec import MatchSpec
 
 logger = getLogger(f"conda.{__name__}")
+HERE = Path(__file__).parent.resolve()
 
 
 def get_prefix(prefix: Path = None, name: str =None):
@@ -120,3 +122,19 @@ def run_pip_install(
     process = run(command)
     if process.returncode:
         return process.returncode
+
+
+def place_externally_managed(prefix: Path):
+    """
+    conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
+    We also need to place it in _new_ environments created by conda. We do this by implementing
+    some extra plugin hooks.
+    """
+    # Get target env stdlib path
+    base_dir = check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_path('stdlib', sysconfig.get_default_scheme()))"], text=True)
+    base_dir = base_dir.strip()
+    externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
+    if externally_managed.exists():
+        return
+    logger.info("placing EXTERNALLY-MANAGED in %s", base_dir)
+    shutil.copy(HERE / "data" / "EXTERNALLY-MANAGED", externally_managed)

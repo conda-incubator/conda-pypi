@@ -1,3 +1,6 @@
+import sysconfig
+from pathlib import Path
+
 import pytest
 
 from conda.base.context import reset_context
@@ -34,3 +37,17 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
         assert package_is_installed(str(prefix), "requests")
     monkeypatch.undo()
     reset_context()
+
+
+def test_externally_managed():
+    """
+    conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
+    We also need to place it in _new_ environments created by conda. We do this by implementing
+    some extra plugin hooks.
+    """
+    base_dir = sysconfig.get_path("stdlib", sysconfig.get_default_scheme())
+    externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
+    assert externally_managed.exists()
+    externally_managed_text = externally_managed.read_text().strip()
+    assert externally_managed_text.startswith("[externally-managed]")
+    assert "conda-pip" in externally_managed_text
