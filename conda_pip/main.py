@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import run, check_output
 from typing import Iterable
 
+from conda.history import History
 from conda.base.context import context, locate_prefix_by_name
 from conda.core.prefix_data import PrefixData
 from conda.cli.python_api import run_command
@@ -27,6 +28,9 @@ def get_env_python(prefix: Path):
     if os.name == "nt":
         return prefix / "python.exe"
     return prefix / "bin" / "python"
+
+def get_env_site_packages(prefix: Path):
+    return check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip()
 
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     context.validate_configuration()
@@ -135,3 +139,43 @@ def place_externally_managed(prefix: Path):
         return
     logger.info("placing EXTERNALLY-MANAGED in %s", base_dir)
     shutil.copy(HERE / "data" / "EXTERNALLY-MANAGED", externally_managed)
+
+
+def ensure_target_env_has_externally_managed(command: str):
+    """
+    post-command hook to ensure that the target env has the EXTERNALLY-MANAGED file
+    even when it is created by conda, not 'conda-pip'.
+    """
+    base_prefix = context.conda_prefix
+    target_prefix = context.target_prefix
+    if base_prefix == target_prefix:
+        return
+    # ensure conda-pip was explicitly installed in base env (and not as a dependency)
+    if "conda-pip" not in History(base_prefix).get_requested_specs_map():
+        return
+    prefix_data = PrefixData(target_prefix)
+    if command in {"create", "install", "update"}:
+        # ensure target env has pip installed
+        if not list(prefix_data.query("pip")):
+            return
+        # Check if there are some leftover EXTERNALLY-MANAGED files from other Python versions
+        if command != "create" and os.name != "nt":
+            for python_dir in Path(target_prefix, "lib").glob("python*"):
+                if python_dir.is_dir():
+                    externally_managed = Path(python_dir, "EXTERNALLY-MANAGED")
+                    if externally_managed.exists():
+                        externally_managed.unlink()
+        place_externally_managed(target_prefix)
+    else:  # remove
+        if list(prefix_data.query("pip")):
+            # leave in place if pip is still installed
+            return
+        if os.name == "nt":
+            path = Path(target_prefix, "Lib", "site-packages", "EXTERNALLY-MANAGED")
+            path.unlink(missing_ok=True)
+        else:
+            for python_dir in Path(target_prefix, "lib").glob("python*"):
+                if python_dir.is_dir():
+                    externally_managed = Path(python_dir, "EXTERNALLY-MANAGED")
+                    if externally_managed.exists():
+                        externally_managed.unlink()
