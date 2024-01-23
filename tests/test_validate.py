@@ -1,4 +1,5 @@
 import sys
+from subprocess import run
 
 import pytest
 
@@ -8,7 +9,7 @@ from conda.exceptions import CondaError
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
 
-from conda_pip.main import get_env_site_packages
+from conda_pip.main import get_env_python, get_env_site_packages
 
 
 def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch):
@@ -56,3 +57,9 @@ def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
         text = (target_site_packages / "EXTERNALLY-MANAGED").read_text().strip()
         assert text.startswith("[externally-managed]")
         assert "conda pip" in text
+        p = run([get_env_python(prefix), "-m", "pip", "install", "ca-certificates"], capture_output=True, text=True)
+        assert p.returncode != 0
+        all_text = p.stderr + p.stdout
+        assert "externally-managed-environment" in all_text
+        assert "conda pip" in all_text
+        assert "--break-system-packages" in all_text
