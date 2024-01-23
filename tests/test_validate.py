@@ -45,7 +45,7 @@ def test_externally_managed():
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
-    base_dir = sysconfig.get_path("stdlib", sysconfig.get_default_scheme())
+    base_dir = sysconfig.get_paths()["stdlib"]
     externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
     assert externally_managed.exists()
     externally_managed_text = externally_managed.read_text().strip()

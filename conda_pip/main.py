@@ -131,7 +131,7 @@ def place_externally_managed(prefix: Path):
     some extra plugin hooks.
     """
     # Get target env stdlib path
-    base_dir = check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_path('stdlib', sysconfig.get_default_scheme()))"], text=True)
+    base_dir = check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True)
     base_dir = base_dir.strip()
     externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
     if externally_managed.exists():
