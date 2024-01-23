@@ -1,5 +1,6 @@
 import sysconfig
 from pathlib import Path
+from subprocess import check_output
 
 import pytest
 
@@ -8,6 +9,8 @@ from conda.core.prefix_data import PrefixData
 from conda.exceptions import CondaError
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
+
+from conda_pip.main import get_env_python
 
 
 def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch):
@@ -39,11 +42,10 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
     reset_context()
 
 
-def test_externally_managed():
+def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
     """
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
-    We also need to place it in _new_ environments created by conda. We do this by implementing
-    some extra plugin hooks.
+    We also need to place it in _new_ environments created by conda.
     """
     base_dir = sysconfig.get_paths()["stdlib"]
     externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
@@ -51,3 +53,11 @@ def test_externally_managed():
     externally_managed_text = externally_managed.read_text().strip()
     assert externally_managed_text.startswith("[externally-managed]")
     assert "conda pip" in externally_managed_text
+
+    with tmp_env("python", "pip") as prefix:
+        conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
+        target_site_packages = check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip()
+        externally_managed = Path(target_site_packages, "EXTERNALLY-MANAGED")
+        externally_managed_text = externally_managed.read_text().strip()
+        assert externally_managed_text.startswith("[externally-managed]")
+        assert "conda pip" in externally_managed_text

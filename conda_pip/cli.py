@@ -58,7 +58,7 @@ def execute(args: argparse.Namespace) -> None:
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
     from .dependencies import analyze_dependencies
-    from .main import validate_target_env, get_prefix, run_conda_install, run_pip_install
+    from .main import (validate_target_env, get_prefix, place_externally_managed, run_conda_install, run_pip_install,)
 
     prefix = Path(get_prefix(args.prefix, args.name))
     packages_not_installed = validate_target_env(prefix, args.packages)
@@ -125,7 +125,7 @@ def execute(args: argparse.Namespace) -> None:
     if pypi_specs:
         if not args.quiet or not args.json:
             print("Running pip install...")
-        return run_pip_install(
+        retcode = run_pip_install(
             prefix,
             pypi_specs,
             dry_run=args.dry_run,
@@ -134,4 +134,7 @@ def execute(args: argparse.Namespace) -> None:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
         )
+        if retcode:
+            return retcode
+        place_externally_managed(prefix)
     return 0

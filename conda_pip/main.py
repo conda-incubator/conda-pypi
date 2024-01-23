@@ -112,16 +112,13 @@ def run_pip_install(
         command.append("-" + ("v" * verbosity))
     if force_reinstall:
         command.append("--force-reinstall")
-    if yes:
-        command.append("--yes")
     if upgrade:
         command.append("--upgrade")
     command.extend(specs)
 
     logger.info("pip install command: %s", command)
     process = run(command)
-    if process.returncode:
-        return process.returncode
+    return process.returncode
 
 
 def place_externally_managed(prefix: Path):
