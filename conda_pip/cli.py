@@ -60,7 +60,7 @@ def execute(args: argparse.Namespace) -> None:
     from .dependencies import analyze_dependencies
     from .main import (validate_target_env, get_prefix, place_externally_managed, run_conda_install, run_pip_install,)
 
-    prefix = Path(get_prefix(args.prefix, args.name))
+    prefix = get_prefix(args.prefix, args.name)
     packages_not_installed = validate_target_env(prefix, args.packages)
 
     packages_to_process = args.packages if args.force_reinstall else packages_not_installed

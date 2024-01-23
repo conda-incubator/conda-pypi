@@ -1,5 +1,7 @@
 import os
 import shutil
+import sys
+import sysconfig
 from logging import getLogger
 from pathlib import Path
 from subprocess import run, check_output
@@ -16,21 +18,26 @@ logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
 
 
-def get_prefix(prefix: Path = None, name: str =None):
+def get_prefix(prefix: Path = None, name: str = None) -> Path:
     if prefix:
-        return prefix
+        return Path(prefix)
     elif name:
-        return locate_prefix_by_name(name)
+        return Path(locate_prefix_by_name(name))
     else:
-        return context.target_prefix
+        return Path(context.target_prefix)
 
-def get_env_python(prefix: Path):
+
+def get_env_python(prefix: Path) -> Path:
     if os.name == "nt":
         return prefix / "python.exe"
     return prefix / "bin" / "python"
 
-def get_env_site_packages(prefix: Path):
-    return check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip()
+
+def get_env_site_packages(prefix: Path) -> Path:
+    if str(prefix) == sys.prefix:
+        return Path(sysconfig.get_path("stdlib"))
+    return Path(check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip())
+
 
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     context.validate_configuration()
@@ -125,7 +132,7 @@ def run_pip_install(
     return process.returncode
 
 
-def place_externally_managed(prefix: Path):
+def place_externally_managed(prefix: Path) -> Path:
     """
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda. We do this by implementing
@@ -137,8 +144,9 @@ def place_externally_managed(prefix: Path):
     externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
     if externally_managed.exists():
         return
-    logger.info("placing EXTERNALLY-MANAGED in %s", base_dir)
+    logger.info("Placing EXTERNALLY-MANAGED in %s", base_dir)
     shutil.copy(HERE / "data" / "EXTERNALLY-MANAGED", externally_managed)
+    return externally_managed
 
 
 def ensure_target_env_has_externally_managed(command: str):
@@ -171,11 +179,14 @@ def ensure_target_env_has_externally_managed(command: str):
             # leave in place if pip is still installed
             return
         if os.name == "nt":
-            path = Path(target_prefix, "Lib", "site-packages", "EXTERNALLY-MANAGED")
-            path.unlink(missing_ok=True)
+            externally_managed = Path(target_prefix, "Lib", "site-packages", "EXTERNALLY-MANAGED")
+            if externally_managed.exists():
+                logger.info("Removing %s", externally_managed)
+                externally_managed.unlink()
         else:
             for python_dir in Path(target_prefix, "lib").glob("python*"):
                 if python_dir.is_dir():
                     externally_managed = Path(python_dir, "EXTERNALLY-MANAGED")
                     if externally_managed.exists():
+                        logger.info("Removing %s", externally_managed)
                         externally_managed.unlink()
