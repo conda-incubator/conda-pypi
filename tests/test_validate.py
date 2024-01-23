@@ -50,4 +50,4 @@ def test_externally_managed():
     assert externally_managed.exists()
     externally_managed_text = externally_managed.read_text().strip()
     assert externally_managed_text.startswith("[externally-managed]")
-    assert "conda-pip" in externally_managed_text
+    assert "conda pip" in externally_managed_text
