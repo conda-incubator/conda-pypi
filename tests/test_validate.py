@@ -2,12 +2,12 @@ import sys
 from subprocess import run
 
 import pytest
-
 from conda.base.context import reset_context
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import CondaError
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
+from pytest_mock import MockerFixture
 
 from conda_pip.main import get_env_python, get_env_site_packages
 
@@ -41,7 +41,7 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
     reset_context()
 
 
-def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
+def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, mocker: MockerFixture):
     """
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda.
@@ -54,7 +54,8 @@ def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
     with tmp_env("python", "pip") as prefix:
         conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
         target_site_packages = get_env_site_packages(prefix)
-        text = (target_site_packages / "EXTERNALLY-MANAGED").read_text().strip()
+        externally_managed_file = target_site_packages / "EXTERNALLY-MANAGED"
+        text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
         assert "conda pip" in text
         # With EXTERNALLY-MANAGED in place, regular pip installs will fail with a descriptive error
@@ -70,3 +71,18 @@ def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
         assert p.returncode == 0
         all_text = p.stderr + p.stdout
         assert "Requirement already satisfied: certifi" in all_text
+
+        # Mock history to bypass "conda-pip is explicitly installed" checks
+        # since in some local development environments we might have installed via pip -e
+        mocker.patch(
+            "conda.history.History.get_requested_specs_map",
+            new_callable=mocker.Mock,
+            return_value={},
+        )
+        # EXTERNALLY-MANAGED is removed when pip is removed
+        conda_cli("remove", "-p", prefix, "--yes", "pip")
+        assert not externally_managed_file.exists()
+    
+        # EXTERNALLY-MANAGED is automatically added when pip is reinstalled by the plugin hook
+        conda_cli("install", "-p", prefix, "--yes", "pip")
+        assert externally_managed_file.exists()

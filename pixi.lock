@@ -5614,6 +5614,90 @@ package:
   size: 244758
   timestamp: 1698233883003
 - platform: linux-64
+  name: pytest-mock
+  version: 3.12.0
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=5.0
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-mock-3.12.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: ac9fedc9a0c397f2318e82525491dd83
+    sha256: 58d3bd93a0cf9b51ac105de1e01b1fcd1fcfa5993023b67658344e329b02d6e0
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 21672
+  timestamp: 1697739717579
+- platform: osx-64
+  name: pytest-mock
+  version: 3.12.0
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=5.0
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-mock-3.12.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: ac9fedc9a0c397f2318e82525491dd83
+    sha256: 58d3bd93a0cf9b51ac105de1e01b1fcd1fcfa5993023b67658344e329b02d6e0
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 21672
+  timestamp: 1697739717579
+- platform: osx-arm64
+  name: pytest-mock
+  version: 3.12.0
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=5.0
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-mock-3.12.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: ac9fedc9a0c397f2318e82525491dd83
+    sha256: 58d3bd93a0cf9b51ac105de1e01b1fcd1fcfa5993023b67658344e329b02d6e0
+  build: pyhd8ed1ab_0
+  arch: aarch64
+  subdir: osx-arm64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 21672
+  timestamp: 1697739717579
+- platform: win-64
+  name: pytest-mock
+  version: 3.12.0
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=5.0
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-mock-3.12.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: ac9fedc9a0c397f2318e82525491dd83
+    sha256: 58d3bd93a0cf9b51ac105de1e01b1fcd1fcfa5993023b67658344e329b02d6e0
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 21672
+  timestamp: 1697739717579
+- platform: linux-64
   name: python
   version: 3.10.0
   category: main

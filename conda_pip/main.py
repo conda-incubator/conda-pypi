@@ -154,12 +154,13 @@ def ensure_target_env_has_externally_managed(command: str):
     post-command hook to ensure that the target env has the EXTERNALLY-MANAGED file
     even when it is created by conda, not 'conda-pip'.
     """
-    base_prefix = context.conda_prefix
-    target_prefix = context.target_prefix
+    base_prefix = Path(context.conda_prefix)
+    target_prefix = Path(context.target_prefix)
     if base_prefix == target_prefix:
         return
     # ensure conda-pip was explicitly installed in base env (and not as a dependency)
-    if "conda-pip" not in History(base_prefix).get_requested_specs_map():
+    requested_specs_map = History(base_prefix).get_requested_specs_map()
+    if requested_specs_map and "conda-pip" not in requested_specs_map:
         return
     prefix_data = PrefixData(target_prefix)
     if command in {"create", "install", "update"}:
