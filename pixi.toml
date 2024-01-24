@@ -12,7 +12,7 @@ test = "pytest -vvv"
 build = "conda build recipe"
 
 [dependencies]
-python = "3.10"
+python = "3.10.* *cpython*"
 conda = ">=23.9"
 pip = "*"
 grayskull = "*"
