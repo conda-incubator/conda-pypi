@@ -43,10 +43,10 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     context.validate_configuration()
     pd = PrefixData(path, pip_interop_enabled=True)
 
-    if not list(pd.query("python")):
-        raise CondaError(f"Target environment at {path} does not have Python installed")
-    if not list(pd.query("pip")):
-        raise CondaError(f"Target environment at {path} does not have pip installed")
+    if not list(pd.query("python>=3.2")):
+        raise CondaError(f"Target environment at {path} requires python>=3.2")
+    if not list(pd.query("pip>=23.0.1")):
+        raise CondaError(f"Target environment at {path} requires pip>=23.0.1")
 
     packages_to_process = []
     for pkg in packages:

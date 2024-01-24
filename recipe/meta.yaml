@@ -1,0 +1,44 @@
+package:
+  name: conda-pip
+  {% if GIT_DESCRIBE_TAG is defined and GIT_BUILD_STR is defined %}
+  version: {{ GIT_DESCRIBE_TAG }}+{{ GIT_BUILD_STR }}
+  {% else %}
+  version: 0.0.0dev0
+  {% endif %}
+
+source:
+  # git_url only captures committed code
+  git_url: ../
+
+build:
+  number: 0
+  noarch: python
+  script: 
+    - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+    - cp conda_pip/data/EXTERNALLY-MANAGED "$("{{ PYTHON }}" -c "import sysconfig; print(sysconfig.get_paths()['stdlib'])")"
+
+requirements:
+  host:
+    - python >=3.8
+    - pip
+    - hatchling >=1.12.2
+    - hatch-vcs >=0.2.0
+  run:
+    - python >=3.8
+    - conda >=23.7.3
+    - pip >=23.0.1
+    - grayskull
+
+test:
+  imports:
+    - conda_pip
+    - conda_pip.main
+  commands:
+    - conda pip --help
+
+about:
+  home: https://github.com/jaimergp/conda-pip
+  license: MIT
+  license_file: LICENSE
+  summary: A safer pip for conda environments
+  dev_url: https://github.com/jaimergp/conda-pip
