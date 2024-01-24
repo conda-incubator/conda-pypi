@@ -155,6 +155,8 @@ def ensure_target_env_has_externally_managed(command: str):
     post-command hook to ensure that the target env has the EXTERNALLY-MANAGED file
     even when it is created by conda, not 'conda-pip'.
     """
+    if os.environ.get("CONDA_BUILD_STATE") == "BUILD":
+        return
     base_prefix = Path(context.conda_prefix)
     target_prefix = Path(context.target_prefix)
     if base_prefix == target_prefix:

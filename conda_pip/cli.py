@@ -2,9 +2,9 @@
 conda pip subcommand for CLI
 """
 import argparse
+import os
 import sys
 from logging import getLogger
-from pathlib import Path
 
 from conda.cli.common import confirm_yn
 from conda.cli.conda_argparse import (
@@ -136,5 +136,6 @@ def execute(args: argparse.Namespace) -> None:
         )
         if retcode:
             return retcode
-        place_externally_managed(prefix)
+        if os.environ.get("CONDA_BUILD_STATE") != "BUILD":
+            place_externally_managed(prefix)
     return 0
