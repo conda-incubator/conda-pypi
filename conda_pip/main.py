@@ -18,7 +18,7 @@ logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
 
 
-def get_prefix(prefix: Path = None, name: str = None) -> Path:
+def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
     if prefix:
         return Path(prefix)
     elif name:
@@ -27,13 +27,15 @@ def get_prefix(prefix: Path = None, name: str = None) -> Path:
         return Path(context.target_prefix)
 
 
-def get_env_python(prefix: Path) -> Path:
+def get_env_python(prefix: os.PathLike) -> Path:
+    prefix = Path(prefix)
     if os.name == "nt":
         return prefix / "python.exe"
     return prefix / "bin" / "python"
 
 
-def get_env_stdlib(prefix: Path) -> Path:
+def get_env_stdlib(prefix: os.PathLike) -> Path:
+    prefix = Path(prefix)
     if str(prefix) == sys.prefix:
         return Path(sysconfig.get_path("stdlib"))
     return Path(check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip())
