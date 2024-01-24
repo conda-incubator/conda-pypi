@@ -9,7 +9,7 @@ from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
 from pytest_mock import MockerFixture
 
-from conda_pip.main import get_env_python, get_env_site_packages
+from conda_pip.main import get_env_python, get_env_stdlib
 
 
 def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch):
@@ -46,14 +46,14 @@ def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, 
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda.
     """
-    base_dir = get_env_site_packages(sys.prefix)
+    base_dir = get_env_stdlib(sys.prefix)
     text = (base_dir / "EXTERNALLY-MANAGED").read_text().strip()
     assert text.startswith("[externally-managed]")
     assert "conda pip" in text
 
     with tmp_env("python", "pip") as prefix:
         conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
-        target_site_packages = get_env_site_packages(prefix)
+        target_site_packages = get_env_stdlib(prefix)
         externally_managed_file = target_site_packages / "EXTERNALLY-MANAGED"
         text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
