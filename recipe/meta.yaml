@@ -15,7 +15,7 @@ build:
   number: 0
   script:
     - set -x  # [unix]
-    - @ECHO ON  # [win]
+    - "@ECHO ON"  # [win]
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
     - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed()"
 
