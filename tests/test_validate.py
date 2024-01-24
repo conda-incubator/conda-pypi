@@ -18,7 +18,7 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
     with tmp_env("xz") as prefix:
         args = ("pip", "-p", prefix, "--yes", "install", "requests")
         
-        with pytest.raises(CondaError, match="does not have Python installed"):
+        with pytest.raises(CondaError, match="requires python"):
             out, err, rc = conda_cli(*args)
         out, err, rc = conda_cli("install", "-p", prefix, "--yes", "python=3.9")
         PrefixData._cache_.clear()  # clear cache to force re-read of prefix
@@ -26,7 +26,7 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
         assert not package_is_installed(str(prefix), "pip")
         PrefixData._cache_.clear()
 
-        with pytest.raises(CondaError, match="does not have pip installed"):
+        with pytest.raises(CondaError, match="requires pip"):
             out, err, rc = conda_cli(*args)
         out, err, rc = conda_cli("install", "-p", prefix, "--yes", "pip")
         PrefixData._cache_.clear()  # clear cache to force re-read of prefix
