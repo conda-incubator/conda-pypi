@@ -51,3 +51,5 @@ jobs:
           pixi run conda info
       - name: Run tests
         run: pixi run test
+      - name: Build recipe
+        run: pixi run build

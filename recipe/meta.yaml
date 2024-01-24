@@ -11,20 +11,22 @@ source:
   git_url: ../
 
 build:
+  # can't be noarch because we can't place EXTERNALLY-MANAGED in stdlib (first level is site-packages)
   number: 0
-  noarch: python
-  script: 
+  script:
+    - set -x
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-    - cp conda_pip/data/EXTERNALLY-MANAGED "$("{{ PYTHON }}" -c "import sysconfig; print(sysconfig.get_paths()['stdlib'])")"
+    - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed('{{ PREFIX }}')"
 
 requirements:
   host:
-    - python >=3.8
+    - python
     - pip
     - hatchling >=1.12.2
     - hatch-vcs >=0.2.0
+    - conda >=23.7.3
   run:
-    - python >=3.8
+    - python
     - conda >=23.7.3
     - pip >=23.0.1
     - grayskull
@@ -35,6 +37,8 @@ test:
     - conda_pip.main
   commands:
     - conda pip --help
+    - python -c "from conda_pip.main import get_env_stdlib; import sys; assert (get_env_stdlib(sys.prefix) / 'EXTERNALLY-MANAGED').exists()"
+    - pip install requests && exit 1 || exit 0
 
 about:
   home: https://github.com/jaimergp/conda-pip
