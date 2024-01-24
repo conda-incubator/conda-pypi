@@ -14,9 +14,10 @@ build:
   # can't be noarch because we can't place EXTERNALLY-MANAGED in stdlib (first level is site-packages)
   number: 0
   script:
-    - set -x
+    - set -x  # [unix]
+    - @ECHO ON  # [win]
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-    - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed('{{ PREFIX }}')"
+    - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed(r'{{ PREFIX }}')"
 
 requirements:
   host:
