@@ -134,13 +134,15 @@ def run_pip_install(
     return process.returncode
 
 
-def place_externally_managed(prefix: Path) -> Path:
+def place_externally_managed(prefix: Path | None = None) -> Path:
     """
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
     # Get target env stdlib path
+    if prefix is None:
+        prefix = sys.prefix
     base_dir = get_env_stdlib(prefix)
     externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
     if externally_managed.exists():

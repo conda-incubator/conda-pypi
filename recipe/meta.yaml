@@ -17,7 +17,7 @@ build:
     - set -x  # [unix]
     - @ECHO ON  # [win]
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-    - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed(r'{{ PREFIX }}')"
+    - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed()"
 
 requirements:
   host:
@@ -38,7 +38,7 @@ test:
     - conda_pip.main
   commands:
     - conda pip --help
-    - python -c "from conda_pip.main import get_env_stdlib; import sys; assert (get_env_stdlib(sys.prefix) / 'EXTERNALLY-MANAGED').exists()"
+    - python -c "from conda_pip.main import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
     - pip install requests && exit 1 || exit 0
 
 about:
