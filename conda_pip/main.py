@@ -5,7 +5,7 @@ import sysconfig
 from logging import getLogger
 from pathlib import Path
 from subprocess import run, check_output
-from typing import Iterable
+from typing import Iterable, Optional
 
 from conda.history import History
 from conda.base.context import context, locate_prefix_by_name
@@ -27,15 +27,15 @@ def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
         return Path(context.target_prefix)
 
 
-def get_env_python(prefix: os.PathLike) -> Path:
-    prefix = Path(prefix)
+def get_env_python(prefix: os.PathLike = None) -> Path:
+    prefix = Path(prefix or sys.prefix)
     if os.name == "nt":
         return prefix / "python.exe"
     return prefix / "bin" / "python"
 
 
-def get_env_stdlib(prefix: os.PathLike) -> Path:
-    prefix = Path(prefix)
+def get_env_stdlib(prefix: os.PathLike = None) -> Path:
+    prefix = Path(prefix or sys.prefix)
     if str(prefix) == sys.prefix:
         return Path(sysconfig.get_path("stdlib"))
     return Path(check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip())
@@ -134,16 +134,13 @@ def run_pip_install(
     return process.returncode
 
 
-def place_externally_managed(prefix: Path | None = None) -> Path:
+def place_externally_managed(prefix: os.PathLike = None) -> Path:
     """
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
-    # Get target env stdlib path
-    if prefix is None:
-        prefix = sys.prefix
-    base_dir = get_env_stdlib(prefix)
+    base_dir = get_env_stdlib(prefix or sys.prefix)
     externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
     if externally_managed.exists():
         return
