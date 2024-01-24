@@ -46,7 +46,7 @@ jobs:
           run-install: false
       - name: Setup project
         run: |
-          pixi add python=${{ matrix.python-version }}=*cpython*
+          pixi add python=${{ matrix.python-version }}
           pixi run dev
           pixi run conda info
       - name: Run tests
