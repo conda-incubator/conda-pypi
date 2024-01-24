@@ -33,7 +33,7 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
         include:
           - os: macos
-            python-version: "3.9"
+            python-version: "3.10"
     
     steps:
       - name: Checkout
@@ -46,7 +46,7 @@ jobs:
           run-install: false
       - name: Setup project
         run: |
-          pixi add python=${{ matrix.python-version }}
+          pixi add python=${{ matrix.python-version }}=*cpython*
           pixi run dev
           pixi run conda info
       - name: Run tests
