@@ -6,6 +6,14 @@ Error=You are trying to modify a conda environment!
   This will make a few checks to ensure that the PyPI packages 
   you want to install will not disrupt your conda environment.
 
-  If you still want to proceed with 'pip install ...', then
-  add the '--break-system-packages' to your command, but be aware
-  that you might experience unexpected issues.
+  If you still want to proceed with 'pip install ...', you can continue
+  at your own risk by doing one of the following:
+  
+  - Add the '--break-system-packages' flag to your command
+  - Set the 'PIP_BREAK_SYSTEM_PACKAGES' environment variable to '1'
+
+  Be aware that this might render your conda environment unusable!
+  Check the following links for more information:
+
+  - https://packaging.python.org/en/latest/specifications/externally-managed-environments/
+  - https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-break-system-packages
