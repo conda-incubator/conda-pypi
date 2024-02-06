@@ -173,7 +173,7 @@ def ensure_target_env_has_externally_managed(command: str):
         if command != "create" and os.name != "nt":
             for python_dir in Path(target_prefix, "lib").glob("python*"):
                 if python_dir.is_dir():
-                    externally_managed = Path(python_dir, "EXTERNALLY-MANAGED")
+                    externally_managed = python_dir / "EXTERNALLY-MANAGED"
                     if externally_managed.exists():
                         externally_managed.unlink()
         place_externally_managed(target_prefix)
