@@ -1,11 +1,11 @@
 import os
-import shutil
 import sys
 import sysconfig
+from importlib.resources import files
 from logging import getLogger
 from pathlib import Path
 from subprocess import run, check_output
-from typing import Iterable, Optional
+from typing import Iterable
 
 from conda.history import History
 from conda.base.context import context, locate_prefix_by_name
@@ -39,6 +39,20 @@ def get_env_stdlib(prefix: os.PathLike = None) -> Path:
     if str(prefix) == sys.prefix:
         return Path(sysconfig.get_path("stdlib"))
     return Path(check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip())
+
+
+def get_externally_managed_path(prefix: os.PathLike = None) -> Path:
+    prefix = Path(prefix or sys.prefix)
+    if os.name == "nt":
+        yield Path(prefix, "Lib", "EXTERNALLY-MANAGED")
+    else:
+        found = False
+        for python_dir in sorted(Path(prefix, "lib").glob("python*")):
+            if python_dir.is_dir():
+                found = True
+                yield Path(python_dir, "EXTERNALLY-MANAGED")
+    if not found:
+        raise ValueError("Could not locate EXTERNALLY-MANAGED file")
 
 
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
@@ -134,19 +148,19 @@ def run_pip_install(
     return process.returncode
 
 
-def place_externally_managed(prefix: os.PathLike = None) -> Path:
+def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
     """
     conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
-    base_dir = get_env_stdlib(prefix or sys.prefix)
-    externally_managed = Path(base_dir, "EXTERNALLY-MANAGED")
-    if externally_managed.exists():
-        return
-    logger.info("Placing EXTERNALLY-MANAGED in %s", base_dir)
-    shutil.copy(HERE / "data" / "EXTERNALLY-MANAGED", externally_managed)
-    return externally_managed
+    target_path = next(get_externally_managed_path(prefix))
+    if target_path.exists():
+        return target_path
+    logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
+    resource = files("conda_pip") / "data" / "EXTERNALLY-MANAGED"
+    target_path.write_text(resource.read_text())
+    return target_path
 
 
 def ensure_target_env_has_externally_managed(command: str):
@@ -171,25 +185,12 @@ def ensure_target_env_has_externally_managed(command: str):
             return
         # Check if there are some leftover EXTERNALLY-MANAGED files from other Python versions
         if command != "create" and os.name != "nt":
-            for python_dir in Path(target_prefix, "lib").glob("python*"):
-                if python_dir.is_dir():
-                    externally_managed = Path(python_dir, "EXTERNALLY-MANAGED")
-                    if externally_managed.exists():
-                        externally_managed.unlink()
-        place_externally_managed(target_prefix)
+            for path in get_externally_managed_path(target_prefix):
+                if path.exists():
+                    path.unlink()
+        ensure_externally_managed(target_prefix)
     else:  # remove
         if list(prefix_data.query("pip")):
             # leave in place if pip is still installed
             return
-        if os.name == "nt":
-            externally_managed = Path(target_prefix, "Lib", "EXTERNALLY-MANAGED")
-            if externally_managed.exists():
-                logger.info("Removing %s", externally_managed)
-                externally_managed.unlink()
-        else:
-            for python_dir in Path(target_prefix, "lib").glob("python*"):
-                if python_dir.is_dir():
-                    externally_managed = Path(python_dir, "EXTERNALLY-MANAGED")
-                    if externally_managed.exists():
-                        logger.info("Removing %s", externally_managed)
-                        externally_managed.unlink()
+        next(get_externally_managed_path(target_prefix)).unlink()
