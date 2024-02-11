@@ -1,11 +1,15 @@
 import os
 import sys
 import sysconfig
-from importlib.resources import files
 from logging import getLogger
 from pathlib import Path
 from subprocess import run, check_output
 from typing import Iterable
+
+try:
+    from importlib.resources import files as importlib_files
+except ImportError:
+    from importlib_resources import files as importlib_files
 
 from conda.history import History
 from conda.base.context import context, locate_prefix_by_name
@@ -158,7 +162,7 @@ def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
     if target_path.exists():
         return target_path
     logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
-    resource = files("conda_pip") / "data" / "EXTERNALLY-MANAGED"
+    resource = importlib_files("conda_pip") / "data" / "EXTERNALLY-MANAGED"
     target_path.write_text(resource.read_text())
     return target_path
 

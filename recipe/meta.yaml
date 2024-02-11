@@ -31,6 +31,7 @@ requirements:
     - conda >=23.7.3
     - pip >=23.0.1
     - grayskull
+    - importlib_resources
 
 test:
   imports:

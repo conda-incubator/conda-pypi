@@ -26,6 +26,7 @@ dependencies = [
   "conda >=23.7.3",
   "pip",
   "grayskull",
+  "importlib_resources",
 ]
 dynamic = [
   "version"
