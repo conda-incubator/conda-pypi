@@ -189,8 +189,10 @@ def ensure_target_env_has_externally_managed(command: str):
                 if path.exists():
                     path.unlink()
         ensure_externally_managed(target_prefix)
-    else:  # remove
+    elif command == "remove":
         if list(prefix_data.query("pip")):
             # leave in place if pip is still installed
             return
         next(get_externally_managed_path(target_prefix)).unlink()
+    else:
+        raise ValueError(f"command {command} not recognized.")
