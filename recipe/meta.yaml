@@ -17,7 +17,7 @@ build:
     - set -x  # [unix]
     - "@ECHO ON"  # [win]
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-    - {{ PYTHON }} -c "from conda_pip.main import place_externally_managed; place_externally_managed()"
+    - {{ PYTHON }} -c "from conda_pip.main import ensure_externally_managed; ensure_externally_managed()"
 
 requirements:
   host:
