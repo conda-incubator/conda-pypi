@@ -55,8 +55,8 @@ def get_externally_managed_path(prefix: os.PathLike = None) -> Path:
             if python_dir.is_dir():
                 found = True
                 yield Path(python_dir, "EXTERNALLY-MANAGED")
-    if not found:
-        raise ValueError("Could not locate EXTERNALLY-MANAGED file")
+        if not found:
+            raise ValueError("Could not locate EXTERNALLY-MANAGED file")
 
 
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
