@@ -1,0 +1,51 @@
+package:
+  name: conda-pip
+  {% if GIT_DESCRIBE_TAG is defined and GIT_BUILD_STR is defined %}
+  version: {{ GIT_DESCRIBE_TAG }}+{{ GIT_BUILD_STR }}
+  {% else %}
+  version: 0.0.0dev0
+  {% endif %}
+
+source:
+  # git_url only captures committed code
+  git_url: ../
+
+build:
+  # can't be noarch because we can't place EXTERNALLY-MANAGED in stdlib (first level is site-packages)
+  number: 0
+  script:
+    - set -x  # [unix]
+    - "@ECHO ON"  # [win]
+    - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+    - {{ PYTHON }} -c "from conda_pip.main import ensure_externally_managed; ensure_externally_managed()"
+
+requirements:
+  host:
+    - python
+    - pip
+    - hatchling >=1.12.2
+    - hatch-vcs >=0.2.0
+    - conda >=23.7.3
+    - importlib_resources
+  run:
+    - python
+    - conda >=23.7.3
+    - pip >=23.0.1
+    - grayskull
+    - importlib_resources
+
+test:
+  imports:
+    - conda_pip
+    - conda_pip.main
+  commands:
+    - conda pip --help
+    - python -c "from conda_pip.main import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
+    - pip install requests && exit 1 || exit 0
+
+about:
+  home: https://github.com/jaimergp/conda-pip
+  license: MIT
+  license_file: LICENSE
+  summary: A safer pip for conda environments
+  dev_url: https://github.com/jaimergp/conda-pip
