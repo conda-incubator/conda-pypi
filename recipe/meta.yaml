@@ -26,6 +26,7 @@ requirements:
     - hatchling >=1.12.2
     - hatch-vcs >=0.2.0
     - conda >=23.7.3
+    - importlib_resources
   run:
     - python
     - conda >=23.7.3
