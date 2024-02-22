@@ -1,14 +1,10 @@
 """
 """
-from logging import getLogger, ERROR
+from logging import getLogger
 from collections import defaultdict
 from conda.models.match_spec import MatchSpec
 from grayskull.base.pkg_info import is_pkg_available
 
-getLogger("grayskull").setLevel(ERROR)
-getLogger("souschef").setLevel(ERROR)
-getLogger("requests").setLevel(ERROR)
-getLogger("urllib3").setLevel(ERROR)
 logger = getLogger(f"conda.{__name__}")
 
 
@@ -17,6 +13,7 @@ def analyze_dependencies(
     prefer_on_conda=True,
     channel="conda-forge",
     backend="grayskull",
+    prefix=None,
 ):
     conda_deps = defaultdict(list)
     needs_analysis = []
@@ -27,7 +24,7 @@ def analyze_dependencies(
         if prefer_on_conda and is_pkg_available(pkg_name, channel=channel):
             # TODO: check if version is available too
             logger.info("Package %s is available on %s. Skipping analysis.", pkg_name, channel)
-            conda_deps[pkg_name].append(f"{channel}::{package}")
+            conda_deps[pkg_name].append({package})
             continue
         needs_analysis.append(package)
 
@@ -44,7 +41,7 @@ def analyze_dependencies(
         from .pip import _analyze_with_pip
 
         found_conda_deps, pypi_deps = _analyze_with_pip(
-            *needs_analysis, prefer_on_conda=prefer_on_conda, channel=channel
+            *needs_analysis, prefer_on_conda=prefer_on_conda, channel=channel, prefix=prefix,
         )
     else:
         raise ValueError(f"Unknown backend {backend}")

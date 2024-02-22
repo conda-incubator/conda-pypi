@@ -1,6 +1,5 @@
 import json
-import sys
-from logging import getLogger, ERROR
+from logging import getLogger
 from collections import defaultdict
 from subprocess import run
 from tempfile import NamedTemporaryFile
@@ -8,19 +7,20 @@ from tempfile import NamedTemporaryFile
 from conda.exceptions import CondaError
 from grayskull.base.pkg_info import is_pkg_available
 
+from ..utils import get_env_python
 
-getLogger("requests").setLevel(ERROR)
-getLogger("urllib3").setLevel(ERROR)
 logger = getLogger(f"conda.{__name__}")
 
 
-def _analyze_with_pip(*packages, prefer_on_conda=True, channel="conda-forge"):
+def _analyze_with_pip(*packages, prefer_on_conda=True, channel="conda-forge", prefix=None, force_reinstall=False):
     with NamedTemporaryFile("w+") as f:
         cmd = [
-            sys.executable,
+            get_env_python(prefix),
             "-mpip",
             "install",
             "--dry-run",
+            "--ignore-installed",
+            *(("--force-reinstall",) if force_reinstall else ()),
             "--report",
             f.name,
             *packages,
@@ -51,7 +51,7 @@ def _analyze_with_pip(*packages, prefer_on_conda=True, channel="conda-forge"):
     
     pypi_deps = defaultdict(list)
     for depname, deps in deps_from_pip.items():
-        if is_pkg_available(depname, channel=channel):
+        if prefer_on_conda and is_pkg_available(depname, channel=channel):
             conda_deps[depname].extend(deps)  # TODO: Map pypi name to conda name(s)
         else:
             pypi_deps[depname].extend(deps)

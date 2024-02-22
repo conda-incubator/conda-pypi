@@ -58,7 +58,8 @@ def execute(args: argparse.Namespace) -> None:
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
     from .dependencies import analyze_dependencies
-    from .main import (validate_target_env, get_prefix, ensure_externally_managed, run_conda_install, run_pip_install,)
+    from .main import (validate_target_env, ensure_externally_managed, run_conda_install, run_pip_install)
+    from .utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)
     packages_not_installed = validate_target_env(prefix, args.packages)
@@ -74,6 +75,7 @@ def execute(args: argparse.Namespace) -> None:
             prefer_on_conda=not args.force_with_pip,
             channel=args.conda_channel,
             backend="pip",
+            prefix=prefix,
         )
 
     conda_match_specs = []
@@ -105,7 +107,11 @@ def execute(args: argparse.Namespace) -> None:
                 print(" -", spec)
 
     if not args.yes and not args.json:
-        confirm_yn(dry_run=args.dry_run)
+        if conda_match_specs or pypi_specs:
+            confirm_yn(dry_run=args.dry_run)
+        else:
+            print("Nothing to do.", file=sys.stderr)
+            return 0
 
     if conda_match_specs:
         if not args.quiet or not args.json:
