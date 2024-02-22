@@ -73,6 +73,7 @@ def execute(args: argparse.Namespace) -> None:
             *packages_to_process,
             prefer_on_conda=not args.force_with_pip,
             channel=args.conda_channel,
+            backend="pip",
         )
 
     conda_match_specs = []
