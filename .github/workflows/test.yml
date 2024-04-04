@@ -49,6 +49,8 @@ jobs:
           pixi add "python=${{ matrix.python-version }}.*=*cpython*"
           pixi run dev
           pixi run conda info
+      - name: Patch history file (temporary)
+        run: echo "//fix" > .pixi/envs/default/conda-meta/history 
       - name: Run tests
         run: pixi run test
       - name: Build recipe
