@@ -52,6 +52,6 @@ jobs:
       - name: Patch history file (temporary)
         run: echo "//fix" > .pixi/envs/default/conda-meta/history 
       - name: Run tests
-        run: pixi run test
+        run: pixi run test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
       - name: Build recipe
         run: pixi run build
