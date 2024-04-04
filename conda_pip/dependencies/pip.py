@@ -1,8 +1,7 @@
 import json
-from logging import getLogger
+from logging import DEBUG, getLogger
 from collections import defaultdict
 from subprocess import run
-from tempfile import NamedTemporaryFile
 
 from conda.exceptions import CondaError
 from grayskull.base.pkg_info import is_pkg_available
@@ -12,31 +11,40 @@ from ..utils import get_env_python
 logger = getLogger(f"conda.{__name__}")
 
 
-def _analyze_with_pip(*packages, prefer_on_conda=True, channel="conda-forge", prefix=None, force_reinstall=False):
-    with NamedTemporaryFile("w+") as f:
-        cmd = [
-            get_env_python(prefix),
-            "-mpip",
-            "install",
-            "--dry-run",
-            "--ignore-installed",
-            *(("--force-reinstall",) if force_reinstall else ()),
-            "--report",
-            f.name,
-            *packages,
-        ]
-        process = run(cmd, capture_output=True, text=True)
-        if process.returncode != 0:
-            raise CondaError(
-                f"Failed to analyze dependencies with pip:\n"
-                f"  command: {' '.join(map(str, cmd))}\n"
-                f"  exit code: {process.returncode}\n"
-                f"  stdout:\n{process.stdout}\n"
-                f"  stderr:\n{process.stderr}\n"
-            )
-        f.seek(0)
-        report = json.load(f)
-
+def _analyze_with_pip(
+    *packages,
+    prefer_on_conda=True,
+    channel="conda-forge",
+    prefix=None,
+    force_reinstall=False,
+):
+    cmd = [
+        get_env_python(prefix),
+        "-mpip",
+        "install",
+        "--dry-run",
+        "--ignore-installed",
+        *(("--force-reinstall",) if force_reinstall else ()),
+        "--report",
+        "-",  # this tells pip to print the report to stdout
+        "--quiet",  # this is needed so normal pip output doesn't get mixed with json
+        *packages,
+    ]
+    process = run(cmd, capture_output=True, text=True)
+    if process.returncode != 0:
+        raise CondaError(
+            f"Failed to analyze dependencies with pip:\n"
+            f"  command: {' '.join(map(str, cmd))}\n"
+            f"  exit code: {process.returncode}\n"
+            f"  stdout:\n{process.stdout}\n"
+            f"  stderr:\n{process.stderr}\n"
+        )
+    logger.debug(
+        "pip (%s) provided the following report:\n%s",
+        " ".join(map(str, cmd)),
+        process.stdout,
+    )
+    report = json.loads(process.stdout)
     deps_from_pip = defaultdict(list)
     conda_deps = defaultdict(list)
     for item in report["install"]:
@@ -48,7 +56,7 @@ def _analyze_with_pip(*packages, prefer_on_conda=True, channel="conda-forge", pr
             conda_deps["python"].append(f"python {python_version}")
 
     deps_from_pip = {name: list(dict.fromkeys(specs)) for name, specs in deps_from_pip.items()}
-    
+
     pypi_deps = defaultdict(list)
     for depname, deps in deps_from_pip.items():
         if prefer_on_conda and is_pkg_available(depname, channel=channel):
