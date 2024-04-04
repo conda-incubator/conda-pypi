@@ -4,8 +4,10 @@ import sysconfig
 from logging import getLogger
 from pathlib import Path
 from subprocess import check_output
+from typing import Iterator
 
 from conda.base.context import context, locate_prefix_by_name
+
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -30,10 +32,19 @@ def get_env_stdlib(prefix: os.PathLike = None) -> Path:
     prefix = Path(prefix or sys.prefix)
     if str(prefix) == sys.prefix:
         return Path(sysconfig.get_path("stdlib"))
-    return Path(check_output([get_env_python(prefix), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"], text=True).strip())
+    return Path(
+        check_output(
+            [
+                get_env_python(prefix),
+                "-c",
+                "import sysconfig; print(sysconfig.get_paths()['stdlib'])",
+            ],
+            text=True,
+        ).strip()
+    )
 
 
-def get_externally_managed_path(prefix: os.PathLike = None) -> Path:
+def get_externally_managed_path(prefix: os.PathLike = None) -> Iterator[Path]:
     prefix = Path(prefix or sys.prefix)
     if os.name == "nt":
         yield Path(prefix, "Lib", "EXTERNALLY-MANAGED")
