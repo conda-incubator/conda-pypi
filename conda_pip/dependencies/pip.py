@@ -29,7 +29,7 @@ def _analyze_with_pip(*packages, prefer_on_conda=True, channel="conda-forge", pr
         if process.returncode != 0:
             raise CondaError(
                 f"Failed to analyze dependencies with pip:\n"
-                f"  command: {' '.join(cmd)}\n"
+                f"  command: {' '.join(map(str, cmd))}\n"
                 f"  exit code: {process.returncode}\n"
                 f"  stdout:\n{process.stdout}\n"
                 f"  stderr:\n{process.stderr}\n"
