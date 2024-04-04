@@ -24,7 +24,7 @@ def analyze_dependencies(
         if prefer_on_conda and is_pkg_available(pkg_name, channel=channel):
             # TODO: check if version is available too
             logger.info("Package %s is available on %s. Skipping analysis.", pkg_name, channel)
-            conda_deps[pkg_name].append({package})
+            conda_deps[pkg_name].append(package)
             continue
         needs_analysis.append(package)
 
@@ -51,4 +51,6 @@ def analyze_dependencies(
     # deduplicate
     conda_deps = {name: list(dict.fromkeys(specs)) for name, specs in conda_deps.items()}
     pypi_deps = {name: list(dict.fromkeys(specs)) for name, specs in pypi_deps.items()}
+    print(conda_deps)
+    print(pypi_deps)
     return conda_deps, pypi_deps
