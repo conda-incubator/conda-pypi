@@ -30,7 +30,7 @@ def _analyze_with_pip(
         "--quiet",  # this is needed so normal pip output doesn't get mixed with json
         *packages,
     ]
-    process = run(cmd, capture_output=True, text=True, errors="backslashreplace")
+    process = run(cmd, capture_output=True, text=True, errors="replace")
     if process.returncode != 0:
         raise CondaError(
             f"Failed to analyze dependencies with pip:\n"
