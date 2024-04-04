@@ -7,6 +7,10 @@ from grayskull.base.pkg_info import is_pkg_available
 
 logger = getLogger(f"conda.{__name__}")
 
+BACKENDS = (
+    "grayskull",
+    "pip",
+)
 
 def analyze_dependencies(
     *packages: str,

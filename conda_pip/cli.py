@@ -17,6 +17,8 @@ logger = getLogger(f"conda.{__name__}")
 
 
 def configure_parser(parser: argparse.ArgumentParser):
+    from .dependencies import BACKENDS
+
     add_parser_help(parser)
     add_parser_prefix(parser)
     add_output_and_prompt_options(parser)
@@ -51,6 +53,13 @@ def configure_parser(parser: argparse.ArgumentParser):
         default="conda-forge",
         help="Where to look for conda dependencies.",
     )
+    install.add_argument(
+        "--backend",
+        metavar="TOOL",
+        default="pip",
+        choices=BACKENDS,
+        help="Which tool to use for PyPI packaging dependency resolution.",
+    )
     install.add_argument("packages", metavar="package", nargs="+")
 
 
@@ -74,7 +83,7 @@ def execute(args: argparse.Namespace) -> None:
             *packages_to_process,
             prefer_on_conda=not args.force_with_pip,
             channel=args.conda_channel,
-            backend="pip",
+            backend=args.backend,
             prefix=prefix,
         )
 
