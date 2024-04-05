@@ -9,6 +9,7 @@ from subprocess import check_output
 from typing import Iterator
 
 from conda.base.context import context, locate_prefix_by_name
+from conda.models.match_spec import MatchSpec
 
 
 logger = getLogger(f"conda.{__name__}")
@@ -58,3 +59,12 @@ def get_externally_managed_path(prefix: os.PathLike = None) -> Iterator[Path]:
                 yield Path(python_dir, "EXTERNALLY-MANAGED")
         if not found:
             raise ValueError("Could not locate EXTERNALLY-MANAGED file")
+
+def pypi_spec_variants(spec_str: str) -> Iterator[str]:
+    yield spec_str
+    spec = MatchSpec(spec_str)
+    for name_variant in (
+        spec.name.replace("-", "_"),
+        spec.name.replace("_", "-"),
+    ):
+        yield str(MatchSpec(spec, name=name_variant))

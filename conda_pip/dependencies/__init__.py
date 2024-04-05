@@ -14,6 +14,8 @@ from conda.models.match_spec import MatchSpec
 from conda_libmamba_solver.index import LibMambaIndexHelper as Index
 from ruamel.yaml import YAML
 
+from ..utils import pypi_spec_variants
+
 yaml = YAML(typ="safe")
 logger = getLogger(f"conda.{__name__}")
 
@@ -109,14 +111,8 @@ def _is_pkg_on_conda(pypi_spec: str, channel: str = "conda-forge") -> tuple[bool
     Given a PyPI spec (name, version), try to find it on conda-forge.
     """
     index = Index(channels=[channel])
-    match_spec = MatchSpec(pypi_spec)
-    for name_variant in (
-        pypi_spec,
-        pypi_spec.lower().replace("-", "_"),
-        pypi_spec.lower().replace("_", "-"),
-        pypi_spec.lower(),
-    ):
-        conda_spec = _pypi_spec_to_conda_spec(str(MatchSpec(match_spec, name=name_variant)))
+    for spec_variant in pypi_spec_variants(pypi_spec):
+        conda_spec = _pypi_spec_to_conda_spec(spec_variant)
         records = index.search(conda_spec)
         if records:
             return True, conda_spec
