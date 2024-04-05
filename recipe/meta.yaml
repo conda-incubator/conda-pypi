@@ -33,6 +33,7 @@ requirements:
     - pip >=23.0.1
     - grayskull
     - importlib_resources
+    - conda-libmamba-solver
 
 test:
   imports:
@@ -40,7 +41,7 @@ test:
     - conda_pip.main
   commands:
     - conda pip --help
-    - python -c "from conda_pip.main import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
+    - python -c "from conda_pip.utils import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
     - pip install requests && exit 1 || exit 0
 
 about:
