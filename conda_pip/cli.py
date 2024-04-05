@@ -120,7 +120,7 @@ def execute(args: argparse.Namespace) -> int:
 
     if not args.yes and not args.json:
         if conda_match_specs or pypi_specs:
-            confirm_yn(dry_run=args.dry_run)
+            confirm_yn(dry_run=False)  # we let conda handle the dry-run exit below
         else:
             print("Nothing to do.", file=sys.stderr)
             return 0

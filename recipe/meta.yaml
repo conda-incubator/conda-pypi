@@ -33,6 +33,7 @@ requirements:
     - pip >=23.0.1
     - grayskull
     - importlib_resources
+    - conda-libmamba-solver
 
 test:
   imports:
