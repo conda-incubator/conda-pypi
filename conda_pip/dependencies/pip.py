@@ -65,11 +65,4 @@ def _analyze_with_pip(
             conda_deps["python"].append(f"python {python_version}")
 
     deps_from_pip = {name: list(dict.fromkeys(specs)) for name, specs in deps_from_pip.items()}
-
-    pypi_deps = defaultdict(list)
-    for depname, deps in deps_from_pip.items():
-        if prefer_on_conda and is_pkg_available(depname, channel=channel):
-            conda_deps[depname].extend(deps)  # TODO: Map pypi name to conda name(s)
-        else:
-            pypi_deps[depname].extend(deps)
-    return conda_deps, pypi_deps
+    return conda_deps, deps_from_pip
