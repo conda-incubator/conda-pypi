@@ -36,10 +36,12 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     packages_to_process = []
     for pkg in packages:
         spec = MatchSpec(pkg)
-        if list(pd.query(spec)):
-            logger.warning("package %s is already installed; ignoring", spec)
-            continue
-        packages_to_process.append(pkg)
+        for name_variant in (spec.name, spec.name.replace("-", "_"), spec.name.replace("_", "-")):
+            if list(pd.query(MatchSpec(spec, name=name_variant))):
+                logger.warning("package %s is already installed; ignoring", spec)
+                break
+        else:
+            packages_to_process.append(pkg)
     return packages_to_process
 
 
