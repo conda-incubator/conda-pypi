@@ -53,9 +53,5 @@ jobs:
         run: echo "//fix" > .pixi/envs/default/conda-meta/history 
       - name: Run tests
         run: pixi run test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: always()
-        timeout-minutes: 60
       - name: Build recipe
         run: pixi run build
