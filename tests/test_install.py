@@ -53,7 +53,7 @@ def test_conda_pip_install(
             for name in (
                 MatchSpec(pypi_spec).name,
                 MatchSpec(pypi_spec).name.replace("-", "_"),  # pip normalizes this
-                MatchSpec(conda_spec).name
+                MatchSpec(conda_spec).name,
             )
         )
         PrefixData._cache_.clear()
@@ -65,4 +65,17 @@ def test_conda_pip_install(
             records = list(pd.query(conda_spec))
         assert len(records) == 1
         assert records[0].channel.name == channel
-        
+
+
+@pytest.mark.parametrize("spec", ("pytest-cov", "pytest_cov", "PyTest-Cov"))
+def test_spec_normalization(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+    spec: str,
+):
+    with tmp_env("python=3.9", "pip", "pytest-cov") as prefix:
+        out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "install", spec)
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0
+        assert "All packages are already installed." in out + err
