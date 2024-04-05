@@ -30,7 +30,7 @@ NAME_MAPPINGS = {
 
 
 def analyze_dependencies(
-    *packages: str,
+    *pypi_specs: str,
     prefer_on_conda: bool = True,
     channel: str = "conda-forge",
     backend: Literal["grayskull", "pip"] = "pip",
@@ -39,18 +39,20 @@ def analyze_dependencies(
 ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     conda_deps = defaultdict(list)
     needs_analysis = []
-    for package in packages:
-        match_spec = MatchSpec(package)
-        pkg_name = match_spec.name
-        # pkg_version = match_spec.version
+    for pypi_spec in pypi_specs:
         if prefer_on_conda:
-            pkg_is_on_conda, conda_spec = _is_pkg_on_conda(pkg_name, channel=channel)
+            pkg_is_on_conda, conda_spec = _is_pkg_on_conda(pypi_spec, channel=channel)
             if pkg_is_on_conda:
                 # TODO: check if version is available too
-                logger.info("Package %s is available on %s as %s. Skipping analysis.", pkg_name, channel, conda_spec)
-                conda_deps[pkg_name].append(conda_spec)
+                logger.info(
+                    "Package %s is available on %s as %s. Skipping analysis.",
+                    pypi_spec,
+                    channel,
+                    conda_spec,
+                )
+                conda_deps[MatchSpec(conda_spec).name].append(conda_spec)
                 continue
-        needs_analysis.append(package)
+        needs_analysis.append(pypi_spec)
 
     if not needs_analysis:
         return conda_deps, {}
@@ -98,7 +100,9 @@ def _classify_dependencies(
         if prefer_on_conda:
             on_conda, conda_depname = _is_pkg_on_conda(depname, channel=channel)
             if on_conda:
-                deps_mapped_to_conda = [_pypi_spec_to_conda_spec(dep, channel=channel) for dep in deps]
+                deps_mapped_to_conda = [
+                    _pypi_spec_to_conda_spec(dep, channel=channel) for dep in deps
+                ]
                 conda_deps[conda_depname].extend(deps_mapped_to_conda)
                 continue
         pypi_deps[depname].extend(deps)
