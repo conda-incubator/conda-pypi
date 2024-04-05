@@ -36,8 +36,8 @@ def _analyze_with_pip(
             f"Failed to analyze dependencies with pip:\n"
             f"  command: {' '.join(map(str, cmd))}\n"
             f"  exit code: {process.returncode}\n"
-            f"  stdout:\n{process.stdout}\n"
             f"  stderr:\n{process.stderr}\n"
+            f"  stdout:\n{process.stdout}\n"
         )
     logger.debug(
         "pip (%s) provided the following report:\n%s",
