@@ -63,7 +63,7 @@ def configure_parser(parser: argparse.ArgumentParser):
     install.add_argument("packages", metavar="package", nargs="+")
 
 
-def execute(args: argparse.Namespace) -> None:
+def execute(args: argparse.Namespace) -> int:
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
     from .dependencies import analyze_dependencies

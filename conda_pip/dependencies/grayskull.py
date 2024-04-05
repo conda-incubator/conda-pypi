@@ -1,4 +1,3 @@
-
 import os
 from logging import getLogger, ERROR
 from collections import defaultdict
@@ -19,7 +18,12 @@ logger = getLogger(f"conda.{__name__}")
 # workaround for some weakref leak in souschef
 keep_refs_alive = []
 
-def _analyze_with_grayskull(*packages: str, prefer_on_conda=True, channel="conda-forge"):
+
+def _analyze_with_grayskull(
+    *packages: str,
+    prefer_on_conda: bool = True,
+    channel: str = "conda-forge",
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     conda_deps = defaultdict(list)
     pypi_deps = defaultdict(list)
     for package in packages:
@@ -44,12 +48,12 @@ def _analyze_with_grayskull(*packages: str, prefer_on_conda=True, channel="conda
 
 
 def _recursive_grayskull(
-    pkg_name,
-    pkg_version="",
-    conda_deps_map=None,
-    pypi_deps_map=None,
-    visited_pypi_map=None,
-):
+    pkg_name: str,
+    pkg_version: str = "",
+    conda_deps_map: dict[str, list[str]] | None = None,
+    pypi_deps_map: dict[str, list[str]] | None = None,
+    visited_pypi_map: dict[str, list[str]] | None = None,
+) -> tuple[dict[str, list[str]], dict[str, list[str]], dict[str, list[str]]]:
     conda_deps_map = conda_deps_map or defaultdict(list)
     pypi_deps_map = pypi_deps_map or defaultdict(list)
     visited_pypi_map = visited_pypi_map or defaultdict(list)
@@ -73,7 +77,10 @@ def _recursive_grayskull(
     return conda_deps_map, pypi_deps_map, visited_pypi_map
 
 
-def _analyze_one_with_grayskull(package, version=""):
+def _analyze_one_with_grayskull(
+    package: str,
+    version: str = "",
+) -> tuple[dict[str, str], dict[str, str], GrayskullConfiguration]:
     config = GrayskullConfiguration(name=package, version=version, is_strict_cf=True)
     try:
         with redirect_stdout(os.devnull), redirect_stderr(os.devnull):

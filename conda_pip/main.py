@@ -30,7 +30,7 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
         raise CondaError(f"Target environment at {path} requires python>=3.2")
     if not list(pd.query("pip>=23.0.1")):
         raise CondaError(f"Target environment at {path} requires pip>=23.0.1")
-    
+
     packages_to_process = []
     for pkg in packages:
         spec = MatchSpec(pkg)
@@ -44,13 +44,13 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
 def run_conda_install(
     prefix: Path,
     specs: Iterable[MatchSpec],
-    dry_run=False,
-    quiet=False,
-    verbosity=0,
-    force_reinstall=False,
-    yes=False,
-    json=False,
-):
+    dry_run: bool = False,
+    quiet: bool = False,
+    verbosity: int = 0,
+    force_reinstall: bool = False,
+    yes: bool = False,
+    json: bool = False,
+) -> int:
     if not specs:
         return 0
 
@@ -80,14 +80,14 @@ def run_conda_install(
 
 def run_pip_install(
     prefix: Path,
-    specs,
-    upgrade=False,
-    dry_run=False,
-    quiet=False,
-    verbosity=0,
-    force_reinstall=False,
-    yes=False,
-):
+    specs: Iterable[str],
+    upgrade: bool = False,
+    dry_run: bool = False,
+    quiet: bool = False,
+    verbosity: int = 0,
+    force_reinstall: bool = False,
+    yes: bool = False,
+) -> int:
     if not specs:
         return 0
     command = [
