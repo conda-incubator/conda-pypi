@@ -13,12 +13,15 @@ from conda_pip.dependencies import BACKENDS
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,channel",
     [
-        ("numpy", "numpy", "conda-forge"),
-        ("numpy=1.20", "numpy=1.20", "conda-forge"),
+        ("numpy", "", "conda-forge"),
+        ("numpy=1.20", "", "conda-forge"),
         # build was originally published as build in conda-forge
         # and later renamed to python-build; conda-forge::build is
         # only available til 0.7, but conda-forge::python-build has 1.x
         ("build>=1", "python-build>=1", "conda-forge"),
+        # these won't be ever published in conda-forge, I guess
+        ("aaargh", None, "pypi"),
+        ("5-exercise-upload-to-pypi", None, "pypi"),
     ],
 )
 def test_conda_pip_install(
@@ -29,6 +32,7 @@ def test_conda_pip_install(
     channel: str,
     backend: str,
 ):
+    conda_spec = conda_spec or pypi_spec
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
             "pip",
@@ -43,9 +47,22 @@ def test_conda_pip_install(
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
-        assert MatchSpec(pypi_spec).name in out or MatchSpec(conda_spec).name in out
-        pd = PrefixData(str(prefix), pip_interop_enabled=channel == "pypi")
-        records = list(pd.query(conda_spec))
+        # One these package names will be mentioned:
+        assert any(
+            name in out
+            for name in (
+                MatchSpec(pypi_spec).name,
+                MatchSpec(pypi_spec).name.replace("-", "_"),  # pip normalizes this
+                MatchSpec(conda_spec).name
+            )
+        )
+        PrefixData._cache_.clear()
+        if channel == "pypi":
+            pd = PrefixData(str(prefix), pip_interop_enabled=True)
+            records = list(pd.query(pypi_spec))
+        else:
+            pd = PrefixData(str(prefix), pip_interop_enabled=False)
+            records = list(pd.query(conda_spec))
         assert len(records) == 1
         assert records[0].channel.name == channel
         
