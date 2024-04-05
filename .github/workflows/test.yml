@@ -56,6 +56,6 @@ jobs:
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: always()
-        timeout-minutes: 15
+        timeout-minutes: 60
       - name: Build recipe
         run: pixi run build
