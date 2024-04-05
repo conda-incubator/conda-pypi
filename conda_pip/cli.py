@@ -87,6 +87,7 @@ def execute(args: argparse.Namespace) -> int:
             channel=args.conda_channel,
             backend=args.backend,
             prefix=prefix,
+            force_reinstall=args.force_reinstall,
         )
 
     conda_match_specs = []
