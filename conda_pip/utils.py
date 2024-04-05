@@ -63,8 +63,11 @@ def get_externally_managed_path(prefix: os.PathLike = None) -> Iterator[Path]:
 def pypi_spec_variants(spec_str: str) -> Iterator[str]:
     yield spec_str
     spec = MatchSpec(spec_str)
+    seen = {spec_str}
     for name_variant in (
         spec.name.replace("-", "_"),
         spec.name.replace("_", "-"),
-    ):
-        yield str(MatchSpec(spec, name=name_variant))
+    ):  
+        if name_variant not in seen:  # only yield if actually different
+            yield str(MatchSpec(spec, name=name_variant))
+            seen.add(name_variant)
