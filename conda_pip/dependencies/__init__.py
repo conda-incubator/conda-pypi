@@ -14,6 +14,8 @@ from conda.models.match_spec import MatchSpec
 from conda_libmamba_solver.index import LibMambaIndexHelper as Index
 from ruamel.yaml import YAML
 
+from ..utils import pypi_spec_variants
+
 yaml = YAML(typ="safe")
 logger = getLogger(f"conda.{__name__}")
 
@@ -28,7 +30,7 @@ NAME_MAPPINGS = {
 
 
 def analyze_dependencies(
-    *packages: str,
+    *pypi_specs: str,
     prefer_on_conda: bool = True,
     channel: str = "conda-forge",
     backend: Literal["grayskull", "pip"] = "pip",
@@ -37,17 +39,20 @@ def analyze_dependencies(
 ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     conda_deps = defaultdict(list)
     needs_analysis = []
-    for package in packages:
-        match_spec = MatchSpec(package)
-        pkg_name = match_spec.name
-        # pkg_version = match_spec.version
-        if prefer_on_conda and _is_pkg_on_conda(pkg_name, channel=channel):
-            # TODO: check if version is available too
-            logger.info("Package %s is available on %s. Skipping analysis.", pkg_name, channel)
-            conda_spec = _pypi_spec_to_conda_spec(package)
-            conda_deps[pkg_name].append(conda_spec)
-            continue
-        needs_analysis.append(package)
+    for pypi_spec in pypi_specs:
+        if prefer_on_conda:
+            pkg_is_on_conda, conda_spec = _is_pkg_on_conda(pypi_spec, channel=channel)
+            if pkg_is_on_conda:
+                # TODO: check if version is available too
+                logger.info(
+                    "Package %s is available on %s as %s. Skipping analysis.",
+                    pypi_spec,
+                    channel,
+                    conda_spec,
+                )
+                conda_deps[MatchSpec(conda_spec).name].append(conda_spec)
+                continue
+        needs_analysis.append(pypi_spec)
 
     if not needs_analysis:
         return conda_deps, {}
@@ -92,24 +97,30 @@ def _classify_dependencies(
     pypi_deps = defaultdict(list)
     conda_deps = defaultdict(list)
     for depname, deps in deps_from_pypi.items():
-        if prefer_on_conda and _is_pkg_on_conda(depname, channel=channel):
-            conda_depname = _pypi_spec_to_conda_spec(depname, channel=channel).name
-            deps_mapped_to_conda = [_pypi_spec_to_conda_spec(dep, channel=channel) for dep in deps]
-            conda_deps[conda_depname].extend(deps_mapped_to_conda)
-        else:
-            pypi_deps[depname].extend(deps)
+        if prefer_on_conda:
+            on_conda, conda_depname = _is_pkg_on_conda(depname, channel=channel)
+            if on_conda:
+                deps_mapped_to_conda = [
+                    _pypi_spec_to_conda_spec(dep, channel=channel) for dep in deps
+                ]
+                conda_deps[conda_depname].extend(deps_mapped_to_conda)
+                continue
+        pypi_deps[depname].extend(deps)
     return conda_deps, pypi_deps
 
 
 @lru_cache(maxsize=None)
-def _is_pkg_on_conda(pypi_spec: str, channel: str = "conda-forge"):
+def _is_pkg_on_conda(pypi_spec: str, channel: str = "conda-forge") -> tuple[bool, str]:
     """
     Given a PyPI spec (name, version), try to find it on conda-forge.
     """
-    conda_spec = _pypi_spec_to_conda_spec(pypi_spec)
     index = Index(channels=[channel])
-    records = index.search(conda_spec)
-    return bool(records)
+    for spec_variant in pypi_spec_variants(pypi_spec):
+        conda_spec = _pypi_spec_to_conda_spec(spec_variant)
+        records = index.search(conda_spec)
+        if records:
+            return True, conda_spec
+    return False, pypi_spec
 
 
 @lru_cache(maxsize=None)

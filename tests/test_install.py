@@ -19,6 +19,8 @@ from conda_pip.dependencies import BACKENDS
         # and later renamed to python-build; conda-forge::build is
         # only available til 0.7, but conda-forge::python-build has 1.x
         ("build>=1", "python-build>=1", "conda-forge"),
+        # ib-insync is only available with dashes, not with underscores
+        ("ib_insync", "ib-insync", "conda-forge"),
         # these won't be ever published in conda-forge, I guess
         ("aaargh", None, "pypi"),
         ("5-exercise-upload-to-pypi", None, "pypi"),
@@ -53,7 +55,7 @@ def test_conda_pip_install(
             for name in (
                 MatchSpec(pypi_spec).name,
                 MatchSpec(pypi_spec).name.replace("-", "_"),  # pip normalizes this
-                MatchSpec(conda_spec).name
+                MatchSpec(conda_spec).name,
             )
         )
         PrefixData._cache_.clear()
@@ -65,4 +67,16 @@ def test_conda_pip_install(
             records = list(pd.query(conda_spec))
         assert len(records) == 1
         assert records[0].channel.name == channel
-        
+
+
+def test_spec_normalization(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    with tmp_env("python=3.9", "pip", "pytest-cov") as prefix:
+        for spec in ("pytest-cov", "pytest_cov", "PyTest-Cov"):
+            out, err, rc = conda_cli("pip", "--dry-run", "-p", prefix, "--yes", "install", spec)
+            print(out)
+            print(err, file=sys.stderr)
+            assert rc == 0
+            assert "All packages are already installed." in out + err

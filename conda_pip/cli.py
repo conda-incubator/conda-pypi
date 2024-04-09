@@ -78,7 +78,7 @@ def execute(args: argparse.Namespace) -> int:
     packages_to_process = args.packages if args.force_reinstall else packages_not_installed
     if not packages_to_process:
         print("All packages are already installed.", file=sys.stderr)
-        return
+        return 0
 
     with Spinner("Analyzing dependencies", enabled=not args.quiet, json=args.json):
         conda_deps, pypi_deps = analyze_dependencies(

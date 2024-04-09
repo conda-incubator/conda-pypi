@@ -18,7 +18,7 @@ from conda.cli.python_api import run_command
 from conda.exceptions import CondaError, CondaSystemExit
 from conda.models.match_spec import MatchSpec
 
-from .utils import get_env_python, get_externally_managed_path
+from .utils import get_env_python, get_externally_managed_path, pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
@@ -35,11 +35,12 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
 
     packages_to_process = []
     for pkg in packages:
-        spec = MatchSpec(pkg)
-        if list(pd.query(spec)):
-            logger.warning("package %s is already installed; ignoring", spec)
-            continue
-        packages_to_process.append(pkg)
+        for spec_variant in pypi_spec_variants(pkg):
+            if list(pd.query(spec_variant)):
+                logger.warning("package %s is already installed; ignoring", pkg)
+                break
+        else:
+            packages_to_process.append(pkg)
     return packages_to_process
 
 
