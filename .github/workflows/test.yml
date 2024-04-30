@@ -44,9 +44,12 @@ jobs:
         with:
           cache: false
           run-install: false
-      - name: Setup project
+      - name: Adjust python
+        if: matrix.python-version != '3.10'
         run: |
           pixi add "python=${{ matrix.python-version }}.*=*cpython*"
+      - name: Setup project
+        run: |
           pixi run dev
           pixi run conda info
       - name: Configure conda
