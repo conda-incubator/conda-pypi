@@ -43,18 +43,40 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [tool.pixi.dependencies]
-python = "3.10.* *cpython*"
+python = ">=3.8"
 conda = ">=23.9"
 pip = "*"
 grayskull = "*"
+
+[tool.pixi.feature.test.dependencies]
 pytest = "7.4.3.*"
 fmt = "!=10.2.0"
 pytest-mock = "3.12.0.*"
 conda-build = "*"
 
+[tool.pixi.feature.py38.dependencies]
+python = "3.8.*"
+
+[tool.pixi.feature.py39.dependencies]
+python = "3.9.*"
+
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.environments]
+test = ["test"]
+test-py38 = ["test", "py38"]
+test-py39 = ["test", "py39"]
+test-py310 = ["test", "py310"]
+test-py311 = ["test", "py311"]
+
 [tool.pixi.tasks]
 dev = 'python -mpip install -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
 test = "pytest -vvv"
+devtest = { depends_on = ["dev", "test"] }
 build = "conda build recipe"
 
 [tool.hatch.version]
