@@ -48,6 +48,17 @@ conda = ">=23.9"
 pip = "*"
 grayskull = "*"
 
+[tool.pixi.tasks]
+dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
+
+[tool.pixi.feature.build]
+dependencies = { conda-build = "*" }
+tasks = { build = "conda build recipe" }
+
+[tool.pixi.feature.test.tasks]
+dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
+test = 'python -mpytest -vvv'
+
 [tool.pixi.feature.test.dependencies]
 pytest = "7.4.3.*"
 fmt = "!=10.2.0"
@@ -67,17 +78,11 @@ python = "3.10.*"
 python = "3.11.*"
 
 [tool.pixi.environments]
-test = ["test"]
+build = ["build"]
 test-py38 = ["test", "py38"]
 test-py39 = ["test", "py39"]
 test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]
-
-[tool.pixi.tasks]
-dev = 'python -mpip install -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
-test = "pytest -vvv"
-devtest = { depends_on = ["dev", "test"] }
-build = "conda build recipe"
 
 [tool.hatch.version]
 source = "vcs"
