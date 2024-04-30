@@ -1,5 +1,5 @@
 package:
-  name: conda-pip
+  name: conda-pypi
   {% if GIT_DESCRIBE_TAG is defined and GIT_BUILD_STR is defined %}
   version: {{ GIT_DESCRIBE_TAG }}+{{ GIT_BUILD_STR }}
   {% else %}
@@ -17,7 +17,7 @@ build:
     - set -x  # [unix]
     - "@ECHO ON"  # [win]
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-    - {{ PYTHON }} -c "from conda_pip.main import ensure_externally_managed; ensure_externally_managed()"
+    - {{ PYTHON }} -c "from conda_pypi.main import ensure_externally_managed; ensure_externally_managed()"
 
 requirements:
   host:
@@ -37,16 +37,16 @@ requirements:
 
 test:
   imports:
-    - conda_pip
-    - conda_pip.main
+    - conda_pypi
+    - conda_pypi.main
   commands:
     - conda pip --help
-    - python -c "from conda_pip.utils import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
+    - python -c "from conda_pypi.utils import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
     - pip install requests && exit 1 || exit 0
 
 about:
-  home: https://github.com/jaimergp/conda-pip
+  home: https://github.com/jaimergp/conda-pypi
   license: MIT
   license_file: LICENSE
-  summary: A safer pip for conda environments
-  dev_url: https://github.com/jaimergp/conda-pip
+  summary: Better PyPI interoperability for the conda ecosystem
+  dev_url: https://github.com/jaimergp/conda-pypi

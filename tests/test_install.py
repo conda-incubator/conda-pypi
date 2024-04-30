@@ -6,7 +6,7 @@ from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
-from conda_pip.dependencies import BACKENDS
+from conda_pypi.dependencies import BACKENDS
 
 
 @pytest.mark.parametrize("backend", BACKENDS)

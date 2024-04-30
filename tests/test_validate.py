@@ -9,7 +9,7 @@ from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
 from pytest_mock import MockerFixture
 
-from conda_pip.utils import get_env_python, get_env_stdlib
+from conda_pypi.utils import get_env_python, get_env_stdlib
 
 
 def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch):
@@ -43,7 +43,7 @@ def test_pip_required_in_target_env(tmp_env: TmpEnvFixture, conda_cli: CondaCLIF
 
 def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, mocker: MockerFixture):
     """
-    conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
+    conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda.
     """
     base_dir = get_env_stdlib(sys.prefix)
@@ -72,7 +72,7 @@ def test_externally_managed(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, 
         all_text = p.stderr + p.stdout
         assert "Requirement already satisfied: certifi" in all_text
 
-        # Mock history to bypass "conda-pip is explicitly installed" checks
+        # Mock history to bypass "conda-pypi is explicitly installed" checks
         # since in some local development environments we might have installed via pip -e
         mocker.patch(
             "conda.history.History.get_requested_specs_map",

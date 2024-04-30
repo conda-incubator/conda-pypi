@@ -1,6 +1,3 @@
-# Copyright (C) 2022 Anaconda, Inc
-# Copyright (C) 2023 conda
-# SPDX-License-Identifier: BSD-3-Clause
 from conda import plugins
 
 from .cli import configure_parser, execute
