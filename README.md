@@ -18,13 +18,27 @@ There are only a handful patterns that are safe:
 All other packages are _always_ installed with `pip`:
 
 ```bash
-$ conda create -n virtualenv python=3.10 pip
-$ conda activate virtualenv
+$ conda create -n pip-environment python=3.10 pip
+$ conda activate pip-environment
 $ pip install ...
 ```
 
-**Editable installs**: conda provides all the dependencies of a package.
-`
+**Editable installs**: conda provides all the dependencies of a given package.
+Then that package is installed on top in editable mode, without addressing dependencies
+to make sure we don't accidentally override conda files:
+
+```bash
+$ git clone git@github.com:owner/package.git
+$ conda create -n editable-install package --deps-only
+$ conda activate editable-install
+$ pip install -e . --no-deps
+```
+
+Why do we say these are one of the few safe usages of conda & pip? Because of the following pitfalls:
+
+- xxx
+- xxx
+- xxx
 
 ## Installation
 
@@ -32,4 +46,4 @@ XXX
 
 ## Contributing
 
-XXX
+Please refer to [`CONTRIBUTING.md`](/CONTRIBUTING.md).
