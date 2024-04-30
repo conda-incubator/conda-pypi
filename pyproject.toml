@@ -3,8 +3,8 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "conda-pip"
-description = "`pip` wrappers to make it work with `conda` in a better way."
+name = "conda-pypi"
+description = "Better PyPI interoperability for the conda ecosystem."
 readme = "README.md"
 authors = [
   {name = "Jaime Rodríguez-Guerra", email = "jrodriguez@quansight.com"}
@@ -33,10 +33,56 @@ dynamic = [
 ]
 
 [project.urls]
-homepage = "https://github.com/jaimergp/conda-pip"
+homepage = "https://github.com/jaimergp/conda-pypi"
 
 [project.entry-points.conda]
-conda-pip = "conda_pip.plugin"
+conda-pypi = "conda_pypi.plugin"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[tool.pixi.dependencies]
+python = ">=3.8"
+conda = ">=23.9"
+pip = "*"
+grayskull = "*"
+
+[tool.pixi.tasks]
+dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
+
+[tool.pixi.feature.build]
+dependencies = { conda-build = "*" }
+tasks = { build = "conda build recipe" }
+
+[tool.pixi.feature.test.tasks]
+dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
+test = 'python -mpytest -vvv'
+
+[tool.pixi.feature.test.dependencies]
+pytest = "7.4.3.*"
+fmt = "!=10.2.0"
+pytest-mock = "3.12.0.*"
+conda-build = "*"
+
+[tool.pixi.feature.py38.dependencies]
+python = "3.8.*"
+
+[tool.pixi.feature.py39.dependencies]
+python = "3.9.*"
+
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.environments]
+build = ["build"]
+test-py38 = ["test", "py38"]
+test-py39 = ["test", "py39"]
+test-py310 = ["test", "py310"]
+test-py311 = ["test", "py311"]
 
 [tool.hatch.version]
 source = "vcs"

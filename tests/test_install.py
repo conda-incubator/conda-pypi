@@ -6,7 +6,7 @@ from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
-from conda_pip.dependencies import BACKENDS
+from conda_pypi.dependencies import BACKENDS
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
@@ -26,7 +26,7 @@ from conda_pip.dependencies import BACKENDS
         ("5-exercise-upload-to-pypi", None, "pypi"),
     ],
 )
-def test_conda_pip_install(
+def test_conda_pypi_install(
     tmp_env: TmpEnvFixture,
     conda_cli: CondaCLIFixture,
     pypi_spec: str,

@@ -8,7 +8,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/test.yml"
-      - "conda_pip/**"
+      - "conda_pypi/**"
       - "tests/**"
       - "pyproject.toml"
       - "pixi.toml"
@@ -24,37 +24,32 @@ concurrency:
 
 jobs:
   tests:
-    name: ${{ matrix.os }}, Python ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}-latest
+    name: ${{ matrix.os }}, py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["38", "39", "310", "311"]
         include:
-          - os: macos
-            python-version: "3.10"
-    
+          - os: macos-13
+            python-version: "310"
+          - os: macos-14
+            python-version: "311"
+    env:
+      PIXI_ENV_NAME: test-py${{ matrix.python-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: prefix-dev/setup-pixi@v0.4.1
-        with:
-          cache: false
-          run-install: false
+      - uses: prefix-dev/setup-pixi@v0.6.0
       - name: Setup project
         run: |
-          pixi add "python=${{ matrix.python-version }}.*=*cpython*"
-          pixi run dev
-          pixi run conda info
-      - name: Configure conda
-        run: |
-          echo "channels: [conda-forge]" > .pixi/envs/default/.condarc
-      - name: Patch history file (temporary)
-        run: echo "//fix" > .pixi/envs/default/conda-meta/history 
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
+          echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
-        run: pixi run test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
       - name: Build recipe
         run: pixi run build
