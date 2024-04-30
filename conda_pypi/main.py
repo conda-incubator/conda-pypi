@@ -128,7 +128,7 @@ def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
     if target_path.exists():
         return target_path
     logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
-    resource = importlib_files("conda_pip") / "data" / "EXTERNALLY-MANAGED"
+    resource = importlib_files("conda_pypi") / "data" / "EXTERNALLY-MANAGED"
     target_path.write_text(resource.read_text())
     return target_path
 

@@ -26,7 +26,7 @@ from conda_pypi.dependencies import BACKENDS
         ("5-exercise-upload-to-pypi", None, "pypi"),
     ],
 )
-def test_conda_pip_install(
+def test_conda_pypi_install(
     tmp_env: TmpEnvFixture,
     conda_cli: CondaCLIFixture,
     pypi_spec: str,
