@@ -120,7 +120,7 @@ def run_pip_install(
 
 def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
     """
-    conda-pip places its own EXTERNALLY-MANAGED file when it is installed in an environment.
+    conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
@@ -136,7 +136,7 @@ def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
 def ensure_target_env_has_externally_managed(command: str):
     """
     post-command hook to ensure that the target env has the EXTERNALLY-MANAGED file
-    even when it is created by conda, not 'conda-pip'.
+    even when it is created by conda, not 'conda-pypi'.
     """
     if os.environ.get("CONDA_BUILD_STATE") == "BUILD":
         return
@@ -144,9 +144,9 @@ def ensure_target_env_has_externally_managed(command: str):
     target_prefix = Path(context.target_prefix)
     if base_prefix == target_prefix:
         return
-    # ensure conda-pip was explicitly installed in base env (and not as a dependency)
+    # ensure conda-pypi was explicitly installed in base env (and not as a dependency)
     requested_specs_map = History(base_prefix).get_requested_specs_map()
-    if requested_specs_map and "conda-pip" not in requested_specs_map:
+    if requested_specs_map and "conda-pypi" not in requested_specs_map:
         return
     prefix_data = PrefixData(target_prefix)
     if command in {"create", "install", "update"}:

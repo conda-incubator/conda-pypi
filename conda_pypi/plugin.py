@@ -16,7 +16,7 @@ def conda_subcommands():
 @plugins.hookimpl
 def conda_post_commands():
     yield plugins.CondaPostCommand(
-        name="conda-pip-ensure-target-env-has-externally-managed",
+        name="conda-pypi-ensure-target-env-has-externally-managed",
         action=ensure_target_env_has_externally_managed,
         run_for={"install", "create", "update", "remove"},
     )

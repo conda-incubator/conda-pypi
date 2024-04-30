@@ -1,3 +1,3 @@
 """
-conda-pip
+conda-pypi
 """
