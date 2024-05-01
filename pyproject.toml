@@ -74,12 +74,14 @@ sphinx-sitemap = "*"
 [tool.pixi.feature.test.tasks]
 dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
 test = 'python -mpytest -vvv'
+pre-commit = 'pre-commit'
 
 [tool.pixi.feature.test.dependencies]
 pytest = "7.4.3.*"
 fmt = "!=10.2.0"
 pytest-mock = "3.12.0.*"
 conda-build = "*"
+pre-commit = "*"
 
 [tool.pixi.feature.py38.dependencies]
 python = "3.8.*"

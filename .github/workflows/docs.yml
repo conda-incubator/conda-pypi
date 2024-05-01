@@ -43,7 +43,7 @@ jobs:
 
   pages:
     runs-on: ubuntu-latest
-    if: false 
+    if: false
     # disable til moved to conda-incubator
     # github.ref == 'refs/heads/main'
     needs: [docs]
