@@ -58,6 +58,7 @@ tasks = { build = "conda build recipe" }
 [tool.pixi.feature.docs.tasks]
 docs = { cmd = "sphinx-build -M dirhtml . _build", cwd = "docs" }
 serve = { cmd = "python -m http.server", cwd = "docs/_build/dirhtml" }
+clean = { cmd = "rm -rf _build", cwd = "docs" }
 
 [tool.pixi.feature.docs.dependencies]
 python = "3.10.*"
