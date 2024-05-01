@@ -1,6 +1,7 @@
 import pytest
 from conda.testing import conda_cli, path_factory, tmp_env  # noqa: F401
 
+
 @pytest.fixture(autouse=True)
 def do_not_register_envs(monkeypatch):
     """Do not register environments created during tests"""

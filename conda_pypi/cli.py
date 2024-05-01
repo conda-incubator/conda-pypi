@@ -1,6 +1,7 @@
 """
 conda pip subcommand for CLI
 """
+
 from __future__ import annotations
 
 import argparse
@@ -69,7 +70,12 @@ def execute(args: argparse.Namespace) -> int:
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
     from .dependencies import analyze_dependencies
-    from .main import (validate_target_env, ensure_externally_managed, run_conda_install, run_pip_install)
+    from .main import (
+        validate_target_env,
+        ensure_externally_managed,
+        run_conda_install,
+        run_pip_install,
+    )
     from .utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)

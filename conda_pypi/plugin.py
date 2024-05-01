@@ -3,6 +3,7 @@ from conda import plugins
 from .cli import configure_parser, execute
 from .main import ensure_target_env_has_externally_managed
 
+
 @plugins.hookimpl
 def conda_subcommands():
     yield plugins.CondaSubcommand(

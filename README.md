@@ -2,7 +2,21 @@
 
 Better PyPI interoperability for the conda ecosystem.
 
+## What is this?
+
 Includes:
 
 - `conda pip`: A subcommand that wraps `pip` to make it work with `conda` in a better way.
 - Adds `EXTERNALLY-MANAGED` to your environments.
+
+## Why?
+
+Mixing conda and PyPI is often discouraged in the conda ecosystem.
+There are only a handful patterns that are safe to run. This tool
+aims to provide a safer way of keeping your conda environments functional
+while mixing it with PyPI dependencies. Refer to the [documentation](docs/)
+for more details.
+
+## Contributing
+
+Please refer to [`CONTRIBUTING.md`](/CONTRIBUTING.md).

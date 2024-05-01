@@ -60,6 +60,7 @@ def get_externally_managed_path(prefix: os.PathLike = None) -> Iterator[Path]:
         if not found:
             raise ValueError("Could not locate EXTERNALLY-MANAGED file")
 
+
 def pypi_spec_variants(spec_str: str) -> Iterator[str]:
     yield spec_str
     spec = MatchSpec(spec_str)
@@ -67,7 +68,7 @@ def pypi_spec_variants(spec_str: str) -> Iterator[str]:
     for name_variant in (
         spec.name.replace("-", "_"),
         spec.name.replace("_", "-"),
-    ):  
+    ):
         if name_variant not in seen:  # only yield if actually different
             yield str(MatchSpec(spec, name=name_variant))
             seen.add(name_variant)
