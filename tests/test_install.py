@@ -6,7 +6,7 @@ from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
-from conda_pypi.dependencies import BACKENDS
+from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
@@ -80,3 +80,10 @@ def test_spec_normalization(
             print(err, file=sys.stderr)
             assert rc == 0
             assert "All packages are already installed." in out + err
+
+
+@pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
+def test_mappings(source: str):
+    assert _pypi_spec_to_conda_spec("build", sources=(source,)) == "python-build"
+    if source == "grayskull":  # these ones are only available in the grayskull mapping
+        assert _pypi_spec_to_conda_spec("ib_insync", sources=(source,)) == "ib-insync"
