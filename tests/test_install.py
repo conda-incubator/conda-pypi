@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 
 import pytest
@@ -7,6 +9,24 @@ from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
 from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
+
+
+@pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
+def test_mappings_one_by_one(source: str):
+    assert _pypi_spec_to_conda_spec("build", sources=(source,)) == "python-build"
+
+
+@pytest.mark.parametrize("pypi_spec,conda_spec", 
+    [
+        ("numpy", "numpy"),
+        ("build", "python-build"),
+        ("ib_insync", "ib-insync"),
+        ("pyqt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
+        ("PyQt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
+    ]
+)
+def test_mappings_fallback(pypi_spec: str, conda_spec: str):
+    assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
@@ -82,8 +102,24 @@ def test_spec_normalization(
             assert "All packages are already installed." in out + err
 
 
-@pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
-def test_mappings(source: str):
-    assert _pypi_spec_to_conda_spec("build", sources=(source,)) == "python-build"
-    if source == "grayskull":  # these ones are only available in the grayskull mapping
-        assert _pypi_spec_to_conda_spec("ib_insync", sources=(source,)) == "ib-insync"
+@pytest.mark.parametrize("pypi_spec,requested_conda_spec,installed_conda_specs",
+    [
+        ("PyQt5", "pyqt[version='>=5.0.0,<6.0.0.0dev0']", ("pyqt-5", "qt-main-5")),
+    ]
+)
+def test_pyqt(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+    pypi_spec: str,
+    requested_conda_spec: str,
+    installed_conda_specs: tuple[str],
+):
+    with tmp_env("python=3.9", "pip") as prefix:
+        out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0
+        assert requested_conda_spec in out
+        for conda_spec in installed_conda_specs:
+            assert conda_spec in out
+        
