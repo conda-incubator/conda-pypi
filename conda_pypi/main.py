@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from logging import getLogger
 from pathlib import Path
@@ -11,9 +12,11 @@ try:
 except ImportError:
     from importlib_resources import files as importlib_files
 
-from conda.history import History
+
 from conda.base.context import context
 from conda.core.prefix_data import PrefixData
+from conda.models.enums import PackageType
+from conda.history import History
 from conda.cli.python_api import run_command
 from conda.exceptions import CondaError, CondaSystemExit
 from conda.models.match_spec import MatchSpec
@@ -168,3 +171,70 @@ def ensure_target_env_has_externally_managed(command: str):
                 path.unlink()
     else:
         raise ValueError(f"command {command} not recognized.")
+
+
+def pypi_lines_for_explicit_lockfile(prefix: Path | str) -> list[str]:
+    PrefixData._cache_.clear()
+    pd = PrefixData(str(prefix), pip_interop_enabled=True)
+    pd.load()
+    lines = []
+    python_record = list(pd.query("python"))
+    assert len(python_record) == 1
+    python_record = python_record[0]
+    python_details = {"version": ".".join(python_record.version.split(".")[:3])}
+    if "pypy" in python_record.build:
+        python_details["implementation"] = "pp"
+    else:
+        python_details["implementation"] = "cp"
+    for record in pd.iter_records():
+        if record.package_type != PackageType.VIRTUAL_PYTHON_WHEEL:
+            continue
+        ignore = False
+        wheel = {}
+        for path in record.files:
+            path = Path(context.target_prefix, path)
+            if "__editable__" in path.stem:
+                ignore = True
+                break
+            if path.name == "direct_url.json":
+                data = json.loads(path.read_text())
+                if data.get("dir_info", {}).get("editable"):
+                    ignore = True
+                    break
+            if path.name == "WHEEL":
+                for line in path.read_text().splitlines():
+                    line = line.strip()
+                    if ":" not in line:
+                        continue
+                    key, value = line.split(":", 1)
+                    if key == "Tag":
+                        wheel.setdefault(key, []).append(value.strip())
+                    else:
+                        wheel[key] = value.strip()
+        if ignore:
+            continue
+        if record.url:
+            lines.append(f"# pypi: {record.url}")
+        else:
+            seen = {"abi": set(), "platform": set()}
+            lines.append(f"# pypi: {record.name}=={record.version}")
+            if wheel and (wheel_tag := wheel.get('Tag')):
+                for i, tag in enumerate(wheel_tag):
+                    python_tag, abi_tag, platform_tag = tag.split("-", 2)
+                    if i == 0:  # only once
+                        lines[-1] += f" --python-version {python_tag[2:]}"
+                        lines[-1] += f" --implementation {python_tag[:2]}"
+                    if abi_tag not in seen["abi"]:
+                        lines[-1] += f" --abi {abi_tag}"
+                        seen["abi"].add(abi_tag)
+                    if platform_tag not in seen["platform"]:
+                        lines[-1] += f" --platform {platform_tag}"
+                        seen["platform"].add(platform_tag)
+            else:
+                lines[-1] += f" --python-version {python_details['version']}"
+                lines[-1] += f" --implementation {python_details['implementation']}"
+            # Here we could try to run a --dry-run --report some.json to get the resolved URL
+            # but it's not guaranteed we get the exact same source so for now we defer to install
+            # time
+    
+    return lines
