@@ -150,7 +150,7 @@ def execute(args: argparse.Namespace) -> int:
     if pypi_specs:
         if not args.quiet or not args.json:
             print("Running pip install...")
-        retcode = run_pip_install(
+        process = run_pip_install(
             prefix,
             pypi_specs,
             dry_run=args.dry_run,
@@ -159,8 +159,8 @@ def execute(args: argparse.Namespace) -> int:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
         )
-        if retcode:
-            return retcode
+        if process.returncode:
+            return process.returncode
         if os.environ.get("CONDA_BUILD_STATE") != "BUILD":
             ensure_externally_managed(prefix)
     return 0

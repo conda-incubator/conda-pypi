@@ -31,20 +31,28 @@ def get_env_python(prefix: os.PathLike = None) -> Path:
     return prefix / "bin" / "python"
 
 
-def get_env_stdlib(prefix: os.PathLike = None) -> Path:
+def _get_env_sysconfig_path(key: str, prefix: os.PathLike = None) -> Path:
     prefix = Path(prefix or sys.prefix)
     if str(prefix) == sys.prefix:
-        return Path(sysconfig.get_path("stdlib"))
+        return Path(sysconfig.get_path(key))
     return Path(
         check_output(
             [
                 get_env_python(prefix),
                 "-c",
-                "import sysconfig; print(sysconfig.get_paths()['stdlib'])",
+                f"import sysconfig; print(sysconfig.get_paths()['{key}'])",
             ],
             text=True,
         ).strip()
     )
+
+
+def get_env_stdlib(prefix: os.PathLike = None) -> Path:
+    return _get_env_sysconfig_path("stdlib", prefix)
+
+
+def get_env_site_packages(prefix: os.PathLike = None) -> Path:
+    return _get_env_sysconfig_path("purelib", prefix)
 
 
 def get_externally_managed_path(prefix: os.PathLike = None) -> Iterator[Path]:

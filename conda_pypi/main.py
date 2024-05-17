@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from logging import getLogger
 from pathlib import Path
-from subprocess import run
-from typing import Iterable
+from subprocess import run, CompletedProcess
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import Any, Iterable
 
 try:
     from importlib.resources import files as importlib_files
@@ -21,7 +23,12 @@ from conda.cli.python_api import run_command
 from conda.exceptions import CondaError, CondaSystemExit
 from conda.models.match_spec import MatchSpec
 
-from .utils import get_env_python, get_externally_managed_path, pypi_spec_variants
+from .utils import (
+    get_env_python,
+    get_env_site_packages,
+    get_externally_managed_path,
+    pypi_spec_variants,
+)
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
@@ -86,24 +93,28 @@ def run_conda_install(
 
 def run_pip_install(
     prefix: Path,
-    specs: Iterable[str],
+    args: Iterable[str],
     upgrade: bool = False,
     dry_run: bool = False,
     quiet: bool = False,
     verbosity: int = 0,
     force_reinstall: bool = False,
     yes: bool = False,
-) -> int:
-    if not specs:
+    capture_output: bool = False,
+    check: bool = True
+) -> CompletedProcess:
+    if not args:
         return 0
     command = [
         get_env_python(prefix),
         "-mpip",
         "install",
         "--no-deps",
-        "--prefix",
-        str(prefix),
     ]
+    if any(flag in args for flag in ("--platform", "--abi", "--implementation", "--python-version")):
+        command += ["--target", str(get_env_site_packages(prefix))]
+    else:
+        command += ["--prefix", str(prefix)]
     if dry_run:
         command.append("--dry-run")
     if quiet:
@@ -114,11 +125,19 @@ def run_pip_install(
         command.append("--force-reinstall")
     if upgrade:
         command.append("--upgrade")
-    command.extend(specs)
+    command.extend(args)
 
     logger.info("pip install command: %s", command)
-    process = run(command)
-    return process.returncode
+    process = run(command, capture_output=capture_output or check, text=capture_output or check)
+    if check and process.returncode:
+        raise CondaError(
+            f"Failed to run pip:\n"
+            f"  command: {' '.join(command)}\n"
+            f"  exit code: {process.returncode}\n"
+            f"  stderr:\n{process.stderr}\n"
+            f"  stdout:\n{process.stdout}\n"
+        )
+    return process
 
 
 def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
@@ -218,23 +237,64 @@ def pypi_lines_for_explicit_lockfile(prefix: Path | str) -> list[str]:
         else:
             seen = {"abi": set(), "platform": set()}
             lines.append(f"# pypi: {record.name}=={record.version}")
-            if wheel and (wheel_tag := wheel.get('Tag')):
-                for i, tag in enumerate(wheel_tag):
-                    python_tag, abi_tag, platform_tag = tag.split("-", 2)
-                    if i == 0:  # only once
-                        lines[-1] += f" --python-version {python_tag[2:]}"
-                        lines[-1] += f" --implementation {python_tag[:2]}"
-                    if abi_tag not in seen["abi"]:
+            lines[-1] += f" --python-version {python_details['version']}"
+            lines[-1] += f" --implementation {python_details['implementation']}"
+            if wheel and (wheel_tag := wheel.get("Tag")):
+                for tag in wheel_tag:
+                    _, abi_tag, platform_tag = tag.split("-", 2)
+                    if abi_tag != "none" and abi_tag not in seen["abi"]:
                         lines[-1] += f" --abi {abi_tag}"
                         seen["abi"].add(abi_tag)
-                    if platform_tag not in seen["platform"]:
+                    if platform_tag != "any" and platform_tag not in seen["platform"]:
                         lines[-1] += f" --platform {platform_tag}"
                         seen["platform"].add(platform_tag)
-            else:
-                lines[-1] += f" --python-version {python_details['version']}"
-                lines[-1] += f" --implementation {python_details['implementation']}"
             # Here we could try to run a --dry-run --report some.json to get the resolved URL
             # but it's not guaranteed we get the exact same source so for now we defer to install
             # time
-    
+
     return lines
+
+
+def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict[str, Any]:
+    # pip can output to stdout via `--report -` (dash), but this
+    # creates issues on Windows due to undecodable characters on some
+    # project descriptions (e.g. charset-normalizer, amusingly), which
+    # makes pip crash internally. Probably a bug on their end.
+    # So we use a temporary file instead to work with bytes.
+    json_output = NamedTemporaryFile(suffix=".json", delete=False)
+    json_output.close()  # Prevent access errors on Windows
+
+    cmd = [
+        sys.executable,
+        "-mpip",
+        "install",
+        "--dry-run",
+        "--ignore-installed",
+        *(("--force-reinstall",) if force_reinstall else ()),
+        "--report",
+        json_output.name,
+        *args,
+    ]
+    process = run(cmd, capture_output=True, text=True)
+    if process.returncode != 0:
+        raise CondaError(
+            f"Failed to dry-run pip:\n"
+            f"  command: {' '.join(cmd)}\n"
+            f"  exit code: {process.returncode}\n"
+            f"  stderr:\n{process.stderr}\n"
+            f"  stdout:\n{process.stdout}\n"
+        )
+
+    with open(json_output.name, "rb") as f:
+        # We need binary mode because the JSON output might
+        # contain weird unicode stuff (as part of the project
+        # description or README).
+        report = json.loads(f.read())
+    os.unlink(json_output.name)
+    return report
+
+
+def pip_install_download_info(args: Iterable[str]) -> dict[str, Any]:
+    with TemporaryDirectory() as tmpdir:
+        report = dry_run_pip_json(["--target", tmpdir, "--no-deps", *args])
+    return report["install"][0]["download_info"]
