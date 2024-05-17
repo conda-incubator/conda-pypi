@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 from collections import defaultdict
 from logging import getLogger
 from functools import lru_cache
 from io import BytesIO
-from typing import Literal
+from typing import Iterable, Literal
 
 import requests
 from conda.models.match_spec import MatchSpec
@@ -24,8 +25,10 @@ BACKENDS = (
     "pip",
 )
 NAME_MAPPINGS = {
-    "grayskull": "https://github.com/conda/grayskull/raw/main/grayskull/strategy/config.yaml",
-    "cf-graph-countyfair": "https://github.com/regro/cf-graph-countyfair/raw/master/mappings/pypi/grayskull_pypi_mapping.yaml",
+    # prioritize grayskull and cf-graph because they contain PyQt version delimiters
+    "grayskull": "https://raw.githubusercontent.com/conda/grayskull/main/grayskull/strategy/config.yaml",
+    "cf-graph-countyfair": "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml",
+    "parselmouth": "https://raw.githubusercontent.com/prefix-dev/parselmouth/main/files/mapping_as_grayskull.json",
 }
 
 
@@ -135,13 +138,32 @@ def _pypi_to_conda_mapping(source="grayskull"):
     except requests.HTTPError as exc:
         logger.debug("Could not fetch mapping %s", url, exc_info=exc)
         return {}
-    stream = BytesIO(r.content)
-    stream.seek(0)
-    return yaml.load(stream)
+    if source in ("grayskull", "cf-graph-countyfair"):
+        stream = BytesIO(r.content)
+        stream.seek(0)
+        data = yaml.load(stream)
+        name_key = "conda_forge" if source == "grayskull" else "conda_name"
+        mapping = {}
+        for pypi, payload in data.items():
+            conda_spec_str = payload[name_key]
+            if lower_bound := payload.get("delimiter_min"):
+                conda_spec_str += f">={lower_bound}"
+            if upper_bound := payload.get("delimiter_max"):
+                if lower_bound:
+                    conda_spec_str += ","
+                conda_spec_str += f"<{upper_bound}.0dev0"
+            mapping[pypi] = conda_spec_str
+        return mapping
+    if source == "parselmouth":  # json
+        return {pypi: conda for (conda, pypi) in json.loads(r.text).items()}
 
 
 @lru_cache(maxsize=None)
-def _pypi_spec_to_conda_spec(spec: str, channel: str = "conda-forge"):
+def _pypi_spec_to_conda_spec(
+    spec: str,
+    channel: str = "conda-forge",
+    sources: Iterable[str] = NAME_MAPPINGS.keys(),
+) -> str:
     """
     Tries to find the conda equivalent of a PyPI name. For that it relies
     on known mappings (see `_pypi_to_conda_mapping`). If the PyPI name is
@@ -152,15 +174,22 @@ def _pypi_spec_to_conda_spec(spec: str, channel: str = "conda-forge"):
     We could improve this with API calls to metadata servers and compare sources,
     but this is not currently implemented or even feasible.
     """
+    assert spec, "Must be non-empty spec"
     assert channel == "conda-forge", "Only channel=conda-forge is supported for now"
     match_spec = MatchSpec(spec)
     conda_name = pypi_name = match_spec.name
-    for source in NAME_MAPPINGS:
+    for source in sources:
         mapping = _pypi_to_conda_mapping(source)
         if not mapping:
             continue
-        entry = mapping.get(pypi_name, {})
-        conda_name = entry.get("conda_forge") or entry.get("conda_name") or pypi_name
-        if conda_name != pypi_name:  # we found a match!
-            return str(MatchSpec(match_spec, name=conda_name))
+        conda_spec = MatchSpec(mapping.get(pypi_name, pypi_name))
+        conda_name = conda_spec.name
+        if conda_name != pypi_name or not conda_spec.is_name_only_spec:
+            renamed = MatchSpec(match_spec, name=conda_name)
+            if not conda_spec.is_name_only_spec:
+                merged = MatchSpec.merge([renamed, conda_spec])
+                if len(merged) > 1:
+                    raise ValueError(f"This should not happen: {merged}")
+                return str(merged[0])
+            return str(renamed)
     return spec
