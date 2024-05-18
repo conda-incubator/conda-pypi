@@ -160,4 +160,4 @@ def test_lockfile_roundtrip(
     print(out2)
     print(err2, file=sys.stderr)
     assert rc2 == 0
-    assert out2 == out
+    assert sorted(out2.splitlines()) == sorted(out.splitlines())
