@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
+from subprocess import run
+from typing import Iterable
 
 import pytest
-
 from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
 from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
+from conda_pypi.utils import get_env_python
 
 
 @pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
@@ -123,3 +126,38 @@ def test_pyqt(
         for conda_spec in installed_conda_specs:
             assert conda_spec in out
         
+
+@pytest.mark.parametrize(
+    "specs, pure_pip",
+    [
+        (("requests",), True),
+        (("requests",), False),
+    ]
+)
+def test_lockfile_roundtrip(
+    tmp_path: Path,
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+    specs: Iterable[str],
+    pure_pip: bool,
+):
+    with tmp_env("python=3.9", "pip") as prefix:
+        if pure_pip:
+            p = run([get_env_python(prefix), "-mpip", "install", "--break-system-packages", *specs])
+            p.check_returncode()
+        else:
+            out, err, rc = conda_cli("pip", "--prefix", prefix, "--yes", "install", *specs)
+            print(out)
+            print(err, file=sys.stderr)
+            assert rc == 0
+        out, err, rc = conda_cli("list", "--explicit")
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0
+        (tmp_path / "lockfile.txt").write_text(out)
+    p = run([sys.executable, "-mconda", "create", "--prefix", tmp_path / "env", "--file", tmp_path / "lockfile.txt"])
+    out2, err2, rc2 = conda_cli("list", "--explicit", "--prefix", tmp_path / "env")
+    print(out2)
+    print(err2, file=sys.stderr)
+    assert rc2 == 0
+    assert out2 == out
