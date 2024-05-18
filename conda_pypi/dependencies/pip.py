@@ -13,7 +13,7 @@ def _analyze_with_pip(
     prefix: str | None = None,
     force_reinstall: bool = False,
 ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
-    report = dry_run_pip_json(prefix, packages, force_reinstall)
+    report = dry_run_pip_json(("--prefix", prefix, *packages), force_reinstall)
     deps_from_pip = defaultdict(list)
     conda_deps = defaultdict(list)
     for item in report["install"]:
