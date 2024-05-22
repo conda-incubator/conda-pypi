@@ -7,7 +7,7 @@ from logging import getLogger
 from pathlib import Path
 from subprocess import run, CompletedProcess
 from tempfile import NamedTemporaryFile, TemporaryDirectory
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 
 try:
     from importlib.resources import files as importlib_files
@@ -17,6 +17,7 @@ except ImportError:
 
 from conda.base.context import context
 from conda.core.prefix_data import PrefixData
+from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.history import History
 from conda.cli.python_api import run_command
@@ -192,7 +193,7 @@ def ensure_target_env_has_externally_managed(command: str):
         raise ValueError(f"command {command} not recognized.")
 
 
-def pypi_lines_for_explicit_lockfile(prefix: Path | str) -> list[str]:
+def pypi_lines_for_explicit_lockfile(prefix: Path | str, checksum: Literal["md5", "sha256"] | None = None) -> list[str]:
     PrefixData._cache_.clear()
     pd = PrefixData(str(prefix), pip_interop_enabled=True)
     pd.load()
@@ -210,17 +211,20 @@ def pypi_lines_for_explicit_lockfile(prefix: Path | str) -> list[str]:
             continue
         ignore = False
         wheel = {}
+        hashed_record = "" 
         for path in record.files:
             path = Path(context.target_prefix, path)
             if "__editable__" in path.stem:
                 ignore = True
                 break
-            if path.name == "direct_url.json":
+            if path.name == "direct_url.json" and path.parent.suffix == ".dist-info":
                 data = json.loads(path.read_text())
                 if data.get("dir_info", {}).get("editable"):
                     ignore = True
                     break
-            if path.name == "WHEEL":
+            if checksum and path.name == "RECORD" and path.parent.suffix == ".dist-info":
+                hashed_record = compute_sum(path, checksum)
+            if path.name == "WHEEL" and path.parent.suffix == ".dist-info":
                 for line in path.read_text().splitlines():
                     line = line.strip()
                     if ":" not in line:
@@ -251,6 +255,8 @@ def pypi_lines_for_explicit_lockfile(prefix: Path | str) -> list[str]:
             # Here we could try to run a --dry-run --report some.json to get the resolved URL
             # but it's not guaranteed we get the exact same source so for now we defer to install
             # time
+        if checksum and hashed_record:
+            lines[-1] += f" -- --checksum={checksum}:{hashed_record}"
 
     return lines
 
