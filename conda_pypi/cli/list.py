@@ -13,4 +13,5 @@ def post_command(command: str):
 
     if to_print:
         print("# Following lines added by conda-pypi")
+        print("# This is an experimental feature subject to change. Do not use in production.")
         print(*to_print, sep="\n")

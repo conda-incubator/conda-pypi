@@ -14,12 +14,14 @@ if TYPE_CHECKING:
     from typing import Iterable
 
 
-def post_command(command: str):
+def post_command(command: str) -> int:
     if command not in ("install", "create"):
-        return
+        return 0
 
     installed = []
     pypi_lines = pypi_lines_from_sys_argv()
+    if not pypi_lines:
+        return 0
 
     with Spinner(
         f"Installing PyPI packages ({len(pypi_lines)})",
