@@ -150,7 +150,7 @@ def test_lockfile_roundtrip(
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
-        out, err, rc = conda_cli("list", "--explicit")
+        out, err, rc = conda_cli("list", "--explicit", "--md5")
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
