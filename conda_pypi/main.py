@@ -102,7 +102,7 @@ def run_pip_install(
     force_reinstall: bool = False,
     yes: bool = False,
     capture_output: bool = False,
-    check: bool = True
+    check: bool = True,
 ) -> CompletedProcess:
     if not args:
         return 0
@@ -112,7 +112,9 @@ def run_pip_install(
         "install",
         "--no-deps",
     ]
-    if any(flag in args for flag in ("--platform", "--abi", "--implementation", "--python-version")):
+    if any(
+        flag in args for flag in ("--platform", "--abi", "--implementation", "--python-version")
+    ):
         command += ["--target", str(get_env_site_packages(prefix))]
     else:
         command += ["--prefix", str(prefix)]
@@ -193,7 +195,9 @@ def ensure_target_env_has_externally_managed(command: str):
         raise ValueError(f"command {command} not recognized.")
 
 
-def pypi_lines_for_explicit_lockfile(prefix: Path | str, checksum: Literal["md5", "sha256"] | None = None) -> list[str]:
+def pypi_lines_for_explicit_lockfile(
+    prefix: Path | str, checksum: Literal["md5", "sha256"] | None = None
+) -> list[str]:
     PrefixData._cache_.clear()
     pd = PrefixData(str(prefix), pip_interop_enabled=True)
     pd.load()
@@ -211,7 +215,7 @@ def pypi_lines_for_explicit_lockfile(prefix: Path | str, checksum: Literal["md5"
             continue
         ignore = False
         wheel = {}
-        hashed_record = "" 
+        hashed_record = ""
         for path in record.files:
             path = Path(context.target_prefix, path)
             if "__editable__" in path.stem:

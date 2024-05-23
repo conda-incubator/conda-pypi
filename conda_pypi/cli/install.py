@@ -30,6 +30,9 @@ def post_command(command: str) -> int:
     ):
         for args in pypi_lines:
             args = shlex.split(args)
+            double_dash_position = args.find("--")
+            if double_dash_position >= 0:
+                args = args[:double_dash_position]
             dl_info = pip_install_download_info(args)
             run_pip_install(
                 context.target_prefix,

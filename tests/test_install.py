@@ -19,14 +19,15 @@ def test_mappings_one_by_one(source: str):
     assert _pypi_spec_to_conda_spec("build", sources=(source,)) == "python-build"
 
 
-@pytest.mark.parametrize("pypi_spec,conda_spec", 
+@pytest.mark.parametrize(
+    "pypi_spec,conda_spec",
     [
         ("numpy", "numpy"),
         ("build", "python-build"),
         ("ib_insync", "ib-insync"),
         ("pyqt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
         ("PyQt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
-    ]
+    ],
 )
 def test_mappings_fallback(pypi_spec: str, conda_spec: str):
     assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
@@ -105,10 +106,11 @@ def test_spec_normalization(
             assert "All packages are already installed." in out + err
 
 
-@pytest.mark.parametrize("pypi_spec,requested_conda_spec,installed_conda_specs",
+@pytest.mark.parametrize(
+    "pypi_spec,requested_conda_spec,installed_conda_specs",
     [
         ("PyQt5", "pyqt[version='>=5.0.0,<6.0.0.0dev0']", ("pyqt-5", "qt-main-5")),
-    ]
+    ],
 )
 def test_pyqt(
     tmp_env: TmpEnvFixture,
@@ -125,14 +127,14 @@ def test_pyqt(
         assert requested_conda_spec in out
         for conda_spec in installed_conda_specs:
             assert conda_spec in out
-        
+
 
 @pytest.mark.parametrize(
     "specs, pure_pip",
     [
         (("requests",), True),
         (("requests",), False),
-    ]
+    ],
 )
 def test_lockfile_roundtrip(
     tmp_path: Path,
@@ -143,7 +145,9 @@ def test_lockfile_roundtrip(
 ):
     with tmp_env("python=3.9", "pip") as prefix:
         if pure_pip:
-            p = run([get_env_python(prefix), "-mpip", "install", "--break-system-packages", *specs])
+            p = run(
+                [get_env_python(prefix), "-mpip", "install", "--break-system-packages", *specs]
+            )
             p.check_returncode()
         else:
             out, err, rc = conda_cli("pip", "--prefix", prefix, "--yes", "install", *specs)
@@ -155,7 +159,17 @@ def test_lockfile_roundtrip(
         print(err, file=sys.stderr)
         assert rc == 0
         (tmp_path / "lockfile.txt").write_text(out)
-    p = run([sys.executable, "-mconda", "create", "--prefix", tmp_path / "env", "--file", tmp_path / "lockfile.txt"])
+    p = run(
+        [
+            sys.executable,
+            "-mconda",
+            "create",
+            "--prefix",
+            tmp_path / "env",
+            "--file",
+            tmp_path / "lockfile.txt",
+        ]
+    )
     out2, err2, rc2 = conda_cli("list", "--explicit", "--prefix", tmp_path / "env")
     print(out2)
     print(err2, file=sys.stderr)
