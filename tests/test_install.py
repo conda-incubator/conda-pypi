@@ -170,7 +170,7 @@ def test_lockfile_roundtrip(
             tmp_path / "lockfile.txt",
         ]
     )
-    out2, err2, rc2 = conda_cli("list", "--explicit", "--prefix", tmp_path / "env")
+    out2, err2, rc2 = conda_cli("list", "--explicit", "--md5", "--prefix", tmp_path / "env")
     print(out2)
     print(err2, file=sys.stderr)
     assert rc2 == 0
