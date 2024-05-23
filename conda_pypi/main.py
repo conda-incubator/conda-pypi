@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import sys
 from logging import getLogger
 from pathlib import Path
 from subprocess import run, CompletedProcess
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
 try:
@@ -135,10 +136,10 @@ def run_pip_install(
     if check and process.returncode:
         raise CondaError(
             f"Failed to run pip:\n"
-            f"  command: {' '.join(command)}\n"
+            f"  command: {shlex.join(command)}\n"
             f"  exit code: {process.returncode}\n"
             f"  stderr:\n{process.stderr}\n"
-            f"  stdout:\n{process.stdout}\n"
+            f"  stdout:\n{process.stdout}"
         )
     return process
 
@@ -227,7 +228,7 @@ def pypi_lines_for_explicit_lockfile(
                     ignore = True
                     break
             if checksum and path.name == "RECORD" and path.parent.suffix == ".dist-info":
-                hashed_record = compute_sum(path, checksum)
+                hashed_record = compute_record_sum(path, checksum)
             if path.name == "WHEEL" and path.parent.suffix == ".dist-info":
                 for line in path.read_text().splitlines():
                     line = line.strip()
@@ -283,16 +284,18 @@ def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict
         *(("--force-reinstall",) if force_reinstall else ()),
         "--report",
         json_output.name,
+        "--target",
+        json_output.name + ".dir",
         *args,
     ]
     process = run(cmd, capture_output=True, text=True)
     if process.returncode != 0:
         raise CondaError(
             f"Failed to dry-run pip:\n"
-            f"  command: {' '.join(cmd)}\n"
+            f"  command: {shlex.join(cmd)}\n"
             f"  exit code: {process.returncode}\n"
             f"  stderr:\n{process.stderr}\n"
-            f"  stdout:\n{process.stdout}\n"
+            f"  stdout:\n{process.stdout}"
         )
 
     with open(json_output.name, "rb") as f:
@@ -304,7 +307,21 @@ def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict
     return report
 
 
-def pip_install_download_info(args: Iterable[str]) -> dict[str, Any]:
-    with TemporaryDirectory() as tmpdir:
-        report = dry_run_pip_json(["--target", tmpdir, "--no-deps", *args])
-    return report["install"][0]["download_info"]
+def compute_record_sum(record_path, algo):
+    record = Path(record_path).read_text()
+    lines = []
+    for line in record.splitlines():
+        path, *_ = line.split(",")
+        path = Path(path)
+        if path.parts[0].endswith(".dist-info") and path.name in ("REQUESTED", "direct_url.json"):
+            continue
+        if path.parts[0] == ".." and "bin" in path.parts:
+            continue
+        lines.append(line)
+    with NamedTemporaryFile("w", delete=False) as tmp:
+        tmp.write("\n".join(lines))
+
+    try:
+        return compute_sum(tmp.name, algo)
+    finally:
+        os.unlink(tmp.name)
