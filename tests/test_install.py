@@ -130,10 +130,12 @@ def test_pyqt(
 
 
 @pytest.mark.parametrize(
-    "specs, pure_pip",
+    "specs, pure_pip, with_md5",
     [
-        (("requests",), True),
-        (("requests",), False),
+        (("requests",), True, True),
+        (("requests",), False, False),
+        (("requests",), True, False),
+        (("requests",), False, True),
     ],
 )
 def test_lockfile_roundtrip(
@@ -142,23 +144,35 @@ def test_lockfile_roundtrip(
     conda_cli: CondaCLIFixture,
     specs: Iterable[str],
     pure_pip: bool,
+    with_md5: bool,
 ):
+    md5 = ("--md5",) if with_md5 else ()
     with tmp_env("python=3.9", "pip") as prefix:
         if pure_pip:
             p = run(
-                [get_env_python(prefix), "-mpip", "install", "--break-system-packages", *specs]
+                [get_env_python(prefix), "-mpip", "install", "--break-system-packages", *specs],
+                capture_output=True,
+                text=True,
+                check=False,
             )
-            p.check_returncode()
+            print(p.stdout)
+            print(p.stderr, file=sys.stderr)
+            assert p.returncode == 0
         else:
             out, err, rc = conda_cli("pip", "--prefix", prefix, "--yes", "install", *specs)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
-        out, err, rc = conda_cli("list", "--explicit", "--md5")
+        out, err, rc = conda_cli("list", "--explicit", "--prefix", prefix, *md5)
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
-        (tmp_path / "lockfile.txt").write_text(out)
+        if pure_pip:
+            assert "# pypi: requests" in out
+            if md5:
+                assert "--record-checksum=md5:" in out
+
+    (tmp_path / "lockfile.txt").write_text(out)
     p = run(
         [
             sys.executable,
@@ -168,9 +182,18 @@ def test_lockfile_roundtrip(
             tmp_path / "env",
             "--file",
             tmp_path / "lockfile.txt",
-        ]
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
-    out2, err2, rc2 = conda_cli("list", "--explicit", "--md5", "--prefix", tmp_path / "env")
+    print(p.stdout)
+    print(p.stderr, file=sys.stderr)
+    assert p.returncode == 0
+    if pure_pip:
+        assert "Verifying PyPI transaction" in p.stdout
+
+    out2, err2, rc2 = conda_cli("list", "--explicit", *md5, "--prefix", tmp_path / "env")
     print(out2)
     print(err2, file=sys.stderr)
     assert rc2 == 0

@@ -28,14 +28,14 @@ def _prepare_pypi_transaction(pypi_lines) -> dict[str, dict[str, str]]:
             if double_dash_idx >= 0:
                 args, extra_args = args[:double_dash_idx], args[double_dash_idx:]
                 if (
-                    "--checksum" in extra_args
-                    and (hash_idx := extra_args.index("--checksum")) > 0
+                    "--record-checksum" in extra_args
+                    and (hash_idx := extra_args.index("--record-checksum")) > 0
                     and extra_args[hash_idx + 1].startswith(("md5:", "sha256:"))
                 ):
                     record_hash = extra_args[hash_idx + 1]
                 else:
                     for arg in extra_args:
-                        if arg.startswith("--checksum="):
+                        if arg.startswith("--record-checksum="):
                             record_hash = arg.split("=", 1)[1]
         report = dry_run_pip_json(["--no-deps", *args])
         pkg_name = report["install"][0]["metadata"]["name"]
