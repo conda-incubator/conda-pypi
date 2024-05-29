@@ -9,11 +9,11 @@ def post_command(command: str):
     if command != "list":
         return
     cmd_line = context.raw_data.get("cmd_line", {})
-    if "--explicit" not in sys.argv and not cmd_line.get("explicit"):
+    if "--explicit" not in sys.argv and not cmd_line.get("explicit").value(None):
         return
     if "--no-pip" in sys.argv or not cmd_line.get("pip"):
         return
-    checksum = "md5" if ("--md5" in sys.argv or cmd_line.get("md5")) else None
+    checksum = "md5" if ("--md5" in sys.argv or cmd_line.get("md5").value(None)) else None
     to_print = pypi_lines_for_explicit_lockfile(context.target_prefix, checksum=checksum)
     if to_print:
         sys.stdout.flush()
