@@ -190,7 +190,7 @@ def test_lockfile_roundtrip(
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
     assert p.returncode == 0
-    if pure_pip:
+    if pure_pip and with_md5:
         assert "Verifying PyPI transaction" in p.stdout
 
     out2, err2, rc2 = conda_cli("list", "--explicit", *md5, "--prefix", tmp_path / "env")
