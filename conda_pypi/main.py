@@ -4,6 +4,8 @@ import json
 import os
 import shlex
 import sys
+from csv import reader as csv_reader
+from email.parser import HeaderParser
 from logging import getLogger
 from pathlib import Path
 from subprocess import run, CompletedProcess
@@ -17,13 +19,16 @@ except ImportError:
 
 
 from conda.base.context import context
+from conda.common.pkg_formats.python import PythonDistribution
 from conda.core.prefix_data import PrefixData
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
+from conda.models.records import PackageRecord
 from conda.history import History
 from conda.cli.python_api import run_command
 from conda.exceptions import CondaError, CondaSystemExit
 from conda.models.match_spec import MatchSpec
+from packaging.tags import parse_tag
 
 from .utils import (
     get_env_python,
@@ -206,63 +211,15 @@ def pypi_lines_for_explicit_lockfile(
     python_record = list(pd.query("python"))
     assert len(python_record) == 1
     python_record = python_record[0]
-    python_details = {"version": ".".join(python_record.version.split(".")[:3])}
-    if "pypy" in python_record.build:
-        python_details["implementation"] = "pp"
-    else:
-        python_details["implementation"] = "cp"
     for record in pd.iter_records():
         if record.package_type != PackageType.VIRTUAL_PYTHON_WHEEL:
             continue
-        ignore = False
-        wheel = {}
-        hashed_record = ""
-        for path in record.files:
-            path = Path(context.target_prefix, path)
-            if "__editable__" in path.stem:
-                ignore = True
-                break
-            if path.name == "direct_url.json" and path.parent.suffix == ".dist-info":
-                data = json.loads(path.read_text())
-                if data.get("dir_info", {}).get("editable"):
-                    ignore = True
-                    break
-            if checksum and path.name == "RECORD" and path.parent.suffix == ".dist-info":
-                hashed_record = compute_record_sum(path, checksum)
-            if path.name == "WHEEL" and path.parent.suffix == ".dist-info":
-                for line in path.read_text().splitlines():
-                    line = line.strip()
-                    if ":" not in line:
-                        continue
-                    key, value = line.split(":", 1)
-                    if key == "Tag":
-                        wheel.setdefault(key, []).append(value.strip())
-                    else:
-                        wheel[key] = value.strip()
-        if ignore:
+        pypi_dist = PyPIDistribution.from_conda_record(
+            record, python_record, prefix, checksum=checksum
+        )
+        if pypi_dist.editable:
             continue
-        if record.url:
-            lines.append(f"# pypi: {record.url}")
-        else:
-            seen = {"abi": set(), "platform": set()}
-            lines.append(f"# pypi: {record.name}=={record.version}")
-            lines[-1] += f" --python-version {python_details['version']}"
-            lines[-1] += f" --implementation {python_details['implementation']}"
-            if wheel and (wheel_tag := wheel.get("Tag")):
-                for tag in wheel_tag:
-                    _, abi_tag, platform_tag = tag.split("-", 2)
-                    if abi_tag != "none" and abi_tag not in seen["abi"]:
-                        lines[-1] += f" --abi {abi_tag}"
-                        seen["abi"].add(abi_tag)
-                    if platform_tag != "any" and platform_tag not in seen["platform"]:
-                        lines[-1] += f" --platform {platform_tag}"
-                        seen["platform"].add(platform_tag)
-            # Here we could try to run a --dry-run --report some.json to get the resolved URL
-            # but it's not guaranteed we get the exact same source so for now we defer to install
-            # time
-        if checksum and hashed_record:
-            lines[-1] += f" -- --record-checksum={checksum}:{hashed_record}"
-
+        lines.append(pypi_dist.to_lockfile_line())
     return lines
 
 
@@ -275,57 +232,217 @@ def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict
     json_output = NamedTemporaryFile(suffix=".json", delete=False)
     json_output.close()  # Prevent access errors on Windows
 
-    cmd = [
-        sys.executable,
-        "-mpip",
-        "install",
-        "--dry-run",
-        "--ignore-installed",
-        *(("--force-reinstall",) if force_reinstall else ()),
-        "--report",
-        json_output.name,
-        "--target",
-        json_output.name + ".dir",
-        *args,
-    ]
-    process = run(cmd, capture_output=True, text=True)
-    if process.returncode != 0:
-        raise CondaError(
-            f"Failed to dry-run pip:\n"
-            f"  command: {shlex.join(cmd)}\n"
-            f"  exit code: {process.returncode}\n"
-            f"  stderr:\n{process.stderr}\n"
-            f"  stdout:\n{process.stdout}"
+    try:
+        cmd = [
+            sys.executable,
+            "-mpip",
+            "install",
+            "--dry-run",
+            "--ignore-installed",
+            *(("--force-reinstall",) if force_reinstall else ()),
+            "--report",
+            json_output.name,
+            "--target",
+            json_output.name + ".dir",  # This won't be created
+            *args,
+        ]
+        process = run(cmd, capture_output=True, text=True)
+        if process.returncode != 0:
+            raise CondaError(
+                f"Failed to dry-run pip:\n"
+                f"  command: {shlex.join(cmd)}\n"
+                f"  exit code: {process.returncode}\n"
+                f"  stderr:\n{process.stderr}\n"
+                f"  stdout:\n{process.stdout}"
+            )
+
+        with open(json_output.name, "rb") as f:
+            # We need binary mode because the JSON output might
+            # contain weird unicode stuff (as part of the project
+            # description or README).
+            return json.loads(f.read())
+    finally:
+        os.unlink(json_output.name)
+
+
+class PyPIDistribution:
+    _line_prefix = "# pypi: "
+
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        python_version: str | None = None,
+        python_implementation: str | None = None,
+        python_abi_tags: Iterable[str] = (),
+        python_platform_tags: Iterable[str] = (),
+        files_hash: str | None = None,
+        editable: bool = False,
+    ):
+        self.name = name
+        self.version = version
+        self.python_version = python_version
+        self.python_implementation = python_implementation
+        self.python_abi_tags = python_abi_tags or ()
+        self.python_platform_tags = python_platform_tags or ()
+        self.files_hash = files_hash
+        self.editable = editable
+        self.url = None  # currently no way to know
+
+    @classmethod
+    def from_conda_record(
+        cls,
+        record: PackageRecord,
+        python_record: PackageRecord,
+        prefix: str | Path,
+        checksum: Literal["md5", "sha256"] | None = None,
+    ) -> PyPIDistribution:
+        # Locate anchor file
+        sitepackages = get_env_site_packages(prefix)
+        if record.fn.endswith(".dist-info"):
+            anchor = sitepackages / record.fn / "METADATA"
+        elif record.fn.endswith(".egg-info"):
+            anchor = sitepackages / record.fn
+            if anchor.is_dir():
+                anchor = anchor / "PKG-INFO"
+        else:
+            raise ValueError("Unrecognized anchor file for Python metadata")
+
+        # Estimate python implementation out of build strings
+        python_version = ".".join(python_record.version.split(".")[:3])
+        if "pypy" in python_record.build:
+            python_impl = "pp"
+        elif "cpython" in python_record.build:
+            python_impl = "cp"
+        else:
+            python_impl = None
+
+        # Find the hash for the RECORD file
+        python_dist = PythonDistribution.init(prefix, str(anchor), python_record.version)
+        if checksum:
+            manifest = python_dist.manifest_full_path
+            hashed_files = f"{checksum}:{compute_record_sum(manifest, checksum)}"
+        else:
+            hashed_files = None
+
+        # Scan files for editable markers and wheel metadata
+        files = python_dist.get_paths()
+        editable = cls._is_record_editable(files)
+        wheel_file = next((path for path, *_ in files if path.endswith(".dist-info/WHEEL")), None)
+        if wheel_file:
+            wheel_details = cls._parse_wheel_file(Path(prefix, wheel_file))
+            abi_tags, platform_tags = cls._tags_from_wheel(wheel_details)
+        else:
+            abi_tags, platform_tags = (), ()
+
+        return cls(
+            name=record.name,
+            version=record.version,
+            python_version=python_version,
+            python_implementation=python_impl,
+            files_hash=hashed_files,
+            python_abi_tags=abi_tags,
+            python_platform_tags=platform_tags,
+            editable=editable,
         )
 
-    with open(json_output.name, "rb") as f:
-        # We need binary mode because the JSON output might
-        # contain weird unicode stuff (as part of the project
-        # description or README).
-        report = json.loads(f.read())
-    os.unlink(json_output.name)
-    return report
+    def to_lockfile_line(self) -> list[str]:
+        if self.url:
+            return f"{self._line_prefix}{self.url}"
 
+        line = (
+            f"{self._line_prefix}{self.name}=={self.version}"
+            f" --python-version {self.python_version}"
+            f" --implementation {self.python_implementation}"
+        )
+        for abi in self.python_abi_tags:
+            line += f" --abi {abi}"
+        for platform in self.python_platform_tags:
+            line += f" --platform {platform}"
+        if self.files_hash:
+            line += f" -- --record-checksum={self.files_hash}"
 
-def compute_record_sum(record_path, algo):
-    record = Path(record_path).read_text()
-    lines = []
-    for line in record.splitlines():
-        path, *_ = line.split(",")
+        # Here we could try to run a pip --dry-run --report some.json to get the resolved URL
+        # but it's not guaranteed we get the exact same source so for now we defer to install
+        # time
+
+        return line
+
+    @staticmethod
+    def _parse_wheel_file(path) -> dict[str, list[str]]:
         path = Path(path)
-        if path.parts[0].endswith(".dist-info") and path.name not in ("METADATA", "WHEEL"):
-            # we only want to check the metadata and wheel parts of dist-info; everything else
-            # is not deterministic or useful
-            continue
-        if path.parts[0] == ".." and any(part in path.parts for part in ("bin", "lib", "Scripts")):
-            # entry points are autogenerated and can have different hashes/size depending on prefix
-            path, *_ = line.split(",")
-            line = f"{path},,"
-        lines.append(line)
-    with NamedTemporaryFile("w", delete=False) as tmp:
-        tmp.write("\n".join(lines))
+        if not path.is_file():
+            return {}
+        with open(path) as f:
+            parsed = HeaderParser().parse(f)
+        data = {}
+        for key, value in parsed.items():
+            data.setdefault(key, []).append(value)
+        return data
+
+    @staticmethod
+    def _tags_from_wheel(data: dict[str, Any]) -> tuple[tuple[str], tuple[str]]:
+        abi_tags = set()
+        platform_tags = set()
+        for tag_str in data.get("Tag", ()):
+            for tag in parse_tag(tag_str):
+                if tag.abi != "none":
+                    abi_tags.add(tag.abi)
+                if tag.platform != "any":
+                    platform_tags.add(tag.platform)
+        return tuple(abi_tags), tuple(platform_tags)
+
+    @staticmethod
+    def _is_record_editable(files: tuple[str, str, int]) -> bool:
+        for path, *_ in files:
+            path = Path(path)
+            if "__editable__" in path.stem:
+                return True
+            if path.name == "direct_url.json" and path.parent.suffix == ".dist-info":
+                if path.is_file():
+                    data = json.loads(path.read_text())
+                    if data.get("dir_info", {}).get("editable"):
+                        return True
+        return False
+
+
+def compute_record_sum(manifest: str, algo: str = "sha256") -> str:
+    """
+    Given a RECORD file, compute a hash out of a subset of its sorted contents.
+
+    We skip *.dist-info files other than METADATA and WHEEL.
+    For non site-packages files, we only keep the path for those than fall in bin, lib and Scripts
+    because their hash and size might change with path relocation.
+
+    The list of tuples (path, hash, size) is then sorted and written as JSON with no spaces or
+    indentation. This output is what gets hashed.
+    """
+    manifest = Path(manifest)
+    if not manifest.is_file():
+        return
+    contents = []
+    with open(manifest) as f:
+        reader = csv_reader(f, delimiter=",", quotechar='"')
+        for row in reader:
+            path, hash_, size = row
+            path = Path(path)
+            if size:
+                size = int(size)
+            if path.parts[0].endswith(".dist-info") and path.name not in ("METADATA", "WHEEL"):
+                # we only want to check the metadata and wheel parts of dist-info; everything else
+                # is not deterministic or useful
+                continue
+            if path.parts[0] == ".." and any(
+                part in path.parts for part in ("bin", "lib", "Scripts")
+            ):
+                # entry points are autogenerated and can have different hashes/size
+                # depending on prefix
+                hash_, size = "", 0
+            contents.append((str(path), hash_, size))
 
     try:
+        with NamedTemporaryFile("w", delete=False) as tmp:
+            tmp.write(json.dumps(contents, indent=0, separators=(",", ":")))
         return compute_sum(tmp.name, algo)
     finally:
         os.unlink(tmp.name)
