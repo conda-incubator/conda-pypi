@@ -130,3 +130,6 @@ dmypy.json
 
 # pixi
 .pixi/
+
+# Used in debugging
+explicit.txt

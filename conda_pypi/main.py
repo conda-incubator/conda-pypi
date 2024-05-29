@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shlex
@@ -21,6 +22,7 @@ except ImportError:
 from conda.base.context import context
 from conda.common.pkg_formats.python import PythonDistribution
 from conda.core.prefix_data import PrefixData
+from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.records import PackageRecord
@@ -28,6 +30,7 @@ from conda.history import History
 from conda.cli.python_api import run_command
 from conda.exceptions import CondaError, CondaSystemExit
 from conda.models.match_spec import MatchSpec
+from packaging.requirements import Requirement
 from packaging.tags import parse_tag
 
 from .utils import (
@@ -146,6 +149,8 @@ def run_pip_install(
             f"  stderr:\n{process.stderr}\n"
             f"  stdout:\n{process.stdout}"
         )
+    logger.debug("pip install stdout:\n%s", process.stdout)
+    logger.debug("pip install stderr:\n%s", process.stderr)
     return process
 
 
@@ -202,8 +207,12 @@ def ensure_target_env_has_externally_managed(command: str):
 
 
 def pypi_lines_for_explicit_lockfile(
-    prefix: Path | str, checksum: Literal["md5", "sha256"] | None = None
+    prefix: Path | str, checksums: Iterable[Literal["md5", "sha256"]] | None = None
 ) -> list[str]:
+    """
+    Write pip install pseudo commands for each non-conda-installed Python package in prefix.
+    See `PyPIDistribution.to_lockfile_line()` for more details.
+    """
     PrefixData._cache_.clear()
     pd = PrefixData(str(prefix), pip_interop_enabled=True)
     pd.load()
@@ -215,7 +224,7 @@ def pypi_lines_for_explicit_lockfile(
         if record.package_type != PackageType.VIRTUAL_PYTHON_WHEEL:
             continue
         pypi_dist = PyPIDistribution.from_conda_record(
-            record, python_record, prefix, checksum=checksum
+            record, python_record, prefix, checksums=checksums
         )
         if pypi_dist.editable:
             continue
@@ -223,7 +232,22 @@ def pypi_lines_for_explicit_lockfile(
     return lines
 
 
-def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict[str, Any]:
+def dry_run_pip_json(
+    args: Iterable[str],
+    ignore_installed: bool = True,
+    force_reinstall: bool = False,
+    python_version: str = "",
+    implementation: str = "",
+    abi: Iterable[str] = (),
+    platform: Iterable[str] = (),
+) -> dict[str, Any]:
+    """
+    Runs pip in dry-run mode with the goal of obtaining a JSON report that encodes
+    what would have been done. This is useful to invoke pip as a solver only, or
+    to obtain the URL of which wheel would have been installed for a particular set of constraints.
+
+    It returns the parsed JSON payload as a dict.
+    """
     # pip can output to stdout via `--report -` (dash), but this
     # creates issues on Windows due to undecodable characters on some
     # project descriptions (e.g. charset-normalizer, amusingly), which
@@ -238,14 +262,25 @@ def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict
             "-mpip",
             "install",
             "--dry-run",
-            "--ignore-installed",
-            *(("--force-reinstall",) if force_reinstall else ()),
             "--report",
             json_output.name,
             "--target",
             json_output.name + ".dir",  # This won't be created
-            *args,
         ]
+        if ignore_installed:
+            cmd.append("--ignore-installed")
+        if force_reinstall:
+            cmd.append("--force-reinstall")
+        if python_version:
+            cmd += ["--python-version", python_version]
+        if implementation:
+            cmd += ["--implementation", implementation]
+        for tag in abi:
+            cmd += ["--abi", tag]
+        for tag in platform:
+            cmd += ["--platform", tag]
+        cmd += args
+        logger.info("pip dry-run command: %s", cmd)
         process = run(cmd, capture_output=True, text=True)
         if process.returncode != 0:
             raise CondaError(
@@ -255,7 +290,8 @@ def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict
                 f"  stderr:\n{process.stderr}\n"
                 f"  stdout:\n{process.stdout}"
             )
-
+        logger.debug("pip dry-run stdout:\n%s", process.stdout)
+        logger.debug("pip dry-run stderr:\n%s", process.stderr)
         with open(json_output.name, "rb") as f:
             # We need binary mode because the JSON output might
             # contain weird unicode stuff (as part of the project
@@ -267,6 +303,7 @@ def dry_run_pip_json(args: Iterable[str], force_reinstall: bool = False) -> dict
 
 class PyPIDistribution:
     _line_prefix = "# pypi: "
+    _arg_parser = None
 
     def __init__(
         self,
@@ -276,7 +313,7 @@ class PyPIDistribution:
         python_implementation: str | None = None,
         python_abi_tags: Iterable[str] = (),
         python_platform_tags: Iterable[str] = (),
-        files_hash: str | None = None,
+        record_checksums: dict[str, str] | None = None,
         editable: bool = False,
     ):
         self.name = name
@@ -285,9 +322,9 @@ class PyPIDistribution:
         self.python_implementation = python_implementation
         self.python_abi_tags = python_abi_tags or ()
         self.python_platform_tags = python_platform_tags or ()
-        self.files_hash = files_hash
+        self.record_checksums = record_checksums or {}
         self.editable = editable
-        self.url = None  # currently no way to know
+        self.url = None  # currently no way to know, use .find_wheel_url()
 
     @classmethod
     def from_conda_record(
@@ -295,7 +332,7 @@ class PyPIDistribution:
         record: PackageRecord,
         python_record: PackageRecord,
         prefix: str | Path,
-        checksum: Literal["md5", "sha256"] | None = None,
+        checksums: Iterable[Literal["md5", "sha256"]] | None = None,
     ) -> PyPIDistribution:
         # Locate anchor file
         sitepackages = get_env_site_packages(prefix)
@@ -319,11 +356,11 @@ class PyPIDistribution:
 
         # Find the hash for the RECORD file
         python_dist = PythonDistribution.init(prefix, str(anchor), python_record.version)
-        if checksum:
+        if checksums:
             manifest = python_dist.manifest_full_path
-            hashed_files = f"{checksum}:{compute_record_sum(manifest, checksum)}"
+            record_checksums = compute_record_sum(manifest, checksums)
         else:
-            hashed_files = None
+            record_checksums = None
 
         # Scan files for editable markers and wheel metadata
         files = python_dist.get_paths()
@@ -340,13 +377,52 @@ class PyPIDistribution:
             version=record.version,
             python_version=python_version,
             python_implementation=python_impl,
-            files_hash=hashed_files,
+            record_checksums=record_checksums,
             python_abi_tags=abi_tags,
             python_platform_tags=platform_tags,
             editable=editable,
         )
 
+    @classmethod
+    def from_lockfile_line(cls, line: str | Iterable[str]):
+        if isinstance(line, str):
+            if line.startswith(cls._line_prefix):
+                line = line[len(cls._line_prefix):]
+            line = shlex.split(line.strip())
+        if cls._arg_parser is None:
+            cls._arg_parser = cls._build_arg_parser()
+        args = cls._arg_parser.parse_args(line)
+        requirement = Requirement(args.spec)
+        specifiers = list(requirement.specifier)
+        if len(specifiers) != 1 or specifiers[0].operator != "==":
+            raise InvalidVersionSpec(
+                f"{args.spec} is not a valid requirement. "
+                "PyPI requirements must be exact; i.e. 'name==version'."
+            )
+        pkg_name = requirement.name
+        version = specifiers[0].version
+        return cls(
+            name=pkg_name,
+            version=version,
+            python_version=args.python_version,
+            python_implementation=args.implementation,
+            python_abi_tags=args.abi,
+            python_platform_tags=args.platform,
+        )
+
     def to_lockfile_line(self) -> list[str]:
+        """
+        Builds a pseudo command-line input for a pip-like interface, with the goal of providing
+        enough information to retrieve a single wheel or sdist providing the package. The format is:
+
+        ```
+        # pypi: <name>[==<version>] [--python-version str] [--implementation str] [--abi str ...]
+                [--platform str ...] [--record-checksum <algorithm>=<value>]
+        ```
+
+        All fields above should be part of the same line. The CLI mimics what `pip` currently
+        accepts, with the exception of `--record-checksum`, which is a custom addition.
+        """
         if self.url:
             return f"{self._line_prefix}{self.url}"
 
@@ -359,14 +435,24 @@ class PyPIDistribution:
             line += f" --abi {abi}"
         for platform in self.python_platform_tags:
             line += f" --platform {platform}"
-        if self.files_hash:
-            line += f" -- --record-checksum={self.files_hash}"
+        for algo, checksum in  self.record_checksums.items():
+            line += f" --record-checksum={algo}:{checksum}"
 
-        # Here we could try to run a pip --dry-run --report some.json to get the resolved URL
-        # but it's not guaranteed we get the exact same source so for now we defer to install
-        # time
+        # Here we could invoke self.find_wheel_url() to get the resolved URL but I'm not sure it's
+        # guaranteed we get the exact same source so for now we defer to install time, which at
+        # least will give something compatible with the target machine
 
         return line
+
+    def find_wheel_url(self) -> list[str]:
+        report = dry_run_pip_json(
+            ["--no-deps", f"{self.name}=={self.version}"],
+            python_version=self.python_version,
+            implementation=self.python_implementation,
+            abi=self.python_abi_tags,
+            platform=self.python_platform_tags,
+        )
+        return report["install"][0]["download_info"]["url"]
 
     @staticmethod
     def _parse_wheel_file(path) -> dict[str, list[str]]:
@@ -405,10 +491,20 @@ class PyPIDistribution:
                         return True
         return False
 
-
-def compute_record_sum(manifest: str, algo: str = "sha256") -> str:
+    @staticmethod
+    def _build_arg_parser() -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("spec")
+        parser.add_argument("--python-version")
+        parser.add_argument("--implementation")
+        parser.add_argument("--abi", action="append", default=[])
+        parser.add_argument("--platform", action="append", default=[])
+        parser.add_argument("--record-checksum", action="append", default=[])
+        return parser
+    
+def compute_record_sum(manifest: str, algos: Iterable[str] = ("sha256",)) -> dict[str, str]:
     """
-    Given a RECORD file, compute a hash out of a subset of its sorted contents.
+    Given a RECORD file, compute hashes out of a subset of its sorted contents.
 
     We skip *.dist-info files other than METADATA and WHEEL.
     For non site-packages files, we only keep the path for those than fall in bin, lib and Scripts
@@ -417,32 +513,34 @@ def compute_record_sum(manifest: str, algo: str = "sha256") -> str:
     The list of tuples (path, hash, size) is then sorted and written as JSON with no spaces or
     indentation. This output is what gets hashed.
     """
-    manifest = Path(manifest)
-    if not manifest.is_file():
-        return
     contents = []
-    with open(manifest) as f:
-        reader = csv_reader(f, delimiter=",", quotechar='"')
-        for row in reader:
-            path, hash_, size = row
-            path = Path(path)
-            if size:
-                size = int(size)
-            if path.parts[0].endswith(".dist-info") and path.name not in ("METADATA", "WHEEL"):
-                # we only want to check the metadata and wheel parts of dist-info; everything else
-                # is not deterministic or useful
-                continue
-            if path.parts[0] == ".." and any(
-                part in path.parts for part in ("bin", "lib", "Scripts")
-            ):
-                # entry points are autogenerated and can have different hashes/size
-                # depending on prefix
-                hash_, size = "", 0
-            contents.append((str(path), hash_, size))
+    try:
+        with open(manifest) as f:
+            reader = csv_reader(f, delimiter=",", quotechar='"')
+            for row in reader:
+                path, hash_, size = row
+                path = Path(path)
+                if size:
+                    size = int(size)
+                if path.parts[0].endswith(".dist-info") and path.name not in ("METADATA", "WHEEL"):
+                    # we only want to check the metadata and wheel parts of dist-info; everything else
+                    # is not deterministic or useful
+                    continue
+                if path.parts[0] == ".." and any(
+                    part in path.parts for part in ("bin", "lib", "Scripts")
+                ):
+                    # entry points are autogenerated and can have different hashes/size
+                    # depending on prefix
+                    hash_, size = "", 0
+                contents.append((str(path), hash_, size))
+    except OSError as exc:
+        logger.warning("Could not compute RECORD checksum for %s", manifest)
+        logger.debug("Could not open %s", manifest, exc_info=exc)
+        return
 
     try:
         with NamedTemporaryFile("w", delete=False) as tmp:
             tmp.write(json.dumps(contents, indent=0, separators=(",", ":")))
-        return compute_sum(tmp.name, algo)
+        return {algo: compute_sum(tmp.name, algo) for algo in algos}
     finally:
         os.unlink(tmp.name)

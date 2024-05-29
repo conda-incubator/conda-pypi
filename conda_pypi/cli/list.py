@@ -13,8 +13,8 @@ def post_command(command: str):
         return
     if "--no-pip" in sys.argv or not cmd_line.get("pip"):
         return
-    checksum = "md5" if ("--md5" in sys.argv or cmd_line.get("md5").value(None)) else None
-    to_print = pypi_lines_for_explicit_lockfile(context.target_prefix, checksum=checksum)
+    checksums = ("md5",) if ("--md5" in sys.argv or cmd_line.get("md5").value(None)) else None
+    to_print = pypi_lines_for_explicit_lockfile(context.target_prefix, checksums=checksums)
     if to_print:
         sys.stdout.flush()
         print(f"# The following lines were added by conda-pypi v{__version__}")
