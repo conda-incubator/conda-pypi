@@ -129,15 +129,9 @@ def test_pyqt(
             assert conda_spec in out
 
 
-@pytest.mark.parametrize(
-    "specs, pure_pip, with_md5",
-    [
-        (("requests",), True, True),
-        (("requests",), False, False),
-        (("requests",), True, False),
-        (("requests",), False, True),
-    ],
-)
+@pytest.mark.parametrize("specs", (("requests",),))
+@pytest.mark.parametrize("pure_pip", (True, False))
+@pytest.mark.parametrize("with_md5", (True, False))
 def test_lockfile_roundtrip(
     tmp_path: Path,
     tmp_env: TmpEnvFixture,
@@ -190,7 +184,10 @@ def test_lockfile_roundtrip(
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
     assert p.returncode == 0
-    assert "Verifying PyPI transaction" in p.stdout
+    if pure_pip:
+        assert "Preparing PyPI transaction" in p.stdout
+        assert "Executing PyPI transaction" in p.stdout
+        assert "Verifying PyPI transaction" in p.stdout
 
     out2, err2, rc2 = conda_cli("list", "--explicit", *md5, "--prefix", tmp_path / "env")
     print(out2)
