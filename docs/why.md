@@ -54,4 +54,4 @@ Are we expecting you to do all that manually? Of course not! This is what `conda
 
 ## Expected behavior
 
-Refer to the [Quickstart guide](quickstart.md).
+Refer to the [Quick start guide](quickstart.md).

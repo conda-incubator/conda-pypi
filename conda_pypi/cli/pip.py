@@ -20,7 +20,7 @@ logger = getLogger(f"conda.{__name__}")
 
 
 def configure_parser(parser: argparse.ArgumentParser):
-    from .dependencies import BACKENDS
+    from ..dependencies import BACKENDS
 
     add_parser_help(parser)
     add_parser_prefix(parser)
@@ -69,14 +69,14 @@ def configure_parser(parser: argparse.ArgumentParser):
 def execute(args: argparse.Namespace) -> int:
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
-    from .dependencies import analyze_dependencies
-    from .main import (
+    from ..dependencies import analyze_dependencies
+    from ..main import (
         validate_target_env,
         ensure_externally_managed,
         run_conda_install,
         run_pip_install,
     )
-    from .utils import get_prefix
+    from ..utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)
     packages_not_installed = validate_target_env(prefix, args.packages)
@@ -150,7 +150,7 @@ def execute(args: argparse.Namespace) -> int:
     if pypi_specs:
         if not args.quiet or not args.json:
             print("Running pip install...")
-        retcode = run_pip_install(
+        process = run_pip_install(
             prefix,
             pypi_specs,
             dry_run=args.dry_run,
@@ -159,8 +159,8 @@ def execute(args: argparse.Namespace) -> int:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
         )
-        if retcode:
-            return retcode
+        if process.returncode:
+            return process.returncode
         if os.environ.get("CONDA_BUILD_STATE") != "BUILD":
             ensure_externally_managed(prefix)
     return 0
