@@ -422,6 +422,8 @@ class PyPIDistribution:
 
         All fields above should be part of the same line. The CLI mimics what `pip` currently
         accepts, with the exception of `--record-checksum`, which is a custom addition.
+
+        The value of `--record-checksum` is given by `compute_record_sum()`.
         """
         if self.url:
             return f"{self._line_prefix}{self.url}"
@@ -504,13 +506,13 @@ class PyPIDistribution:
     
 def compute_record_sum(manifest: str, algos: Iterable[str] = ("sha256",)) -> dict[str, str]:
     """
-    Given a RECORD file, compute hashes out of a subset of its sorted contents.
+    Given a `RECORD` file, compute hashes out of a subset of its sorted contents.
 
-    We skip *.dist-info files other than METADATA and WHEEL.
-    For non site-packages files, we only keep the path for those than fall in bin, lib and Scripts
-    because their hash and size might change with path relocation.
+    We skip `*.dist-info` files other than `METADATA` and `WHEEL`.
+    For non site-packages files, we only keep the path for those than fall in `bin`, `lib`
+    and `Scripts` because their hash and size might change with path relocation.
 
-    The list of tuples (path, hash, size) is then sorted and written as JSON with no spaces or
+    The list of tuples `(path, hash, size)` is then sorted and written as JSON with no spaces or
     indentation. This output is what gets hashed.
     """
     contents = []
