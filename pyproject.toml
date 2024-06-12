@@ -23,7 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "conda >=23.7.3",
+  # "conda >=23.9.0",
   "pip",
   "grayskull",
   "importlib_resources",
