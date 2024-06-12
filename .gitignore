@@ -133,3 +133,6 @@ dmypy.json
 
 # Used in debugging
 explicit.txt
+
+# hatch-vcs
+conda_pypi/_version.py
