@@ -40,7 +40,7 @@ test:
     - conda_pypi.main
   commands:
     - conda pip --help
-    - python -c "from conda_pypi.utils import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
+    - python -c "from conda_pypi.python_paths import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
     - pip install requests && exit 1 || exit 0
 
 about:
