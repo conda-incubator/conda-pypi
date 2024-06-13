@@ -158,7 +158,7 @@ def ensure_target_env_has_externally_managed(command: str):
         return
     base_prefix = Path(context.conda_prefix)
     target_prefix = Path(context.target_prefix)
-    if base_prefix == target_prefix:
+    if base_prefix == target_prefix or base_prefix.resolve() == target_prefix.resolve():
         return
     # ensure conda-pypi was explicitly installed in base env (and not as a dependency)
     requested_specs_map = History(base_prefix).get_requested_specs_map()

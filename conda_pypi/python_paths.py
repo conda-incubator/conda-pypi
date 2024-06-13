@@ -55,6 +55,8 @@ def get_current_externally_managed_path(prefix: os.PathLike = None) -> Path:
     Returns the path for EXTERNALLY-MANAGED for the given Python installation in 'prefix'.
     Not guaranteed to exist. There might be more EXTERNALLY-MANAGED files in 'prefix' for
     older Python versions. These are not returned.
+
+    It assumes Python is installed in 'prefix' and will call it with a subprocess if needed.
     """
     prefix = Path(prefix or sys.prefix)
     return get_env_stdlib(prefix) / "EXTERNALLY-MANAGED"
@@ -63,11 +65,13 @@ def get_current_externally_managed_path(prefix: os.PathLike = None) -> Path:
 def get_externally_managed_paths(prefix: os.PathLike = None) -> Iterator[Path]:
     """
     Returns all the possible EXTERNALLY-MANAGED paths in 'prefix', for all found
-    Python installations. The paths themselves are not guaranteed to exist.
+    Python (former) installations. The paths themselves are not guaranteed to exist.
+
+    This does NOT invoke python's sysconfig because Python  might not be installed (anymore).
     """
     prefix = Path(prefix or sys.prefix)
     if os.name == "nt":
-        yield get_current_externally_managed_path(prefix)
+        yield prefix / "Lib" / "EXTERNALLY-MANAGED"
     else:
         for python_dir in sorted(Path(prefix, "lib").glob("python*")):
             if python_dir.is_dir():
