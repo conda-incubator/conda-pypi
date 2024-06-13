@@ -32,14 +32,10 @@ def get_env_python(prefix: os.PathLike = None) -> Path:
 def _get_env_sysconfig_path(key: str, prefix: os.PathLike = None) -> Path:
     prefix = Path(prefix or sys.prefix)
     if str(prefix) == sys.prefix:
-        return Path(sysconfig.get_path(key), sysconfig.get_default_scheme())
+        return Path(sysconfig.get_path(key))
     return Path(
         check_output(
-            [
-                get_env_python(prefix),
-                "-c",
-                f"import sysconfig; sysconfig.get_path('{key}', sysconfig.get_default_scheme())",
-            ],
+            [get_env_python(prefix), "-c", f"import sysconfig; sysconfig.get_path('{key}')"],
             text=True,
         ).strip()
     )
@@ -83,7 +79,7 @@ def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
-    target_path = next(get_current_externally_managed_path(prefix))
+    target_path = get_current_externally_managed_path(prefix)
     if target_path.exists():
         return target_path
     logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
