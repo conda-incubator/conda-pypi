@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import os
-import sys
-import sysconfig
 from logging import getLogger
 from pathlib import Path
-from subprocess import check_output
 from typing import Iterator
 
 from conda.base.context import context, locate_prefix_by_name
@@ -22,51 +19,6 @@ def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
         return Path(locate_prefix_by_name(name))
     else:
         return Path(context.target_prefix)
-
-
-def get_env_python(prefix: os.PathLike = None) -> Path:
-    prefix = Path(prefix or sys.prefix)
-    if os.name == "nt":
-        return prefix / "python.exe"
-    return prefix / "bin" / "python"
-
-
-def _get_env_sysconfig_path(key: str, prefix: os.PathLike = None) -> Path:
-    prefix = Path(prefix or sys.prefix)
-    if str(prefix) == sys.prefix:
-        return Path(sysconfig.get_path(key))
-    return Path(
-        check_output(
-            [
-                get_env_python(prefix),
-                "-c",
-                f"import sysconfig; print(sysconfig.get_paths()['{key}'])",
-            ],
-            text=True,
-        ).strip()
-    )
-
-
-def get_env_stdlib(prefix: os.PathLike = None) -> Path:
-    return _get_env_sysconfig_path("stdlib", prefix)
-
-
-def get_env_site_packages(prefix: os.PathLike = None) -> Path:
-    return _get_env_sysconfig_path("purelib", prefix)
-
-
-def get_externally_managed_path(prefix: os.PathLike = None) -> Iterator[Path]:
-    prefix = Path(prefix or sys.prefix)
-    if os.name == "nt":
-        yield Path(prefix, "Lib", "EXTERNALLY-MANAGED")
-    else:
-        found = False
-        for python_dir in sorted(Path(prefix, "lib").glob("python*")):
-            if python_dir.is_dir():
-                found = True
-                yield Path(python_dir, "EXTERNALLY-MANAGED")
-        if not found:
-            raise ValueError("Could not locate EXTERNALLY-MANAGED file")
 
 
 def pypi_spec_variants(spec_str: str) -> Iterator[str]:

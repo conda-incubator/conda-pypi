@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import sys
 from logging import getLogger
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from conda.base.context import context

@@ -13,12 +13,6 @@ from subprocess import run, CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
-try:
-    from importlib.resources import files as importlib_files
-except ImportError:
-    from importlib_resources import files as importlib_files
-
-
 from conda.base.context import context
 from conda.common.pkg_formats.python import PythonDistribution
 from conda.core.prefix_data import PrefixData
@@ -33,12 +27,13 @@ from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
 
-from .utils import (
+from .python_paths import (
+    ensure_externally_managed,
     get_env_python,
     get_env_site_packages,
-    get_externally_managed_path,
-    pypi_spec_variants,
+    get_externally_managed_paths,
 )
+from .utils import pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
@@ -154,21 +149,6 @@ def run_pip_install(
     return process
 
 
-def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
-    """
-    conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
-    We also need to place it in _new_ environments created by conda. We do this by implementing
-    some extra plugin hooks.
-    """
-    target_path = next(get_externally_managed_path(prefix))
-    if target_path.exists():
-        return target_path
-    logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
-    resource = importlib_files("conda_pypi") / "data" / "EXTERNALLY-MANAGED"
-    target_path.write_text(resource.read_text())
-    return target_path
-
-
 def ensure_target_env_has_externally_managed(command: str):
     """
     post-command hook to ensure that the target env has the EXTERNALLY-MANAGED file
@@ -191,7 +171,7 @@ def ensure_target_env_has_externally_managed(command: str):
             return
         # Check if there are some leftover EXTERNALLY-MANAGED files from other Python versions
         if command != "create" and os.name != "nt":
-            for path in get_externally_managed_path(target_prefix):
+            for path in get_externally_managed_paths(target_prefix):
                 if path.exists():
                     path.unlink()
         ensure_externally_managed(target_prefix)
@@ -199,7 +179,7 @@ def ensure_target_env_has_externally_managed(command: str):
         if list(prefix_data.query("pip")):
             # leave in place if pip is still installed
             return
-        for path in get_externally_managed_path(target_prefix):
+        for path in get_externally_managed_paths(target_prefix):
             if path.exists():
                 path.unlink()
     else:
@@ -387,7 +367,7 @@ class PyPIDistribution:
     def from_lockfile_line(cls, line: str | Iterable[str]):
         if isinstance(line, str):
             if line.startswith(cls._line_prefix):
-                line = line[len(cls._line_prefix):]
+                line = line[len(cls._line_prefix) :]
             line = shlex.split(line.strip())
         if cls._arg_parser is None:
             cls._arg_parser = cls._build_arg_parser()
@@ -437,7 +417,7 @@ class PyPIDistribution:
             line += f" --abi {abi}"
         for platform in self.python_platform_tags:
             line += f" --platform {platform}"
-        for algo, checksum in  self.record_checksums.items():
+        for algo, checksum in self.record_checksums.items():
             line += f" --record-checksum={algo}:{checksum}"
 
         # Here we could invoke self.find_wheel_url() to get the resolved URL but I'm not sure it's
@@ -503,7 +483,8 @@ class PyPIDistribution:
         parser.add_argument("--platform", action="append", default=[])
         parser.add_argument("--record-checksum", action="append", default=[])
         return parser
-    
+
+
 def compute_record_sum(manifest: str, algos: Iterable[str] = ("sha256",)) -> dict[str, str]:
     """
     Given a `RECORD` file, compute hashes out of a subset of its sorted contents.
