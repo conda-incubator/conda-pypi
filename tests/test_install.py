@@ -11,7 +11,7 @@ from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
 from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
-from conda_pypi.utils import get_env_python
+from conda_pypi.python_paths import get_env_python
 
 
 @pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
