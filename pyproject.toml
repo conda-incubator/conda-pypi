@@ -23,7 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "conda >=23.7.3",
+  # "conda >=23.9.0",
   "pip",
   "grayskull",
   "importlib_resources",
@@ -105,6 +105,9 @@ test-py311 = ["test", "py311"]
 
 [tool.hatch.version]
 source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "conda_pypi/_version.py"
 
 [tool.ruff]
 line-length = 99
