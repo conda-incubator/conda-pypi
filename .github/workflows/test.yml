@@ -52,7 +52,7 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
         run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
-      - name: Build recipe (${{ env.PIXI_ENV_NAME }})
-        if: matrix.python-version == '3.10'
-        run: pixi run build
+      - name: Build recipe
+        if: matrix.python-version == '310'
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} build
   
