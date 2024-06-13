@@ -26,7 +26,8 @@ dependencies = [
   # "conda >=23.9.0",
   "pip",
   "grayskull",
-  "importlib_resources",
+  "importlib_resources; python_version < '3.9'",
+  "packaging",
 ]
 dynamic = [
   "version"
