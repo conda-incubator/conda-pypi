@@ -52,7 +52,26 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
         run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
-      - name: Build recipe (${{ env.PIXI_ENV_NAME }})
-        if: matrix.python-version == '3.10'
-        run: pixi run build
+  
+  build-conda:
+    name: Build conda package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        with:
+          fetch-depth: 0
+      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+        with:
+          environments: build
+      - name: Setup project
+        run: |
+          pixi run --environment build dev
+      - name: Build recipe
+        run: pixi run --environment build build
   

@@ -9,7 +9,7 @@ from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
 from pytest_mock import MockerFixture
 
-from conda_pypi.utils import get_env_python, get_env_stdlib
+from conda_pypi.python_paths import get_env_python, get_env_stdlib
 
 
 def test_pip_required_in_target_env(

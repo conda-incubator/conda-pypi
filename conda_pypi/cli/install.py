@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import sys
 from logging import getLogger
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from conda.base.context import context
@@ -10,7 +8,7 @@ from conda.common.io import Spinner
 from conda.exceptions import CondaVerificationError, CondaFileIOError
 
 from ..main import run_pip_install, compute_record_sum, PyPIDistribution
-from ..utils import get_env_site_packages
+from ..python_paths import get_env_site_packages
 
 if TYPE_CHECKING:
     from typing import Iterable, Literal

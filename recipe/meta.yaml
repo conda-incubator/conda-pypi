@@ -17,7 +17,7 @@ build:
     - set -x  # [unix]
     - "@ECHO ON"  # [win]
     - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-    - {{ PYTHON }} -c "from conda_pypi.main import ensure_externally_managed; ensure_externally_managed()"
+    - {{ PYTHON }} -c "from conda_pypi.python_paths import ensure_externally_managed; ensure_externally_managed()"
 
 requirements:
   host:
@@ -25,15 +25,14 @@ requirements:
     - pip
     - hatchling >=1.12.2
     - hatch-vcs >=0.2.0
-    - conda >=23.7.3
-    - importlib_resources
+    - importlib_resources  # [py<39]
   run:
     - python
-    - conda >=23.7.3
+    - conda >=23.9.0
     - pip >=23.0.1
     - grayskull
-    - importlib_resources
-    - conda-libmamba-solver
+    - importlib_resources  # [py<39]
+    - packaging
 
 test:
   imports:
@@ -41,7 +40,7 @@ test:
     - conda_pypi.main
   commands:
     - conda pip --help
-    - python -c "from conda_pypi.utils import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
+    - python -c "from conda_pypi.python_paths import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
     - pip install requests && exit 1 || exit 0
 
 about:
