@@ -139,7 +139,7 @@ def run_pip_install(
     if check and process.returncode:
         raise CondaError(
             f"Failed to run pip:\n"
-            f"  command: {shlex.join(command)}\n"
+            f"  command: {shlex.join(map(str,command))}\n"
             f"  exit code: {process.returncode}\n"
             f"  stderr:\n{process.stderr}\n"
             f"  stdout:\n{process.stdout}"
@@ -265,7 +265,7 @@ def dry_run_pip_json(
         if process.returncode != 0:
             raise CondaError(
                 f"Failed to dry-run pip:\n"
-                f"  command: {shlex.join(cmd)}\n"
+                f"  command: {shlex.join(map(str, cmd))}\n"
                 f"  exit code: {process.returncode}\n"
                 f"  stderr:\n{process.stderr}\n"
                 f"  stdout:\n{process.stdout}"
