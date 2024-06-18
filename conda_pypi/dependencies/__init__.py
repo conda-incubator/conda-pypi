@@ -61,7 +61,7 @@ def analyze_dependencies(
         needs_analysis.extend(["-e", editable])
 
     if not needs_analysis:
-        return conda_deps, {}
+        return conda_deps, {}, {}
 
     if backend == "grayskull":
         if editable:
