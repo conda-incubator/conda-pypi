@@ -94,6 +94,6 @@ https://conda.anaconda.org/conda-forge/noarch/pip-24.0-pyhd8ed1ab_0.conda#f586ac
 
 - The `base` environment.
 - All new environments that include `pip`.
-- Existing environments that `pip`, but only after running a conda command on them.
+- Existing environments that already have `pip`, but only after running a conda command on them.
 
 More details at {ref}`externally-managed`.

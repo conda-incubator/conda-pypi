@@ -5,6 +5,11 @@ Welcome to the `conda-pypi` documentation!
 `conda-pypi` allows you to run `conda pip install ...` in a safe way, and many other things.
 
 
+:::{warning}
+This project is still in early stages of development. Don't use it in production (yet).
+We do welcome feedback on what the expected behaviour should have been if something doesn't work!
+:::
+
 ::::{grid} 2
 
 :::{grid-item-card} 🏡 Getting started
@@ -18,6 +23,9 @@ New to `conda-pypi`? Start here to learn the essentials
 :link-type: doc
 Read about why `conda-pypi` exists and when you should use it
 :::
+::::
+
+::::{grid} 2
 
 :::{grid-item-card} 🍱 Features
 :link: features
