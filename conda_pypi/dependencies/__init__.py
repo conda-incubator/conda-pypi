@@ -34,12 +34,13 @@ NAME_MAPPINGS = {
 
 def analyze_dependencies(
     *pypi_specs: str,
+    editable: str | None = None,
     prefer_on_conda: bool = True,
     channel: str = "conda-forge",
     backend: Literal["grayskull", "pip"] = "pip",
     prefix: str | os.PathLike | None = None,
     force_reinstall: bool = False,
-) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+) -> tuple[dict[str, list[str]], dict[str, list[str]], dict[str, list[str]]]:
     conda_deps = defaultdict(list)
     needs_analysis = []
     for pypi_spec in pypi_specs:
@@ -56,11 +57,15 @@ def analyze_dependencies(
                 conda_deps[MatchSpec(conda_spec).name].append(conda_spec)
                 continue
         needs_analysis.append(pypi_spec)
+    if editable:
+        needs_analysis.extend(["-e", editable])
 
     if not needs_analysis:
-        return conda_deps, {}
+        return conda_deps, {}, {}
 
     if backend == "grayskull":
+        if editable:
+            logger.warning("Ignoring editable=%s with backend=grayskull", editable)
         from .grayskull import _analyze_with_grayskull
 
         found_conda_deps, pypi_deps = _analyze_with_grayskull(
@@ -69,16 +74,18 @@ def analyze_dependencies(
     elif backend == "pip":
         from .pip import _analyze_with_pip
 
-        python_deps, pypi_deps = _analyze_with_pip(
+        python_deps, pypi_deps, editable_deps = _analyze_with_pip(
             *needs_analysis,
             prefix=prefix,
             force_reinstall=force_reinstall,
-        )
+        )      
+
         found_conda_deps, pypi_deps = _classify_dependencies(
             pypi_deps,
             prefer_on_conda=prefer_on_conda,
             channel=channel,
         )
+        
         found_conda_deps.update(python_deps)
     else:
         raise ValueError(f"Unknown backend {backend}")
@@ -89,7 +96,8 @@ def analyze_dependencies(
     # deduplicate
     conda_deps = {name: list(dict.fromkeys(specs)) for name, specs in conda_deps.items()}
     pypi_deps = {name: list(dict.fromkeys(specs)) for name, specs in pypi_deps.items()}
-    return conda_deps, pypi_deps
+    editable_deps = editable_deps if editable else {}
+    return conda_deps, pypi_deps, editable_deps
 
 
 def _classify_dependencies(

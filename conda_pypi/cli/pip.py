@@ -15,6 +15,7 @@ from conda.cli.conda_argparse import (
     add_parser_help,
     add_parser_prefix,
 )
+from conda.exceptions import ArgumentError
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -57,16 +58,32 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Where to look for conda dependencies.",
     )
     install.add_argument(
+        "-e", "--editable",
+        metavar="<path/url>",
+        help="Install a project in editable mode (i.e. setuptools 'develop mode') "
+        "from a local project path or a VCS url."
+    )
+    install.add_argument(
         "--backend",
         metavar="TOOL",
         default="pip",
         choices=BACKENDS,
         help="Which tool to use for PyPI packaging dependency resolution.",
     )
-    install.add_argument("packages", metavar="package", nargs="+")
+    install.add_argument("packages", metavar="package", nargs="*")
 
 
 def execute(args: argparse.Namespace) -> int:
+    if not args.packages and not args.editable:
+        raise ArgumentError(
+            "No packages requested. Please provide one or more packages, "
+            "or one editable specification."
+        )
+    if args.editable and args.backend == "grayskull":
+        raise ArgumentError(
+            "--editable PKG and --backend=grayskull are not compatible. Please use --backend=pip."
+        )
+
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
     from ..dependencies import analyze_dependencies
@@ -82,13 +99,14 @@ def execute(args: argparse.Namespace) -> int:
     packages_not_installed = validate_target_env(prefix, args.packages)
 
     packages_to_process = args.packages if args.force_reinstall else packages_not_installed
-    if not packages_to_process:
+    if not packages_to_process and not args.editable:
         print("All packages are already installed.", file=sys.stderr)
         return 0
 
     with Spinner("Analyzing dependencies", enabled=not args.quiet, json=args.json):
-        conda_deps, pypi_deps = analyze_dependencies(
+        conda_deps, pypi_deps, editable_deps = analyze_dependencies(
             *packages_to_process,
+            editable=args.editable,
             prefer_on_conda=not args.force_with_pip,
             channel=args.conda_channel,
             backend=args.backend,
@@ -113,6 +131,9 @@ def execute(args: argparse.Namespace) -> int:
                 logger.warning("ignoring extra specifiers for %s: %s", name, specs[1:])
         spec = spec.replace(" ", "")  # remove spaces
         pypi_specs.append(spec)
+    for name, specs in editable_deps.items():
+        for spec in specs:
+            pypi_specs.append(f"--editable={spec}")
 
     if not args.quiet or not args.json:
         if conda_match_specs:
