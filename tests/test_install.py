@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from subprocess import run
@@ -11,7 +12,7 @@ from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
 from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
-from conda_pypi.python_paths import get_env_python
+from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 
 @pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
@@ -194,3 +195,47 @@ def test_lockfile_roundtrip(
     print(err2, file=sys.stderr)
     assert rc2 == 0
     assert sorted(out2.splitlines()) == sorted(out.splitlines())
+
+
+@pytest.mark.parametrize(
+    "requirement,name",
+    [
+        (
+            # pure Python
+            "git+https://github.com/dateutil/dateutil.git@2.9.0.post0",
+            "python_dateutil",
+        ),
+        (
+            # compiled bits
+            "git+https://github.com/yaml/pyyaml.git@6.0.1",
+            "PyYAML",
+        ),
+        (
+            # has conda dependencies
+            "git+https://github.com/regro/conda-forge-metadata.git@0.8.1",
+            "conda_forge_metadata",
+        ),
+    ],
+)
+def test_editable_installs(
+    tmp_path: Path, tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, requirement, name
+):
+    os.chdir(tmp_path)
+    with tmp_env("python=3.9", "pip") as prefix:
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "-e",
+            f"{requirement}#egg={name}",
+        )
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0
+        sp = get_env_site_packages(prefix)
+        editable_pth = list(sp.glob(f"__editable__.{name}-*.pth"))
+        assert len(editable_pth) == 1
+        pth_contents = editable_pth[0].read_text().strip()
+        assert pth_contents.startswith((str(tmp_path / "src"), f"import __editable___{name}"))

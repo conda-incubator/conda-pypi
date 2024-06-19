@@ -133,6 +133,8 @@ dmypy.json
 
 # Used in debugging
 explicit.txt
+# pip editable clones stuff here
+src/
 
 # hatch-vcs
 conda_pypi/_version.py
