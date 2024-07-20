@@ -1,0 +1,50 @@
+[tool.black]
+target-version = ["py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+authors = [
+  { name = "Daniel Holth", email = "dholth@gmail.com" }
+]
+name = "dev2conda"
+description = "An efficient library to read from new and old format .conda and .tar.bz2 conda packages."
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
+requires-python = ">=3.7"
+dependencies = ["conda-package-streaming"]
+
+[project.optional-dependencies]
+test = [
+  "pytest >=7",
+  "pytest-cov",
+  "pytest-mock",
+]
+docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
+
+[project.urls]
+Home = "https://github.com/dholth/dev2conda"
+Documentation = "https://dholth.github.io/dev2conda/"
+
+# pyproject.toml
+[tool.pytest.ini_options]
+minversion = "7.4"
+testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+
+[tool.coverage.run]
+source = ["dev2conda/", "tests/"]
