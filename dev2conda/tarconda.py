@@ -1,6 +1,7 @@
 import tarfile
 import tempfile
 from pathlib import Path
+import os.path
 
 from conda_package_streaming.transmute import transmute_stream
 
@@ -13,6 +14,9 @@ def create(source, destination):
     def filter(tarinfo):
         if tarinfo.name.endswith(".git"):
             return None
+        tarinfo.name = os.path.relpath(tarinfo.name, source)
+        tarinfo.uid = tarinfo.gid = 0
+        tarinfo.uname = tarinfo.gname = "root"
         return tarinfo
 
     with tempfile.TemporaryDirectory("tarconda") as tempdir:
