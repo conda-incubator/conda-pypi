@@ -14,14 +14,13 @@ def create(source, destination):
     def filter(tarinfo):
         if tarinfo.name.endswith(".git"):
             return None
-        tarinfo.name = os.path.relpath(tarinfo.name, source)
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
         return tarinfo
 
     with tempfile.TemporaryDirectory("tarconda") as tempdir:
         with tarfile.TarFile(Path(tempdir, "tarconda.tar"), "w") as tar:
-            tar.add(source, filter=filter)
+            tar.add(source, "", filter=filter)
 
         with tarfile.TarFile(Path(tempdir, "tarconda.tar"), "r") as tar:
             transmute_stream(
