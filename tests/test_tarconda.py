@@ -103,3 +103,6 @@ def test_checksum(tmp_path):
     assert sha256_checksum(tmp_path / "nowhere") == hashlib.sha256().hexdigest()
     os.mkfifo(tmp_path / "fifo")
     assert sha256_checksum(tmp_path / "fifo") is None
+
+    paths = paths_json(tmp_path)
+    assert len(paths["paths"])
