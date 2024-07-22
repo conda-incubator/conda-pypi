@@ -34,7 +34,7 @@ class PathType(Enum):
         return self.name
 
 
-def sha256_checksum(filename, entry: DirEntry | None, buffersize=65536):
+def sha256_checksum(filename, entry: DirEntry | None = None, buffersize=65536):
     if not entry:
         is_link = islink(filename)
         is_file = isfile(filename)
