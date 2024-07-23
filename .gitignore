@@ -139,3 +139,5 @@ src/
 
 # hatch-vcs
 conda_pypi/_version.py
+
+.vscode/
