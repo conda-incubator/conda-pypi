@@ -13,7 +13,7 @@ authors = [
   { name = "Daniel Holth", email = "dholth@gmail.com" }
 ]
 name = "dev2conda"
-description = "An efficient library to read from new and old format .conda and .tar.bz2 conda packages."
+description = "Convert Python packages to .conda"
 license = { file = "LICENSE" }
 readme = "README.md"
 classifiers = [
@@ -24,7 +24,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 requires-python = ">=3.7"
-dependencies = ["conda-package-streaming"]
+dependencies = ["build", "conda-index", "conda-package-streaming", "packaging"]
 
 [project.optional-dependencies]
 test = [
