@@ -2,15 +2,14 @@ import hashlib
 import json
 import os
 import shutil
-import sys
 import zipfile
 from pathlib import Path
-from subprocess import run
 
 from conda.cli.main import main_subshell
 
-from dev2conda.conda_build_utils import PathType, sha256_checksum
 from dev2conda.build import builder, create, filter, index_json, paths_json
+from dev2conda.conda_build_utils import PathType, sha256_checksum
+from dev2conda.index import update_index
 
 here = Path(__file__).parent
 
@@ -22,8 +21,6 @@ def test_tarconda(tmp_path):
 
 
 def test_indexable(tmp_path):
-    # tmp_path = Path("/tmp/test")
-    # tmp_path.mkdir()
     noarch = tmp_path / "noarch"
     noarch.mkdir()
 
@@ -48,8 +45,8 @@ def test_indexable(tmp_path):
     with builder(noarch, file_id) as tar:
         tar.add(dest, "", filter=filter)
 
-    # can cause a circular import in requests if charset-normalizer but not chardet is installed
-    run([sys.executable, "-m", "conda_index", str(tmp_path)], check=True)
+    update_index(tmp_path)
+
     repodata = json.loads((noarch / "repodata.json").read_text())
     assert repodata["packages.conda"]
 
