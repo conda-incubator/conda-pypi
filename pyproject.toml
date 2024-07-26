@@ -40,7 +40,7 @@ dependencies = [
 ]
 dynamic = ["version"]
 requires-python = ">=3.7"
-dependencies = ["build", "conda-index", "conda-package-streaming", "packaging"]
+dependencies = ["build", "conda-index", "conda-package-streaming", "packaging >=24"]
 
 [project.optional-dependencies]
 test = [

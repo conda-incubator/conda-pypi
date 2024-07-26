@@ -1,6 +1,6 @@
 import os
 import tarfile
-import tempfile
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -21,11 +21,10 @@ def filter(tarinfo):
     return tarinfo
 
 
-def create(source, destination):
+def create(source, destination, file_id, filter=filter):
     """
     Copy files from source into a .conda at destination.
     """
-    file_id = "someconda"
     with builder(destination, file_id) as tar:
         tar.add(source, "", filter=filter)
 
@@ -33,22 +32,37 @@ def create(source, destination):
 
 
 @contextmanager
-def builder(destination, file_id):
+def builder(
+    destination, file_id, is_info=lambda filename: filename.startswith("info/")
+):
     """
     Yield TarFile object for adding files, then transmute to "{destination}/{file_id}.conda"
     """
-    with tempfile.TemporaryDirectory("tarconda") as tempdir:
-        # Not super efficient since we create the complete tar, then the info
-        # and pkg tar inside transmute_stream. Could we use os.pipe() to stream
-        # the tar, or a TarFile subclass that would generate (tar, entry) into
-        # transmute_stream?
-        with tarfile.TarFile(Path(tempdir, "tarconda.tar"), "w") as tar:
+    # Stream through a pipe instead of collecting all data in a temporary
+    # tarfile. Underlying transmute_stream collects data into separate pkg, info
+    # tar to be able to send complete size to zstd, so this strategy avoids one
+    # temporary file but not all of them. Compare to conda-package-handling 2.3
+    # which uses less temporary space but reads every input file twice; once to
+    # count the size and a second time to stream into a zstd compressor.
+    r, w = os.pipe()
+    with open(r, mode="rb") as reader, open(w, mode="wb") as writer:
+
+        def transmute_thread():
+            with tarfile.open(fileobj=reader, mode="r|") as tar:
+                transmute_stream(
+                    file_id,
+                    destination,
+                    package_stream=((tar, entry) for entry in tar),
+                    is_info=is_info,
+                )
+
+        t = threading.Thread(target=transmute_thread)
+        t.start()
+
+        with tarfile.open(fileobj=writer, mode="w|") as tar:
             yield tar
 
-        with tarfile.TarFile(Path(tempdir, "tarconda.tar"), "r") as tar:
-            transmute_stream(
-                file_id, destination, package_stream=((tar, entry) for entry in tar)
-            )
+        t.join()
 
 
 def index_json(
