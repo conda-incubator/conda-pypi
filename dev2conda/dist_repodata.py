@@ -4,7 +4,7 @@ Convert Python *.dist-info/METADATA to conda info/index.json
 
 import logging
 import sys
-from importlib.metadata import PathDistribution
+from importlib.metadata import Distribution, PathDistribution
 from pathlib import Path
 from typing import Any
 
@@ -22,10 +22,30 @@ def pypi_to_conda(requirement):
     return requirement
 
 
+class FileDistribution(Distribution):
+    """
+    From a file e.g. a single .metadata fetched from pypi instead of a
+    *.dist-info folder.
+    """
+
+    def __init__(self, raw_text):
+        self.raw_text = raw_text
+
+    def read_text(self, filename: str) -> str | None:
+        if filename == "METADATA":
+            return self.raw_text
+        else:
+            return None
+
+
 def fetch_data(metadata_path):
     recipe: dict[str, Any] = {"requirements": {}, "build": {}}
 
     distribution = PathDistribution(metadata_path)
+
+    # importlib.metadata.distribution('ipython').metadata.json
+
+    # or packaging >=24 Metadata for attribute access
 
     metadata = distribution.metadata
 
