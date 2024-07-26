@@ -15,7 +15,7 @@ here = Path(__file__).parent
 
 
 def test_tarconda(tmp_path):
-    create(here.parent, tmp_path)
+    create(here.parent, tmp_path, "someconda")
     zf = zipfile.ZipFile(tmp_path / "someconda.conda", "r")
     assert zf.filelist[0].filename == "metadata.json"
 
