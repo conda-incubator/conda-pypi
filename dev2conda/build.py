@@ -1,11 +1,9 @@
 import os
-import tarfile
-import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from conda_package_streaming.transmute import transmute_stream
+from conda_package_streaming.conda_fmt import conda_builder
 
 from .conda_build_utils import PathType, sha256_checksum
 
@@ -25,44 +23,10 @@ def create(source, destination, file_id, filter=filter):
     """
     Copy files from source into a .conda at destination.
     """
-    with builder(destination, file_id) as tar:
+    with conda_builder(file_id, destination) as tar:
         tar.add(source, "", filter=filter)
 
     return destination / (file_id + ".conda")
-
-
-@contextmanager
-def builder(
-    destination, file_id, is_info=lambda filename: filename.startswith("info/")
-):
-    """
-    Yield TarFile object for adding files, then transmute to "{destination}/{file_id}.conda"
-    """
-    # Stream through a pipe instead of collecting all data in a temporary
-    # tarfile. Underlying transmute_stream collects data into separate pkg, info
-    # tar to be able to send complete size to zstd, so this strategy avoids one
-    # temporary file but not all of them. Compare to conda-package-handling 2.3
-    # which uses less temporary space but reads every input file twice; once to
-    # count the size and a second time to stream into a zstd compressor.
-    r, w = os.pipe()
-    with open(r, mode="rb") as reader, open(w, mode="wb") as writer:
-
-        def transmute_thread():
-            with tarfile.open(fileobj=reader, mode="r|") as tar:
-                transmute_stream(
-                    file_id,
-                    destination,
-                    package_stream=((tar, entry) for entry in tar),
-                    is_info=is_info,
-                )
-
-        t = threading.Thread(target=transmute_thread)
-        t.start()
-
-        with tarfile.open(fileobj=writer, mode="w|") as tar:
-            yield tar
-
-        t.join()
 
 
 def index_json(

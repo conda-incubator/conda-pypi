@@ -42,14 +42,9 @@ def fetch_data(metadata_path):
     recipe: dict[str, Any] = {"requirements": {}, "build": {}}
 
     distribution = PathDistribution(metadata_path)
+    metadata = distribution.metadata.json
 
-    # importlib.metadata.distribution('ipython').metadata.json
-
-    # or packaging >=24 Metadata for attribute access
-
-    metadata = distribution.metadata
-
-    requires_python = metadata["requires-python"]
+    requires_python = metadata.get("requires_python")
     if requires_python:
         requires_python = f"python { requires_python }"
     else:
@@ -109,15 +104,15 @@ def fetch_data(metadata_path):
     # Description or distribution.metadata.get_payload()
 
     about = {
-        "summary": metadata["summary"],
-        "license": metadata["license"],
+        "summary": metadata.get("summary"),
+        "license": metadata.get("license"),
         # there are two license-file in grayskull e.g.
-        "license_file": metadata["license-file"],
+        "license_file": metadata.get("license_file"),
     }
     recipe["about"] = about
 
-    metadata_dict: dict[str, Any] = dict(metadata)
-    metadata_dict["entry_points"] = [
+    # XXX
+    metadata["entry_points"] = [
         f"{ep.name} = {ep.value}"
         for ep in distribution.entry_points
         if ep.group == "console_scripts"
@@ -125,7 +120,7 @@ def fetch_data(metadata_path):
 
     recipe["name"] = distribution.name
     recipe["version"] = distribution.version
-    recipe["metadata"] = metadata_dict
+    recipe["metadata"] = metadata
 
     return recipe
 
