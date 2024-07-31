@@ -6,8 +6,9 @@ import zipfile
 from pathlib import Path
 
 from conda.cli.main import main_subshell
+from conda_package_streaming.conda_fmt import conda_builder
 
-from dev2conda.build import builder, create, filter, index_json, paths_json
+from dev2conda.build import create, filter, index_json, paths_json
 from dev2conda.conda_build_utils import PathType, sha256_checksum
 from dev2conda.index import update_index
 
@@ -42,7 +43,7 @@ def test_indexable(tmp_path):
 
     (dest / "info" / "paths.json").write_text(json.dumps(paths))
 
-    with builder(noarch, file_id) as tar:
+    with conda_builder(file_id, noarch) as tar:
         tar.add(dest, "", filter=filter)
 
     update_index(tmp_path)
