@@ -5,13 +5,14 @@ the .conda.
 
 import itertools
 import json
-import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 from conda.cli.main import main_subshell
+from conda_package_streaming.conda_fmt import conda_builder
+from packaging.utils import canonicalize_name
 
 from build import ProjectBuilder, check_dependency
 
@@ -20,8 +21,7 @@ from .dist_repodata import fetch_data
 
 
 def normalize(name):
-    # pypa package name normalization
-    return re.sub(r"[-_.]+", "-", name).lower()
+    return canonicalize_name(name)
 
 
 def json_dumps(object):
@@ -104,7 +104,7 @@ def build_conda(whl, output_path: Path, python_executable):
 
     (build_path / "info" / "paths.json").write_text(json_dumps(paths))
 
-    with build.builder(output_path, file_id) as tar:
+    with conda_builder(file_id, output_path) as tar:
         tar.add(build_path, "", filter=build.filter)
 
     return output_path / f"{file_id}.conda"
