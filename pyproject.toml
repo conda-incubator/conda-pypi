@@ -15,7 +15,7 @@ readme = "README.md"
 authors = [
   { name = "Jaime Rodríguez-Guerra", email = "jrodriguez@quansight.com" },
 ]
-name = "dev2conda"
+name = "conda_pupae"
 description = "Convert Python packages to .conda"
 license = { file = "LICENSE" }
 readme = "README.md"

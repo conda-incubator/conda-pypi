@@ -8,9 +8,9 @@ from pathlib import Path
 from conda.cli.main import main_subshell
 from conda_package_streaming.conda_fmt import conda_builder
 
-from dev2conda.build import create, filter, index_json, paths_json
-from dev2conda.conda_build_utils import PathType, sha256_checksum
-from dev2conda.index import update_index
+from conda_pupae.build import create, filter, index_json, paths_json
+from conda_pupae.conda_build_utils import PathType, sha256_checksum
+from conda_pupae.index import update_index
 
 here = Path(__file__).parent
 
