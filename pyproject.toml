@@ -35,8 +35,8 @@ test = [
 docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
 
 [project.urls]
-Home = "https://github.com/dholth/dev2conda"
-Documentation = "https://dholth.github.io/dev2conda/"
+Home = "https://github.com/dholth/conda_pupae"
+Documentation = "https://dholth.github.io/conda_pupae/"
 
 # pyproject.toml
 [tool.pytest.ini_options]
@@ -47,4 +47,4 @@ testpaths = ["tests"]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.coverage.run]
-source = ["dev2conda/", "tests/"]
+source = ["conda_pupae/", "tests/"]

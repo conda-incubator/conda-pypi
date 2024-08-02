@@ -1,4 +1,4 @@
-# Welcome to `dev2conda`
+# Welcome to `conda-pupae`'s documentation
 
 ```{include} ../README.md
 ```

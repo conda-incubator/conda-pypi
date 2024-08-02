@@ -3,9 +3,8 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from conda_package_streaming.conda_fmt import conda_builder
-
 from .conda_build_utils import PathType, sha256_checksum
+from .create import conda_builder
 
 
 def filter(tarinfo):

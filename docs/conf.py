@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 
-project = "dev2conda"
+project = "conda_pupae"
 copyright = "2024"
 author = "Daniel Holth"
 

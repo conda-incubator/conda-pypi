@@ -26,3 +26,5 @@ pre-existing conda channels.
 
 Replace `conda-build develop` with something compatible with all modern Python
 projects, more like `pip install -e .`
+
+Have 100% test coverage.

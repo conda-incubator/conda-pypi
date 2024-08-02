@@ -11,12 +11,12 @@ import tempfile
 from pathlib import Path
 
 from conda.cli.main import main_subshell
-from conda_package_streaming.conda_fmt import conda_builder
 from packaging.utils import canonicalize_name
 
 from build import ProjectBuilder, check_dependency
 
 from . import build
+from .create import conda_builder
 from .dist_repodata import fetch_data
 
 
