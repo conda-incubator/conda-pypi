@@ -1,6 +1,5 @@
 import os
 import time
-from contextlib import contextmanager
 from pathlib import Path
 
 from .conda_build_utils import PathType, sha256_checksum
@@ -14,7 +13,7 @@ def filter(tarinfo):
     if tarinfo.name.endswith(".git"):
         return None
     tarinfo.uid = tarinfo.gid = 0
-    tarinfo.uname = tarinfo.gname = "root"
+    tarinfo.uname = tarinfo.gname = ""
     return tarinfo
 
 
