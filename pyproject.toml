@@ -12,7 +12,7 @@ build-backend = "flit_core.buildapi"
 authors = [
   { name = "Daniel Holth", email = "dholth@gmail.com" }
 ]
-name = "dev2conda"
+name = "conda_pupae"
 description = "Convert Python packages to .conda"
 license = { file = "LICENSE" }
 readme = "README.md"
