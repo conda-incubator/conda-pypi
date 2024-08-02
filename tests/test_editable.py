@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from dev2conda.editable import editable, normalize
+from conda_pupae.editable import editable, normalize
 
 
 def test_editable():
