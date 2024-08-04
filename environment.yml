@@ -1,0 +1,15 @@
+name: pupa
+channels:
+  - defaults
+dependencies:
+  - conda
+  - conda-index
+  - conda-package-streaming # from git branch with 'create' feature
+  - packaging >=24
+  - python-build
+  - flit
+  - pytest>=7.4
+  - pytest-cov
+  - python
+  - pip:
+      - pypi-simple
