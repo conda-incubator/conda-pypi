@@ -47,6 +47,7 @@ test = [
   "pytest >=7",
   "pytest-cov",
   "pytest-mock",
+  "pypi-simple",
 ]
 docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
 
