@@ -141,3 +141,6 @@ src/
 conda_pypi/_version.py
 
 .vscode/
+
+*.db
+grayskull_pypi_mapping.json

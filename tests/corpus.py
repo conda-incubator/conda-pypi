@@ -5,17 +5,17 @@ former to the latter.
 """
 
 from __future__ import annotations
-from pypi_simple import NoMetadataError, PyPISimple
-import pypi_simple.errors
 
 import json
-from pathlib import Path
-from packaging.metadata import parse_email, Metadata
 from itertools import groupby
+from pathlib import Path
 
+import pypi_simple.errors
 import sqlalchemy
 import urllib3
 import zstandard
+from packaging.metadata import Metadata, parse_email
+from pypi_simple import NoMetadataError, PyPISimple
 from sqlalchemy import (
     JSON,
     TEXT,
@@ -30,6 +30,8 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import DeclarativeBase, Session
+
+from conda_pupae.dist_repodata import FileDistribution
 
 HERE = Path(__file__).parent
 
@@ -224,10 +226,11 @@ def fetch_pypi_metadata():
 
 
 def random_pypi(session):
-    return next(
+    row = next(
         session.execute(pypi_metadata.select().order_by(text("random()")).limit(1))
     )
-    Metadata.from_raw(parse_email(random_pypi(session).metadata)[0])
+    return FileDistribution(row.metadata)  # type: ignore
+
     # also get conda package with same name and version
 
 
@@ -235,8 +238,23 @@ if __name__ == "__main__":
     # main()
     # fetch_pypi_metadata()
 
-    pass
+    p = random_pypi(create_session())
 
+    print(p.requires)
+
+    # e.g.
+    # [
+    #     "tox ; extra == 'dev'",
+    #     "coverage ; extra == 'dev'",
+    #     "lxml ; extra == 'dev'",
+    #     "xmlschema (>=2.0.0) ; extra == 'dev'",
+    #     "Sphinx ; extra == 'dev'",
+    #     "memory-profiler ; extra == 'dev'",
+    #     "memray ; extra == 'dev'",
+    #     "flake8 ; extra == 'dev'",
+    #     "mypy ; extra == 'dev'",
+    #     "lxml-stubs ; extra == 'dev'",
+    # ]
 
 # One popular mapping between pypi, conda names
 # https://github.com/regro/cf-graph-countyfair/blob/master/mappings/pypi/grayskull_pypi_mapping.json
