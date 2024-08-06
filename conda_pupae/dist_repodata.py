@@ -2,7 +2,9 @@
 Convert Python *.dist-info/METADATA to conda info/index.json
 """
 
+import json
 import logging
+import pkgutil
 import sys
 from importlib.metadata import Distribution, PathDistribution
 from pathlib import Path
@@ -11,15 +13,37 @@ from typing import Any
 from conda.exceptions import InvalidMatchSpec
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name
 
 log = logging.getLogger(__name__)
 
 
-def pypi_to_conda(requirement):
-    # minimal for testing against this project; see grayskull, conda-pypi, ...
-    mapping = {"build": "python-build"}
-    requirement.name = mapping.get(requirement.name, requirement.name)
-    return requirement
+# The keys are pypi names
+# conda_pupae.dist_repodata.grayskull_pypi_mapping['zope-hookable']
+# {
+#     "pypi_name": "zope-hookable",
+#     "conda_name": "zope.hookable",
+#     "import_name": "zope.hookable",
+#     "mapping_source": "regro-bot",
+# }
+grayskull_pypi_mapping = json.loads(
+    pkgutil.get_data("conda_pupae", "grayskull_pypi_mapping.json") or "{}"
+)
+
+
+def pypi_to_conda(metadata):
+    for requirement in metadata.depends:
+        name = canonicalize_name(requirement.name)
+        requirement.name = grayskull_pypi_mapping.get(
+            name,
+            {
+                "pypi_name": name,
+                "conda_name": name,
+                "import_name": None,
+                "mapping_source": None,
+            },
+        )
+        yield requirement
 
 
 class FileDistribution(Distribution):
@@ -36,6 +60,13 @@ class FileDistribution(Distribution):
             return self.raw_text
         else:
             return None
+
+    def locate_file(self, path):
+        """
+        Given a path to a file in this distribution, return a path
+        to it.
+        """
+        return None
 
 
 def fetch_data(metadata_path):

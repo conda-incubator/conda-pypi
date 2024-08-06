@@ -10,10 +10,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+from build import ProjectBuilder, check_dependency
 from conda.cli.main import main_subshell
 from packaging.utils import canonicalize_name
-
-from build import ProjectBuilder, check_dependency
 
 from . import build
 from .create import conda_builder
