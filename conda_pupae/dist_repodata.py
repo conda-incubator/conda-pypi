@@ -31,8 +31,13 @@ grayskull_pypi_mapping = json.loads(
 )
 
 
-def pypi_to_conda(metadata):
-    for requirement in metadata.depends:
+def pypi_to_conda(metadata: Distribution):
+    requires = [Requirement(dep) for dep in metadata.requires or []]
+    for requirement in requires or []:
+        if requirement.marker and not requirement.marker.evaluate():
+            # excluded by environment marker
+            # see also marker evaluation according to given sys.executable
+            continue
         name = canonicalize_name(requirement.name)
         requirement.name = grayskull_pypi_mapping.get(
             name,
@@ -41,8 +46,8 @@ def pypi_to_conda(metadata):
                 "conda_name": name,
                 "import_name": None,
                 "mapping_source": None,
-            },
-        )
+            }
+        )["conda_name"]
         yield requirement
 
 
