@@ -91,11 +91,7 @@ def fetch_data(metadata_path):
         requires_python = "python"
 
     requirements = [*distribution_to_conda_requires(distribution)]
-    active_requirements = [
-        str(r).rsplit(";", 1)[0]
-        for r in requirements
-        if not r.marker or r.marker.evaluate()
-    ]
+    active_requirements = [str(r).rsplit(";", 1)[0] for r in requirements]
     # XXX to normalize space between name and version, MatchSpec(r).spec
     normalized_requirements = []
     for requirement in active_requirements:
