@@ -31,7 +31,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Session
 
-from conda_pupae.dist_repodata import FileDistribution
+from conda_pupae.dist_repodata import FileDistribution, pypi_to_conda
 
 HERE = Path(__file__).parent
 
@@ -240,7 +240,9 @@ if __name__ == "__main__":
 
     p = random_pypi(create_session())
 
-    print(p.requires)
+    print(p.name)
+    print("Requires:", '\n'.join(p.requires or []))
+    print("\nProcessed:", "\n".join(str(r) for r in list(pypi_to_conda(p))))
 
     # e.g.
     # [
