@@ -31,7 +31,7 @@ grayskull_pypi_mapping = json.loads(
 )
 
 
-def pypi_to_conda(metadata: Distribution):
+def distribution_to_conda_requires(metadata: Distribution):
     requires = [Requirement(dep) for dep in metadata.requires or []]
     for requirement in requires or []:
         if requirement.marker and not requirement.marker.evaluate():
@@ -39,16 +39,20 @@ def pypi_to_conda(metadata: Distribution):
             # see also marker evaluation according to given sys.executable
             continue
         name = canonicalize_name(requirement.name)
-        requirement.name = grayskull_pypi_mapping.get(
-            name,
-            {
-                "pypi_name": name,
-                "conda_name": name,
-                "import_name": None,
-                "mapping_source": None,
-            }
-        )["conda_name"]
+        requirement.name = pypi_to_conda_name(name)
         yield requirement
+
+
+def pypi_to_conda_name(name):
+    return grayskull_pypi_mapping.get(
+        name,
+        {
+            "pypi_name": name,
+            "conda_name": name,
+            "import_name": None,
+            "mapping_source": None,
+        },
+    )["conda_name"]
 
 
 class FileDistribution(Distribution):
@@ -86,7 +90,7 @@ def fetch_data(metadata_path):
     else:
         requires_python = "python"
 
-    requirements = [pypi_to_conda(Requirement(r)) for r in distribution.requires or []]
+    requirements = [*distribution_to_conda_requires(distribution)]
     active_requirements = [
         str(r).rsplit(";", 1)[0]
         for r in requirements

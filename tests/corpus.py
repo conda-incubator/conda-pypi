@@ -7,6 +7,7 @@ former to the latter.
 from __future__ import annotations
 
 import json
+import pprint
 from itertools import groupby
 from pathlib import Path
 
@@ -14,7 +15,6 @@ import pypi_simple.errors
 import sqlalchemy
 import urllib3
 import zstandard
-from packaging.metadata import Metadata, parse_email
 from pypi_simple import NoMetadataError, PyPISimple
 from sqlalchemy import (
     JSON,
@@ -26,12 +26,17 @@ from sqlalchemy import (
     Integer,
     LargeBinary,
     Table,
+    and_,
     func,
     text,
 )
 from sqlalchemy.orm import DeclarativeBase, Session
 
-from conda_pupae.dist_repodata import FileDistribution, pypi_to_conda
+from conda_pupae.dist_repodata import (
+    FileDistribution,
+    distribution_to_conda_requires,
+    pypi_to_conda_name,
+)
 
 HERE = Path(__file__).parent
 
@@ -234,15 +239,39 @@ def random_pypi(session):
     # also get conda package with same name and version
 
 
+def matching_conda(session, name, version):
+    """
+    Conda package metadata from repodata.json to match pypi name, version
+    """
+    conda_name = pypi_to_conda_name(name)
+    row = next(
+        session.execute(
+            repodata_packages.select().where(
+                and_(
+                    repodata_packages.c.name == conda_name,
+                    repodata_packages.c.version == version,
+                )
+            )
+        )
+    )
+    return row
+
+
 if __name__ == "__main__":
     # main()
     # fetch_pypi_metadata()
 
-    p = random_pypi(create_session())
+    session = create_session()
+    p = random_pypi(session)
 
     print(p.name)
-    print("Requires:", '\n'.join(p.requires or []))
-    print("\nProcessed:", "\n".join(str(r) for r in list(pypi_to_conda(p))))
+    print("Requires:", "\n".join(p.requires or []))
+    print(
+        "\nProcessed:",
+        "\n".join(str(r) for r in list(distribution_to_conda_requires(p))),
+    )
+
+    pprint.pprint(matching_conda(session, p.name, p.version).index_json)
 
     # e.g.
     # [
