@@ -1,6 +1,8 @@
 conda-pupae
 ===========
 
+/ˈpjuː.pə/, plural /ˈpjuː.piː/
+
 Convert PyPA package "caterpillers", whether they use `setup.py` or
 `pyproject.toml`, to beautiful `.conda` butterflies.
 
