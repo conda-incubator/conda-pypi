@@ -31,9 +31,8 @@ grayskull_pypi_mapping = json.loads(
 )
 
 
-def distribution_to_conda_requires(metadata: Distribution):
-    requires = [Requirement(dep) for dep in metadata.requires or []]
-    for requirement in requires or []:
+def requires_to_conda(requires: list[str] | None):
+    for requirement in [Requirement(dep) for dep in requires or []]:
         if requirement.marker and not requirement.marker.evaluate():
             # excluded by environment marker
             # see also marker evaluation according to given sys.executable
@@ -78,19 +77,17 @@ class FileDistribution(Distribution):
         return None
 
 
-def fetch_data(metadata_path):
+def fetch_data(distribution: Distribution):
     recipe: dict[str, Any] = {"requirements": {}, "build": {}}
 
-    distribution = PathDistribution(metadata_path)
     metadata = distribution.metadata.json
 
-    requires_python = metadata.get("requires_python")
-    if requires_python:
-        requires_python = f"python { requires_python }"
-    else:
-        requires_python = "python"
+    python_version = metadata.get("requires_python")
+    requires_python = "python"
+    if python_version:
+        requires_python = f"python { python_version }"
 
-    requirements = [*distribution_to_conda_requires(distribution)]
+    requirements = [*requires_to_conda(distribution.requires)]
     active_requirements = [str(r).rsplit(";", 1)[0] for r in requirements]
     # XXX to normalize space between name and version, MatchSpec(r).spec
     normalized_requirements = []
@@ -164,4 +161,4 @@ def fetch_data(metadata_path):
 if __name__ == "__main__":  # pragma: no cover
     base = sys.argv[1]
     for path in Path(base).glob("*.dist-info"):
-        fetch_data(path)
+        fetch_data(PathDistribution(path))

@@ -8,15 +8,17 @@ import json
 import subprocess
 import sys
 import tempfile
+from importlib.metadata import PathDistribution
 from pathlib import Path
 
-from build import ProjectBuilder, check_dependency
 from conda.cli.main import main_subshell
 from packaging.utils import canonicalize_name
 
+from build import ProjectBuilder, check_dependency
+
 from . import build
 from .create import conda_builder
-from .dist_repodata import fetch_data
+from .dist_repodata import fetch_data, requires_to_conda
 
 
 def normalize(name):
@@ -35,14 +37,15 @@ def flatten(iterable):
 
 
 def ensure_requirements(requirements):
-    # XXX we need to parse environment markers e.g. "tomli;
-    # python_version < '3.11'" see pyproject-hooks
-    # https://packaging.pypa.io/en/stable/markers.html#markers
     if requirements:
-        main_subshell("install", *(normalize(r) for r in requirements))
+        main_subshell("install", *requires_to_conda(requirements))
 
 
-def build_pypa(path: Path, output_path, python_executable):
+def build_pypa(path: Path, output_path, python_executable, distribution="editable"):
+    """
+    Args:
+        distribution: "editable" or "wheel"
+    """
     builder = ProjectBuilder(path, python_executable=python_executable)
 
     build_system_requires = builder.build_system_requires
@@ -51,11 +54,11 @@ def build_pypa(path: Path, output_path, python_executable):
     # does flatten() work for a deeper dependency chain?
     ensure_requirements(flatten(missing))
 
-    editable_requirements = builder.check_dependencies("editable")
-    print("Additional requirements for build_editable:", editable_requirements)
-    ensure_requirements(flatten(editable_requirements))
+    requirements = builder.check_dependencies(distribution)
+    print(f"Additional requirements for {distribution}:", requirements)
+    ensure_requirements(flatten(requirements))
 
-    editable_file = builder.build("editable", output_path)
+    editable_file = builder.build(distribution, output_path)
     print("The wheel is at", editable_file)
 
     return editable_file
@@ -81,7 +84,7 @@ def build_conda(whl, output_path: Path, python_executable):
     print("Installed to", build_path)
 
     dist_info = next((build_path / "site-packages").glob("*.dist-info"))
-    metadata = fetch_data(dist_info)
+    metadata = fetch_data(PathDistribution(dist_info))
 
     record = build.index_json(
         metadata["name"],
