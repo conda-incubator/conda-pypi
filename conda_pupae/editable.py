@@ -18,7 +18,7 @@ from build import ProjectBuilder, check_dependency
 
 from . import build
 from .create import conda_builder
-from .dist_repodata import fetch_data, requires_to_conda
+from .dist_repodata import CondaMetadata,requires_to_conda
 
 
 def normalize(name):
@@ -84,16 +84,8 @@ def build_conda(whl, output_path: Path, python_executable):
     print("Installed to", build_path)
 
     dist_info = next((build_path / "site-packages").glob("*.dist-info"))
-    metadata = fetch_data(PathDistribution(dist_info))
-
-    record = build.index_json(
-        metadata["name"],
-        metadata["version"],
-        subdir="noarch",
-        depends=metadata["requirements"]["run"],
-    )
-    record["noarch"] = "python"
-
+    metadata = CondaMetadata.from_distribution(PathDistribution(dist_info))
+    record = metadata.package_record.to_index_json()
     # XXX set build string as hash of pypa metadata so that conda can re-install
     # when project gains new entry-points, dependencies?
 
