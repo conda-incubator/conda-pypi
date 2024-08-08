@@ -27,22 +27,6 @@ def create(source, destination, file_id, filter=filter):
     return destination / (file_id + ".conda")
 
 
-def index_json(
-    name, version="0.0.0", build="0", build_number=0, subdir="noarch", depends=()
-):
-    return {
-        "build": build,
-        "build_number": build_number,
-        "depends": list(depends),
-        "license": "",
-        "license_family": "",
-        "name": name,
-        "subdir": subdir,
-        "timestamp": time.time_ns() // 1000000,
-        "version": version,
-    }
-
-
 # see conda_build.build.build_info_files_json_v1
 def paths_json(base: Path | str):
     """

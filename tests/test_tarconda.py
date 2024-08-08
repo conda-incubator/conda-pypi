@@ -7,10 +7,11 @@ from pathlib import Path
 
 from conda.cli.main import main_subshell
 
-from conda_pupae.build import create, filter, index_json, paths_json
+from conda_pupae.build import create, filter, paths_json
 from conda_pupae.conda_build_utils import PathType, sha256_checksum
 from conda_pupae.create import conda_builder
 from conda_pupae.index import update_index
+from conda_pupae.translate import PackageRecord
 
 here = Path(__file__).parent
 
@@ -28,16 +29,16 @@ def test_indexable(tmp_path):
     NAME = "somepackage"
     VERSION = "1.0"
 
-    record = index_json(NAME, VERSION)
+    record = PackageRecord(name=NAME, version=VERSION, subdir="noarch", depends=[])
 
-    file_id = f"{record['name']}-{record['version']}-{record['build']}"
+    file_id = record.stem
 
     dest = tmp_path / file_id
 
     shutil.copytree(here.parent, dest, ignore=shutil.ignore_patterns(".git"))
 
     (dest / "info").mkdir()
-    (dest / "info" / "index.json").write_text(json.dumps(record))
+    (dest / "info" / "index.json").write_text(json.dumps(record.to_index_json()))
 
     paths = paths_json(dest)
 

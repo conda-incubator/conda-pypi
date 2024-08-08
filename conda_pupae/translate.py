@@ -43,19 +43,35 @@ class FileDistribution(Distribution):
         return None
 
 
+def index_json(
+    name, version="0.0.0", build="0", build_number=0, subdir="noarch", depends=()
+):
+    return {
+        "build": build,
+        "build_number": build_number,
+        "depends": list(depends),
+        "license": "",
+        "license_family": "",
+        "name": name,
+        "subdir": subdir,
+        "timestamp": time.time_ns() // 1000000,
+        "version": version,
+    }
+
+
 @dataclasses.dataclass
 class PackageRecord:
     # what goes in info/index.json
-    build_number: str
-    build: str
-    depends: list[str]
-    license_family: str
-    license: str
     name: str
-    noarch: str
-    subdir: str
-    timestamp: int
     version: str
+    subdir: str
+    depends: list[str]
+    build_number: int = 0
+    build: str = "0"
+    license_family: str = ""
+    license: str = ""
+    noarch: str = ""
+    timestamp: int = 0
 
     def to_index_json(self):
         return {
@@ -70,6 +86,10 @@ class PackageRecord:
             "timestamp": self.timestamp,
             "version": self.version,
         }
+
+    @property
+    def stem(self):
+        return f"{self.name}-{self.version}-{self.build}"
 
 
 @dataclasses.dataclass
@@ -127,7 +147,7 @@ class CondaMetadata:
 
         package_record = PackageRecord(
             build="0",
-            build_number="0",
+            build_number=0,
             depends=depends,
             license=about["license"] or "",
             license_family="",
