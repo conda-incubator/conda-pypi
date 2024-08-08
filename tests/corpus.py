@@ -269,7 +269,7 @@ if __name__ == "__main__":
     print(
         "\nRequires (Conda):",
         ", ".join(str(r) for r in list(requires_to_conda(p.requires))),
-        "\n"
+        "\n",
     )
 
     pprint.pprint(matching_conda(session, p.name, p.version).index_json)
