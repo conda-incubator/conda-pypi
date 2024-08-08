@@ -2,7 +2,7 @@
 Test functions for transforming repodata.
 """
 
-from conda_pupae.dist_repodata import FileDistribution
+from conda_pupae.translate import FileDistribution
 
 
 def test_file_distribution():
