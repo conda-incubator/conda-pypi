@@ -34,8 +34,8 @@ from sqlalchemy.orm import DeclarativeBase, Session
 
 from conda_pupae.dist_repodata import (
     FileDistribution,
-    distribution_to_conda_requires,
     pypi_to_conda_name,
+    requires_to_conda,
 )
 
 HERE = Path(__file__).parent
@@ -265,10 +265,11 @@ if __name__ == "__main__":
     p = random_pypi(session)
 
     print(p.name)
-    print("Requires:", "\n".join(p.requires or []))
+    print("Requires (Python):", "\n".join(p.requires or []))
     print(
-        "\nProcessed:",
-        "\n".join(str(r) for r in list(distribution_to_conda_requires(p))),
+        "\nRequires (Conda):",
+        ", ".join(str(r) for r in list(requires_to_conda(p.requires))),
+        "\n"
     )
 
     pprint.pprint(matching_conda(session, p.name, p.version).index_json)
