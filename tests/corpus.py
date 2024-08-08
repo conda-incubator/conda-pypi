@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import pprint
+import sys
 from itertools import groupby
 from pathlib import Path
 
@@ -230,10 +231,12 @@ def fetch_pypi_metadata():
                 print()
 
 
-def random_pypi(session):
-    row = next(
-        session.execute(pypi_metadata.select().order_by(text("random()")).limit(1))
-    )
+def random_pypi(session, name=""):
+    query = pypi_metadata.select().order_by(text("random()")).limit(1)
+    if name:
+        query = query.where(pypi_metadata.c.name == name)
+    row = next(session.execute(query))
+
     return FileDistribution(row.metadata)  # type: ignore
 
     # also get conda package with same name and version
@@ -262,7 +265,12 @@ if __name__ == "__main__":
     # fetch_pypi_metadata()
 
     session = create_session()
-    p = random_pypi(session)
+
+    try:
+        pypi_name = sys.argv[1]
+    except IndexError:
+        pypi_name = None
+    p = random_pypi(session, pypi_name)
 
     print(p.name)
     print("Requires (Python):", "\n".join(p.requires or []))

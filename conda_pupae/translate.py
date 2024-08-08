@@ -12,8 +12,6 @@ from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
 from typing import Any
 
-from conda.exceptions import InvalidMatchSpec
-from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
@@ -109,23 +107,9 @@ class CondaMetadata:
             requires_python = f"python { python_version }"
 
         requirements = [*requires_to_conda(distribution.requires)]
-        active_requirements = [str(r).rsplit(";", 1)[0] for r in requirements]
-
-        # To normalize space between name and version, MatchSpec(r).spec
-        normalized_requirements = []
-        for requirement in active_requirements:
-            try:
-                normalized_requirements.append(
-                    # MatchSpec uses a metaclass hiding its constructor from
-                    # the type checker
-                    MatchSpec(requirement).spec  # type: ignore
-                )
-            except InvalidMatchSpec:
-                log.warning("%s is not a valid MatchSpec", requirement)
-                normalized_requirements.append(requirement)
 
         # conda does support ~=3.0.0 "compatibility release" matches
-        depends = [requires_python] + normalized_requirements
+        depends = [requires_python] + requirements
 
         console_scripts = [
             f"{ep.name} = {ep.value}"
@@ -187,7 +171,9 @@ def requires_to_conda(requires: list[str] | None):
             continue
         name = canonicalize_name(requirement.name)
         requirement.name = pypi_to_conda_name(name)
-        yield requirement
+        # if there is a url or extras= here we have extra work, may need to
+        # yield Requirement not str
+        yield f"{requirement.name} {requirement.specifier}"
 
 
 def pypi_to_conda_name(name):

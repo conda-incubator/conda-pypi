@@ -18,7 +18,7 @@ from build import ProjectBuilder, check_dependency
 
 from . import build
 from .create import conda_builder
-from .translate import CondaMetadata,requires_to_conda
+from .translate import CondaMetadata, requires_to_conda
 
 
 def normalize(name):
