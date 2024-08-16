@@ -20,5 +20,5 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 style:
-	isort --profile=black .
-	black .
+	ruff check --select I --fix .
+	ruff format .
