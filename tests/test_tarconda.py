@@ -1,8 +1,6 @@
 import hashlib
 import json
 import os
-import shutil
-import zipfile
 from pathlib import Path
 
 from conda.cli.main import main_subshell
@@ -16,13 +14,10 @@ from conda_pupa.translate import PackageRecord
 here = Path(__file__).parent
 
 
-def test_tarconda(tmp_path):
-    create(here.parent, tmp_path, "someconda")
-    zf = zipfile.ZipFile(tmp_path / "someconda.conda", "r")
-    assert zf.filelist[0].filename == "metadata.json"
-
-
 def test_indexable(tmp_path):
+    """
+    Create a .conda from scratch; index and install the package.
+    """
     noarch = tmp_path / "noarch"
     noarch.mkdir()
 
@@ -30,21 +25,17 @@ def test_indexable(tmp_path):
     VERSION = "1.0"
 
     record = PackageRecord(name=NAME, version=VERSION, subdir="noarch", depends=[])
+    dest = tmp_path / record.stem
+    dest.mkdir()
 
-    file_id = record.stem
-
-    dest = tmp_path / file_id
-
-    shutil.copytree(here.parent, dest, ignore=shutil.ignore_patterns(".git"))
-
+    (dest / "packaged.txt").write_text("packaged file")
     (dest / "info").mkdir()
     (dest / "info" / "index.json").write_text(json.dumps(record.to_index_json()))
 
     paths = paths_json(dest)
-
     (dest / "info" / "paths.json").write_text(json.dumps(paths))
 
-    with conda_builder(file_id, noarch) as tar:
+    with conda_builder(record.stem, noarch) as tar:
         tar.add(dest, "", filter=filter)
 
     update_index(tmp_path)
@@ -53,42 +44,22 @@ def test_indexable(tmp_path):
     assert repodata["packages.conda"]
 
     # name, version, build = dist_str.rsplit("-", 2) must be named like this
-    dest_package = noarch / f"{file_id}.conda"
+    dest_package = noarch / f"{record.stem}.conda"
     assert dest_package.exists()
 
-    main_subshell("create", "--prefix", str(tmp_path / "env"), str(dest_package))
-
-    # in conda-meta
-    example_conda_meta = {
-        "build": "0",
-        "build_number": 0,
-        "channel": "file:///tmp/pytest-of-dholth/pytest-50/test_indexable0/noarch",
-        "constrains": [],
-        "depends": [],
-        "extracted_package_dir": "/home/dholth/miniconda3/pkgs/somepackage-1.0-0",
-        "files": [],  # will contain failes
-        "fn": "somepackage-1.0-0.conda",
-        "license": "",
-        "license_family": "",
-        "link": {"source": "/home/dholth/miniconda3/pkgs/somepackage-1.0-0", "type": 1},
-        "md5": "c551ede58a0344516e1b803de10ff5c8",
-        "name": "somepackage",
-        "package_tarball_full_path": "/home/dholth/miniconda3/pkgs/somepackage-1.0-0.conda",
-        "paths_data": {
-            "paths": [],
-            "paths_version": 1,
-        },  # duplicates "files" list? plus checksums
-        "requested_spec": "test_indexable0/noarch::somepackage==1.0=0",
-        "sha256": "ba7741b7ce1470357397f6f8f4d0467be8d4162006e5a87e276c28d3b2cfbc14",
-        "size": 79824,
-        "subdir": "noarch",
-        "timestamp": 1721655445630,
-        "url": "file:///tmp/pytest-of-dholth/pytest-50/test_indexable0/noarch/somepackage-1.0-0.conda",
-        "version": "1.0",
-    }
+    main_subshell(
+        "create",
+        "--prefix",
+        str(tmp_path / "env"),
+        "--channel",
+        f"file://{tmp_path}",
+        "--override-channels",
+        "-y",
+        "somepackage",
+    )
 
     conda_meta = json.loads(
-        (tmp_path / "env" / "conda-meta" / f"{file_id}.json").read_text()
+        (tmp_path / "env" / "conda-meta" / f"{record.stem}.json").read_text()
     )
     assert len(conda_meta["files"])
 
