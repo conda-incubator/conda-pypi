@@ -33,7 +33,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Session
 
-from conda_pupae.translate import (
+from conda_pupa.translate import (
     FileDistribution,
     pypi_to_conda_name,
     requires_to_conda,
