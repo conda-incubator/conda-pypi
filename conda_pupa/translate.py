@@ -41,22 +41,6 @@ class FileDistribution(Distribution):
         return None
 
 
-def index_json(
-    name, version="0.0.0", build="0", build_number=0, subdir="noarch", depends=()
-):
-    return {
-        "build": build,
-        "build_number": build_number,
-        "depends": list(depends),
-        "license": "",
-        "license_family": "",
-        "name": name,
-        "subdir": subdir,
-        "timestamp": time.time_ns() // 1000000,
-        "version": version,
-    }
-
-
 @dataclasses.dataclass
 class PackageRecord:
     # what goes in info/index.json
@@ -173,6 +157,8 @@ def requires_to_conda(requires: list[str] | None):
         requirement.name = pypi_to_conda_name(name)
         # if there is a url or extras= here we have extra work, may need to
         # yield Requirement not str
+        # sorted(packaging.requirements.SpecifierSet("<5,>3")._specs, key=lambda x: x.version)
+        # or just sorted lexicographically in str(SpecifierSet)
         yield f"{requirement.name} {requirement.specifier}"
 
 
