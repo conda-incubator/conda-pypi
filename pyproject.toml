@@ -12,7 +12,7 @@ build-backend = "flit_core.buildapi"
 authors = [
   { name = "Daniel Holth", email = "dholth@gmail.com" }
 ]
-name = "conda_pupae"
+name = "conda_pupa"
 description = "Convert Python packages to .conda"
 license = { file = "LICENSE" }
 readme = "README.md"
@@ -36,8 +36,8 @@ test = [
 docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
 
 [project.urls]
-Home = "https://github.com/dholth/conda_pupae"
-Documentation = "https://dholth.github.io/conda_pupae/"
+Home = "https://github.com/dholth/conda_pupa"
+Documentation = "https://dholth.github.io/conda_pupa/"
 
 # pyproject.toml
 [tool.pytest.ini_options]
@@ -48,4 +48,4 @@ testpaths = ["tests"]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.coverage.run]
-source = ["conda_pupae/", "tests/"]
+source = ["conda_pupa/", "tests/"]

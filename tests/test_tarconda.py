@@ -7,11 +7,11 @@ from pathlib import Path
 
 from conda.cli.main import main_subshell
 
-from conda_pupae.build import create, filter, paths_json
-from conda_pupae.conda_build_utils import PathType, sha256_checksum
-from conda_pupae.create import conda_builder
-from conda_pupae.index import update_index
-from conda_pupae.translate import PackageRecord
+from conda_pupa.build import create, filter, paths_json
+from conda_pupa.conda_build_utils import PathType, sha256_checksum
+from conda_pupa.create import conda_builder
+from conda_pupa.index import update_index
+from conda_pupa.translate import PackageRecord
 
 here = Path(__file__).parent
 
