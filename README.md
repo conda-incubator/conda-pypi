@@ -1,5 +1,5 @@
-conda-pupae
-===========
+conda-pupa
+==========
 
 /ˈpjuː.pə/, plural /ˈpjuː.piː/
 
