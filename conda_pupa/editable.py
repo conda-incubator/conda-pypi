@@ -104,12 +104,14 @@ def build_conda(whl, output_path: Path, python_executable):
     return output_path / f"{file_id}.conda"
 
 
-def editable(project):
+def editable(project, distribution="wheel"):
     with tempfile.TemporaryDirectory(prefix="conda", delete=False) as output_path:
         output_path = Path(output_path)
-        editable_wheel = build_pypa(Path(project), output_path, sys.executable)
-        editable_conda = build_conda(editable_wheel, output_path, sys.executable)
-        print("Editable conda at", editable_conda)
+        normal_wheel = build_pypa(
+            Path(project), output_path, sys.executable, distribution=distribution
+        )
+        package_conda = build_conda(normal_wheel, output_path, sys.executable)
+        print("Conda at", package_conda)
 
 
 if __name__ == "__main__":  # pragma: no cover
