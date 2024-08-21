@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import pytest
 
 from conda_pupa.editable import editable, normalize
@@ -19,12 +20,18 @@ def pypa_build_packages():
     (Clone pypa/build into tests/)
     """
     here = Path(__file__).parent
-    return list(Path(here, "build", "tests", "packages").glob("*"))
+    return list(p.name for p in Path(here, "build", "tests", "packages").glob("*"))
+
+
+@pytest.fixture
+def package_path():
+    here = Path(__file__).parent
+    return Path(here, "build", "tests", "packages")
 
 
 @pytest.mark.parametrize("package", pypa_build_packages())
-def test_editable_from_build(package):
+def test_build_wheel(package, package_path):
     # Some of these will not contain the editable hook; need to test building
     # regular wheels also. Some will require a "yes" for conda install
-    # depedencies.
-    editable(package)
+    # dependencies.
+    editable(package_path / package)
