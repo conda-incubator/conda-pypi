@@ -1,5 +1,5 @@
 """
-Convert Python *.dist-info/METADATA to conda info/index.json
+Convert Python `*.dist-info/METADATA` to conda `info/index.json`
 """
 
 import dataclasses
@@ -20,8 +20,8 @@ log = logging.getLogger(__name__)
 
 class FileDistribution(Distribution):
     """
-    From a file e.g. a single .metadata fetched from pypi instead of a
-    *.dist-info folder.
+    From a file e.g. a single `.metadata` fetched from pypi instead of a
+    `*.dist-info` folder.
     """
 
     def __init__(self, raw_text):
@@ -138,7 +138,7 @@ class CondaMetadata:
 
 
 # The keys are pypi names
-# conda_pupae.dist_repodata.grayskull_pypi_mapping['zope-hookable']
+# conda_pupa.dist_repodata.grayskull_pypi_mapping['zope-hookable']
 # {
 #     "pypi_name": "zope-hookable",
 #     "conda_name": "zope.hookable",
@@ -146,7 +146,7 @@ class CondaMetadata:
 #     "mapping_source": "regro-bot",
 # }
 grayskull_pypi_mapping = json.loads(
-    pkgutil.get_data("conda_pupae", "grayskull_pypi_mapping.json") or "{}"
+    pkgutil.get_data("conda_pupa", "grayskull_pypi_mapping.json") or "{}"
 )
 
 

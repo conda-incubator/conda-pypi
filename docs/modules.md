@@ -1,42 +1,35 @@
-# conda_pupae
+# conda_pupa
 
 ```{eval-rst}
-.. automodule:: conda_pupae.build
+.. automodule:: conda_pupa.build
    :members:
    :undoc-members:
    :show-inheritance:
 ```
 
 ```{eval-rst}
-.. automodule:: conda_pupae.conda_build_utils
+.. automodule:: conda_pupa.conda_build_utils
    :members:
    :undoc-members:
    :show-inheritance:
 ```
 
 ```{eval-rst}
-.. automodule:: conda_pupae.create
+.. automodule:: conda_pupa.translate
    :members:
    :undoc-members:
    :show-inheritance:
 ```
 
 ```{eval-rst}
-.. automodule:: conda_pupae.dist_repodata
+.. automodule:: conda_pupa.editable
    :members:
    :undoc-members:
    :show-inheritance:
 ```
 
 ```{eval-rst}
-.. automodule:: conda_pupae.editable
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-```{eval-rst}
-.. automodule:: conda_pupae.index
+.. automodule:: conda_pupa.index
    :members:
    :undoc-members:
    :show-inheritance:
