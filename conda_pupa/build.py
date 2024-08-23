@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 from .conda_build_utils import PathType, sha256_checksum
-from .create import conda_builder
 
 
 def filter(tarinfo):
@@ -14,16 +13,6 @@ def filter(tarinfo):
     tarinfo.uid = tarinfo.gid = 0
     tarinfo.uname = tarinfo.gname = ""
     return tarinfo
-
-
-def create(source, destination, file_id, filter=filter):
-    """
-    Copy files from source into a .conda at destination.
-    """
-    with conda_builder(file_id, destination) as tar:
-        tar.add(source, "", filter=filter)
-
-    return destination / (file_id + ".conda")
 
 
 # see conda_build.build.build_info_files_json_v1
