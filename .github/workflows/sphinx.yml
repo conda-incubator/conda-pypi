@@ -1,0 +1,52 @@
+name: Sphinx
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  sphinx:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: pupa
+          environment-file: environment.yml
+          python-version: 3.12
+          auto-activate-base: false
+      - name: Build Documentation
+        run: |
+          pip install -e .[docs]
+          make html
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'build/html'
+
+  pages:
+
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [sphinx]
+
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
