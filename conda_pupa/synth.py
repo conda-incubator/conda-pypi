@@ -1,6 +1,5 @@
 import hashlib
 import os
-import re
 
 import packaging.tags
 import packaging.utils
@@ -13,18 +12,6 @@ from ruamel.yaml import safe_load
 from conda_pupa.translate import FileDistribution, requires_to_conda
 
 app = typer.Typer()
-
-
-# warning: hacky
-def parse_match_spec(spec: str):
-    pattern = (
-        r"(?P<name>[a-zA-Z0-9_\-]+)(?P<operator>[<>=!~]{1,2})\s*(?P<version>[0-9\.]+)"
-    )
-    match = re.match(pattern, spec.strip())
-    if match:
-        return match.groupdict()
-    else:
-        raise ValueError("Invalid match spec")
 
 
 class Package(BaseModel):
@@ -72,7 +59,7 @@ def extract_version_of_project(
             # hack to select the compatible wheels (macOS, arm64, Python 3.12)
             if not compatible_wheel(package.filename):
                 continue
-            package_metadata = pypi.get_package_metadata(package)
+            package_metadata = pypi_simple().get_package_metadata(package)
             package_data = FileDistribution(package_metadata)
 
             requirements, extras = requires_to_conda(package_data.requires)
@@ -90,7 +77,7 @@ def extract_version_of_project(
             md5 = ""
             if download:
                 pkg_path = os.path.join(download_dir, package.filename)
-                pypi.download_package(package, path=pkg_path)
+                pypi_simple().download_package(package, path=pkg_path)
                 size = os.path.getsize(pkg_path)
                 with open(pkg_path, "rb") as f:
                     md5 = hashlib.md5(f.read()).hexdigest()
@@ -135,7 +122,7 @@ def create_api(
     # Make an API request to PyPI
     try:
         for package_name, versions in requested_packages.items():
-            project_page = pypi.get_project_page(package_name)
+            project_page = pypi_simple().get_project_page(package_name)
             for version in versions:
                 full_name, package, whl_url = extract_version_of_project(
                     project_page, version, populate, noarch_dir
@@ -165,7 +152,14 @@ def create_api(
     typer.echo(f"Repodata saved to {repodata_file}")
 
 
-if __name__ == "__main__":
-    # Initialize PyPISimple, kind of global
-    pypi = PyPISimple()
+def pypi_simple():
+    global pypi
+    try:
+        return pypi
+    except NameError:
+        pypi = PyPISimple()
+    return pypi
+
+
+if __name__ == "__main__":  # pragma: no cover
     app()

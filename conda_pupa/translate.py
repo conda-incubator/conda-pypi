@@ -172,7 +172,7 @@ def requires_to_conda(requires: list[str] | None):
                     if str(var) == "extra":
                         extras[str(value)].append(as_conda)
         else:
-            requirements.append(f"{requirement.name} {requirement.specifier}")
+            requirements.append(f"{requirement.name} {requirement.specifier}".strip())
 
     return requirements, extras
 
