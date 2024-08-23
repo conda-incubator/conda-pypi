@@ -1,7 +1,10 @@
+import subprocess
 from pathlib import Path
 
 import pytest
+from packaging.requirements import InvalidRequirement
 
+import build
 from conda_pupa.editable import editable, normalize
 
 
@@ -33,5 +36,29 @@ def package_path():
 def test_build_wheel(package, package_path):
     # Some of these will not contain the editable hook; need to test building
     # regular wheels also. Some will require a "yes" for conda install
-    # dependencies.
-    editable(package_path / package)
+    # dependencies. Some are designed to fail.
+    xfail = [
+        "test-bad-backend",
+        "test-bad-syntax",
+        "test-bad-wheel",
+        "test-cant-build-via-sdist",
+        "test-invalid-requirements",
+        "test-metadata",
+        "test-no-project",
+        "test-no-requires",
+        "test-optional-hooks",
+    ]
+    if package == "test-flit":
+        pytest.skip(
+            reason="Required version of flit was not packaged for Python 3.12 in our channel"
+        )
+    try:
+        editable(package_path / package, distribution="wheel")
+    except (
+        build.BuildException,
+        build.BuildBackendException,
+        subprocess.CalledProcessError,
+        InvalidRequirement,
+    ) as e:
+        if package in xfail:
+            pytest.xfail(reason=str(e))

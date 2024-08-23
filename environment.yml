@@ -2,14 +2,21 @@ name: pupa
 channels:
   - defaults
 dependencies:
-  - conda
-  - conda-index
-  - conda-package-streaming # from git branch with 'create' feature
+  - conda==24.7.1
+  - conda-index==0.5.0
+  - conda-package-streaming # remove vendored conda_pupa/create.py when 0.10.0 is released
+  - flit==3.9.0
   - packaging >=24
-  - python-build
-  - flit
+  - pip==24.2
   - pytest>=7.4
-  - pytest-cov
-  - python
+  - pytest-cov==4.1.0
+  - python==3.12.4
+  - python-build==0.10.0
+  - python-multipart==0.0.9
+  - pyyaml==6.0.1
+  - typer==0.9.0
+  - uvicorn==0.20.0
   - pip:
-      - pypi-simple
+    - pypi-simple==1.6.0
+    - sqlalchemy==2.0.32
+    - ruff==0.6.2

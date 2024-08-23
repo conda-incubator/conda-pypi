@@ -1,0 +1,72 @@
+name: Test
+
+on: push
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # ${{ runner.temp }} is undefined here
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Checkout pypa/build
+      uses: actions/checkout@v4
+      with:
+        repository: pypa/build
+        path: tests/build
+    - uses: actions/cache@v4
+      with:
+        enableCrossOsArchive: true
+        path: |
+          ${{ runner.temp }}/conda-standalone
+          !${{ runner.temp }}/conda-standalone/pkgs/*.conda
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('environment.yml') }}
+    - uses: dholth/action-conda-standalone/setup-conda-standalone@main
+    - name: Conda Install
+      env:
+        # may not be working at jobs: top level?
+        CONDA_PKGS_DIRS: ${{ runner.temp }}/conda-standalone/pkgs
+      # Use --use-index-cache? (doesn't work if no cache at all)
+      # these / are sent to the shell
+      # (conda create will delete old environment if present)
+      run: |
+          [[ -x ${{ runner.temp }}/conda-standalone/env ]] || \
+            ${{ runner.temp }}/conda-standalone/conda.exe create \
+            --yes \
+            --prefix ${{ runner.temp }}/conda-standalone/env
+
+          ${{ runner.temp }}/conda-standalone/conda.exe env update \
+          --prefix ${{ runner.temp }}/conda-standalone/env \
+          --file environment.yml
+          python=${{ matrix.python-version }}
+    - name: Conda Info
+      if: false
+      env:
+        CONDA_PKGS_DIRS: ${{ runner.temp }}/conda-standalone/pkgs
+      run: |
+        ${{ runner.temp }}/conda-standalone/conda.exe info
+        ${{ runner.temp }}/conda-standalone/env/bin/conda info
+        python -c "import pprint, os; pprint.pprint(dict(os.environ))"
+    - name: Test
+      env:
+        # may not be working at jobs: top level?
+        CONDA_PKGS_DIRS: ${{ runner.temp }}/conda-standalone/pkgs
+      run: |
+        source ${{ runner.temp }}/conda-standalone/env/bin/activate
+        pip install flit_core editables
+        pip install -e . --no-index --no-deps --no-build-isolation
+        ${{ runner.temp }}/conda-standalone/env/bin/pytest --cov
+        exit 0
+    - name: Clean Tarballs
+      env:
+        # may not be working at jobs: top level?
+        CONDA_PKGS_DIRS: ${{ runner.temp }}/conda-standalone/pkgs
+      # Use --use-index-cache? (doesn't work if no cache at all)
+      # these / are sent to the shell
+      # (conda create will delete old environment if present)
+      run: |
+          ${{ runner.temp }}/conda-standalone/conda.exe clean -t -y

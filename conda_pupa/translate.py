@@ -48,6 +48,7 @@ class PackageRecord:
     version: str
     subdir: str
     depends: list[str]
+    extras: dict[str, list[str]]
     build_number: int = 0
     build: str = "0"
     license_family: str = ""
@@ -60,6 +61,7 @@ class PackageRecord:
             "build_number": self.build_number,
             "build": self.build,
             "depends": self.depends,
+            "extras": self.extras,
             "license_family": self.license_family,
             "license": self.license,
             "name": self.name,
@@ -90,7 +92,7 @@ class CondaMetadata:
         if python_version:
             requires_python = f"python { python_version }"
 
-        requirements = [*requires_to_conda(distribution.requires)]
+        requirements, extras = requires_to_conda(distribution.requires)
 
         # conda does support ~=3.0.0 "compatibility release" matches
         depends = [requires_python] + requirements
@@ -117,6 +119,7 @@ class CondaMetadata:
             build="0",
             build_number=0,
             depends=depends,
+            extras=extras,
             license=about["license"] or "",
             license_family="",
             name=name,
@@ -148,18 +151,36 @@ grayskull_pypi_mapping = json.loads(
 
 
 def requires_to_conda(requires: list[str] | None):
+    from collections import defaultdict
+
+    extras: dict[str, list[str]] = defaultdict(list)
+    requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
-        if requirement.marker and not requirement.marker.evaluate():
-            # excluded by environment marker
-            # see also marker evaluation according to given sys.executable
-            continue
+        # if requirement.marker and not requirement.marker.evaluate():
+        #     # excluded by environment marker
+        #     # see also marker evaluation according to given sys.executable
+        #     continue
         name = canonicalize_name(requirement.name)
         requirement.name = pypi_to_conda_name(name)
-        # if there is a url or extras= here we have extra work, may need to
-        # yield Requirement not str
-        # sorted(packaging.requirements.SpecifierSet("<5,>3")._specs, key=lambda x: x.version)
-        # or just sorted lexicographically in str(SpecifierSet)
-        yield f"{requirement.name} {requirement.specifier}"
+        as_conda = f"{requirement.name} {requirement.specifier}"
+
+        if (marker := requirement.marker) is not None:
+            # for var, _, value in marker._markers:
+            for mark in marker._markers:
+                if isinstance(mark, tuple):
+                    var, _, value = mark
+                    if str(var) == "extra":
+                        extras[str(value)].append(as_conda)
+        else:
+            requirements.append(f"{requirement.name} {requirement.specifier}")
+
+    return requirements, extras
+
+    # if there is a url or extras= here we have extra work, may need to
+    # yield Requirement not str
+    # sorted(packaging.requirements.SpecifierSet("<5,>3")._specs, key=lambda x: x.version)
+    # or just sorted lexicographically in str(SpecifierSet)
+    # yield f"{requirement.name} {requirement.specifier}"
 
 
 def pypi_to_conda_name(name):
