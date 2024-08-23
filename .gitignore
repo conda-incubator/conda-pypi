@@ -144,3 +144,5 @@ conda_pypi/_version.py
 
 *.db
 grayskull_pypi_mapping.json
+synthetic_repodata.json
+synthetic_repo/
