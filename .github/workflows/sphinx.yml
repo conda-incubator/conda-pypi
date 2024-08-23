@@ -23,7 +23,7 @@ jobs:
           auto-activate-base: false
       - name: Build Documentation
         run: |
-          pip install -e .[docs] --no-build-isolation
+          pip install flit_core -e .[docs] --no-build-isolation
           make html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
