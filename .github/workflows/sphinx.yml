@@ -20,10 +20,11 @@ jobs:
           activate-environment: pupa
           environment-file: environment.yml
           python-version: 3.12
-          auto-activate-base: false
       - name: Build Documentation
+        shell: bash -el {0}
         run: |
-          pip install flit_core -e .[docs] --no-build-isolation
+          pip install flit-core
+          pip install -e .[docs] --no-build-isolation
           make html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
