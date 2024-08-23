@@ -1,5 +1,4 @@
 import os
-import time
 from pathlib import Path
 
 from .conda_build_utils import PathType, sha256_checksum
