@@ -9,9 +9,7 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-authors = [
-  { name = "Daniel Holth", email = "dholth@gmail.com" }
-]
+authors = [{ name = "Daniel Holth", email = "dholth@gmail.com" }]
 name = "conda_pupa"
 description = "Convert Python packages to .conda"
 license = { file = "LICENSE" }
@@ -24,15 +22,15 @@ classifiers = [
 ]
 dynamic = ["version"]
 requires-python = ">=3.7"
-dependencies = ["build", "conda-index", "conda-package-streaming", "packaging >=24"]
+dependencies = [
+  "build",
+  "conda-index",
+  "conda-package-streaming",
+  "packaging >=24",
+]
 
 [project.optional-dependencies]
-test = [
-  "pytest >=7",
-  "pytest-cov",
-  "pytest-mock",
-  "pypi-simple",
-]
+test = ["pytest >=7", "pytest-cov", "pytest-mock", "pypi-simple"]
 docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
 
 [project.urls]
@@ -49,3 +47,4 @@ exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.coverage.run]
 source = ["conda_pupa/", "tests/"]
+omit = ["conda_pupa/create.py"]    # vendored

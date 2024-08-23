@@ -10,6 +10,7 @@ dependencies:
   - pip==24.2
   - pytest>=7.4
   - pytest-cov==4.1.0
+  - pytest-mock
   - python==3.12.4
   - python-build==0.10.0
   - python-multipart==0.0.9

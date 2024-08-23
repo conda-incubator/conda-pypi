@@ -5,7 +5,8 @@ import pytest
 from packaging.requirements import InvalidRequirement
 
 import build
-from conda_pupa.editable import editable, normalize
+from conda_pupa.build import filter
+from conda_pupa.editable import editable, ensure_requirements, normalize
 
 
 def test_editable():
@@ -62,3 +63,17 @@ def test_build_wheel(package, package_path):
     ) as e:
         if package in xfail:
             pytest.xfail(reason=str(e))
+
+
+def test_ensure_requirements(mocker):
+    mock = mocker.patch("conda_pupa.editable.main_subshell")
+    ensure_requirements(["flit_core"])
+    # normalizes/converts the underscore flit_core->flit-core
+    assert mock.call_args.args == ("install", "-y", "flit-core")
+
+
+def test_filter_coverage():
+    class tarinfo:
+        name = ".git"
+
+    assert filter(tarinfo) is None  # type: ignore
