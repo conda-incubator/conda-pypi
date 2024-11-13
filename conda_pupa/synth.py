@@ -1,17 +1,23 @@
+"""
+Generate repodata.json converted from wheel metadata.
+"""
+
 import hashlib
 import os
 
 import packaging.tags
 import packaging.utils
+import ruamel.yaml
 import typer
 from packaging.utils import canonicalize_name
 from pydantic import BaseModel
 from pypi_simple import ProjectPage, PyPISimple
-from ruamel.yaml import safe_load
 
 from conda_pupa.translate import FileDistribution, requires_to_conda
 
 app = typer.Typer()
+
+yaml = ruamel.yaml.YAML(typ="safe", pure=True)
 
 
 class Package(BaseModel):
@@ -113,7 +119,7 @@ def create_api(
     """
 
     with open(config_file, "rb") as fh:
-        requested_packages = safe_load(fh)
+        requested_packages = yaml.load(fh)
 
     noarch_dir = os.path.join(repo_dir, "noarch")
     os.makedirs(noarch_dir, exist_ok=True)
