@@ -25,7 +25,7 @@ requires-python = ">=3.7"
 dependencies = [
   "build",
   "conda-index",
-  "conda-package-streaming",
+  "conda-package-streaming >=0.11",
   "packaging >=24",
 ]
 

@@ -21,7 +21,7 @@ from packaging.utils import canonicalize_name
 from build import ProjectBuilder, check_dependency
 
 from . import build
-from .create import conda_builder
+from conda_package_streaming.create import conda_builder
 from .translate import CondaMetadata, requires_to_conda
 
 
@@ -175,6 +175,11 @@ def editable(project, distribution="editable"):
             is_editable=True,
         )
         print("Conda at", package_conda)
+
+
+# XXX Could we set CONDA_PKGS_DIRS=(temporary directory), (standard locations)
+# to defeat "ephemeral package is cached" logic when installing an editable
+# conda
 
 
 if __name__ == "__main__":  # pragma: no cover
