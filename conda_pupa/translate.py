@@ -10,6 +10,7 @@ import sys
 import time
 from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
+from conda.models.match_spec import MatchSpec
 from typing import Any
 
 from packaging.requirements import Requirement
@@ -50,7 +51,7 @@ class PackageRecord:
     depends: list[str]
     extras: dict[str, list[str]]
     build_number: int = 0
-    build: str = "0"
+    build_text: str = "pupa"  # e.g. hash
     license_family: str = ""
     license: str = ""
     noarch: str = ""
@@ -72,6 +73,10 @@ class PackageRecord:
         }
 
     @property
+    def build(self):
+        return f"{self.build_text}_{self.build_number}"
+
+    @property
     def stem(self):
         return f"{self.name}-{self.version}-{self.build}"
 
@@ -82,6 +87,18 @@ class CondaMetadata:
     console_scripts: list[str]
     package_record: PackageRecord
     about: dict[str, Any]
+
+    def link_json(self) -> dict | None:
+        """
+        info/link.json used for console scripts; None if empty.
+
+        Note the METADATA file aka PackageRecord does not list console scripts.
+        """
+        # XXX gui scripts?
+        return {
+            "noarch": {"entry_points": self.console_scripts, "type": "python"},
+            "package_metadata_version": 1,
+        }
 
     @classmethod
     def from_distribution(cls, distribution: Distribution):
@@ -116,7 +133,6 @@ class CondaMetadata:
         version = distribution.version
 
         package_record = PackageRecord(
-            build="0",
             build_number=0,
             depends=depends,
             extras=extras,
@@ -183,16 +199,38 @@ def requires_to_conda(requires: list[str] | None):
     # yield f"{requirement.name} {requirement.specifier}"
 
 
-def pypi_to_conda_name(name):
+def conda_to_requires(matchspec: MatchSpec):
+    name = matchspec.name
+    if isinstance(name, str):
+        pypi_name = conda_to_pypi_name(name)
+        # XXX ugly 'omits = for exact version'
+        # .spec omits package[version='>=1.0'] bracket format when possible
+        best_format = str(matchspec)
+        if "version=" in best_format:
+            best_format = matchspec.spec
+        # XXX ugly no-setter-on-MatchSpec.name
+        return Requirement(best_format.replace(name, pypi_name))
+
+
+def pypi_to_conda_name(pypi_name: str):
+    pypi_name = canonicalize_name(pypi_name)
     return grayskull_pypi_mapping.get(
-        name,
+        pypi_name,
         {
-            "pypi_name": name,
-            "conda_name": name,
+            "pypi_name": pypi_name,
+            "conda_name": pypi_name,
             "import_name": None,
             "mapping_source": None,
         },
     )["conda_name"]
+
+
+def conda_to_pypi_name(conda_name: str):
+    # XXX build reverse map
+    for value in grayskull_pypi_mapping.values():
+        if conda_name == value["conda_name"]:
+            return value["pypi_name"]
+    return conda_name
 
 
 if __name__ == "__main__":  # pragma: no cover
