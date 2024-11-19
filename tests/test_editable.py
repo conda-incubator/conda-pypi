@@ -6,15 +6,11 @@ from packaging.requirements import InvalidRequirement
 
 import build
 from conda_pupa.build import filter
-from conda_pupa.editable import editable, ensure_requirements, normalize
+from conda_pupa.editable import editable, ensure_requirements
 
 
 def test_editable():
     editable(Path(__file__).parents[1])
-
-
-def test_normalize():
-    assert normalize("flit_core") == "flit-core"
 
 
 def pypa_build_packages():

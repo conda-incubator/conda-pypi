@@ -23,9 +23,10 @@ classifiers = [
 dynamic = ["version"]
 requires-python = ">=3.7"
 dependencies = [
-  "build",
+  "build",                          # conda name is python-build
   "conda-index",
   "conda-package-streaming >=0.11",
+  "installer >=0.7",                # conda name is python-installer
   "packaging >=24",
 ]
 
