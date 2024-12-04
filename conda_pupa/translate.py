@@ -172,10 +172,14 @@ def requires_to_conda(requires: list[str] | None):
     extras: dict[str, list[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
+
+        # requirement.marker.evaluate
+
         # if requirement.marker and not requirement.marker.evaluate():
         #     # excluded by environment marker
         #     # see also marker evaluation according to given sys.executable
         #     continue
+
         name = canonicalize_name(requirement.name)
         requirement.name = pypi_to_conda_name(name)
         as_conda = f"{requirement.name} {requirement.specifier}"

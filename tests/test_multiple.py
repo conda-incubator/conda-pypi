@@ -9,16 +9,12 @@ import pprint
 import re
 import subprocess
 import sys
-from pathlib import Path
 
 from conda.models.match_spec import MatchSpec
-from pypi_simple import PyPISimple
 
-from conda_pupa.editable import build_conda
+from conda_pupa.build import build_conda
+from conda_pupa.downloader import download_pypi_pip
 from conda_pupa.index import update_index
-from conda_pupa.translate import conda_to_requires
-
-TARGET_ENV = "pupa-target"
 
 REPO = pathlib.Path(__file__).parents[1] / "synthetic_repo"
 
@@ -33,10 +29,25 @@ def list_envs():
     return env_info
 
 
+def create_test_env(name):
+    """
+    Create named environment if it does not exist.
+    """
+    envs = list_envs()
+    if not any((e.endswith(f"{os.sep}{name}") for e in envs["envs"])):
+        subprocess.run(
+            [os.environ["CONDA_EXE"], "create", "-n", name, "-y", "python 3.12"],
+            check=True,
+            encoding="utf-8",
+        )
+    return envs
+
+
 def test_multiple(tmp_path):
     """
     Install multiple only-available-from-pypi dependencies into an environment.
     """
+    TARGET_ENV = "pupa-target"
     MAX_TRIES = 32
 
     # defeat local cache. This test also uses a persistent TARGET_ENV; delete
@@ -54,24 +65,34 @@ def test_multiple(tmp_path):
     # ensure index even if it starts empty
     update_index(REPO)
 
-    envs = list_envs()
-    if not any((e.endswith(f"{os.sep}{TARGET_ENV}") for e in envs["envs"])):
-        subprocess.run(
-            f"{os.environ['CONDA_EXE']} create -n {TARGET_ENV} -y python".split(),
-            check=True,
-            encoding="utf-8",
-        )
+    create_test_env(TARGET_ENV)
 
     TARGET_DEP = "twine==5.1.1"
+
+    # if we asked for pypi_simple, it would get normalized to pypi-simple and we
+    # would get confused.
+    TARGET_DEP = "unearth"
+
+    # XXX httpcore=1 needs to be converted to  httpcore==1 e.g.
 
     converted = set()
     fetched_packages = set()
     missing_packages = set()
     while len(fetched_packages) < MAX_TRIES:
         try:
-            command = f"{os.environ['CONDA_EXE']} install -n {TARGET_ENV} {TARGET_DEP} --json --override-channels -c {REPO}"
+            command = [
+                os.environ["CONDA_EXE"],
+                "install",
+                "-n",
+                TARGET_ENV,
+                TARGET_DEP,
+                "--json",
+                "--override-channels",
+                "-c",
+                REPO,
+            ]
             subprocess.run(
-                command.split(),
+                command,
                 check=True,
                 capture_output=True,
                 encoding="utf-8",
@@ -139,7 +160,7 @@ def test_multiple(tmp_path):
 
     pprint.pprint(fetched_packages)
 
-    subprocess.run(f"{os.environ['CONDA_EXE']} list -n {TARGET_ENV}".split())
+    subprocess.run([os.environ["CONDA_EXE"], "list", "-n", TARGET_ENV])
 
 
 NOTHING_PROVIDES_RE = re.compile(r"nothing provides (.*) needed by")
@@ -152,76 +173,3 @@ def parse_libmamba_error(message: str):
     for line in message.splitlines():
         if match := NOTHING_PROVIDES_RE.search(line):
             yield match.group(1)
-
-
-def download_pypi_pip(matchspec: MatchSpec, target_path: Path):
-    """
-    Prototype download wheel for missing package using pip.
-
-    Complete implementation should match wheels based on target environment at
-    least, directly use pypi API instead of pip.
-    """
-    requirement = conda_to_requires(matchspec)
-    subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "wheel",
-            "--no-deps",
-            "--only-binary",
-            ":all:",
-            "-w",
-            str(target_path),
-            str(requirement),
-        ],
-        check=True,
-    )
-
-
-def download_pypi_nopip(matchspec: MatchSpec):
-    """
-    (What could become) lower level download wheel for missing package not using pip.
-
-    Would not require pip to be installed in the target environment, for one.
-
-    Complete implementation should match wheels based on target environment at
-    least, directly use pypi API instead of pip.
-    """
-    # Code lifted from corpus.py
-    with PyPISimple() as client:
-        try:
-            page = client.get_project_page(package.name)
-        except pypi_simple.errors.NoSuchProjectError as e:
-            print(package.name, e)
-            return
-        # TODO code to skip already-fetched projects
-        for pkg in page.packages:
-            if pkg.version != package.version:
-                print(pkg.version, "!=", package.version)
-                return
-            if pkg.has_metadata is not None:
-                print("Has metadata?", pkg.has_metadata)
-                try:
-                    src = client.get_package_metadata(pkg)
-                except NoMetadataError:
-                    print(f"{pkg.filename}: No metadata available")
-                else:
-                    print(pkg)
-                    # avoid unique errors
-                    session.execute(
-                        pypi_metadata.delete().where(
-                            pypi_metadata.c.filename == pkg.filename
-                        )
-                    )
-                    session.execute(
-                        pypi_metadata.insert().values(
-                            filename=pkg.filename,
-                            name=pkg.project,
-                            version=pkg.version,
-                            metadata=src,
-                        )
-                    )
-            else:
-                print(f"{pkg.filename}: No metadata available")
-            print()
