@@ -5,8 +5,8 @@ import pytest
 from packaging.requirements import InvalidRequirement
 
 import build
-from conda_pupa.build import filter
-from conda_pupa.editable import editable, ensure_requirements
+from conda_pupa.build import ensure_requirements, filter
+from conda_pupa.editable import editable
 
 
 def test_editable():
@@ -62,7 +62,7 @@ def test_build_wheel(package, package_path):
 
 
 def test_ensure_requirements(mocker):
-    mock = mocker.patch("conda_pupa.editable.main_subshell")
+    mock = mocker.patch("conda_pupa.build.main_subshell")
     ensure_requirements(["flit_core"])
     # normalizes/converts the underscore flit_core->flit-core
     assert mock.call_args.args == ("install", "-y", "flit-core")

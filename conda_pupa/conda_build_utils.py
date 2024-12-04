@@ -10,8 +10,8 @@ from os.path import isfile, islink
 
 class PathType(Enum):
     """
-    Refers to if the file in question is hard linked or soft linked. Originally designed to be used
-    in paths.json
+    Refers to if the file in question is hard linked or soft linked. Originally
+    designed to be used in paths.json
     """
 
     hardlink = "hardlink"

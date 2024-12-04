@@ -48,6 +48,9 @@ test = [
 ]
 docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
 
+[project.entry-points.conda]
+pupa = "conda_pupa.plugin"
+
 [project.urls]
 homepage = "https://github.com/conda-incubator/conda-pypi"
 

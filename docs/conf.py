@@ -31,6 +31,7 @@ author = "conda-pypi contributors"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "myst_parser",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",

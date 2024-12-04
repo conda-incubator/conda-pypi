@@ -54,6 +54,15 @@
    :show-inheritance:
 ```
 
+## downloader
+
+```{eval-rst}
+.. automodule:: conda_pupa.downloader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
 ## synth
 
 ```{eval-rst}

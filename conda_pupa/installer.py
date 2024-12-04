@@ -5,13 +5,14 @@ Install a wheel.
 import subprocess
 import sys
 import sysconfig
+from pathlib import Path
 
 from installer import install
 from installer.destinations import SchemeDictionaryDestination
 from installer.sources import WheelFile
 
 
-def install_installer(python_executable, whl, build_path):
+def install_installer(python_executable: str, whl: Path, build_path: Path):
     # Handler for installation directories and writing into them.
     destination = SchemeDictionaryDestination(
         sysconfig.get_paths(),
@@ -19,7 +20,7 @@ def install_installer(python_executable, whl, build_path):
         script_kind="posix",
     )
 
-    with WheelFile.open("sampleproject-1.3.1-py2.py3-none-any.whl") as source:
+    with WheelFile.open(whl) as source:
         install(
             source=source,
             destination=destination,
@@ -30,7 +31,7 @@ def install_installer(python_executable, whl, build_path):
         )
 
 
-def install_pip(python_executable, whl, build_path):
+def install_pip(python_executable: str, whl: Path, build_path: Path):
     command = [
         python_executable,
         "-m",
