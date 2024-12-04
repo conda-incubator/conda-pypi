@@ -1,17 +1,16 @@
-conda-pupa
-==========
+🐛 conda-pupa 🦋
+===============
 
 /ˈpjuː.pə/, plural /ˈpjuː.piː/
 
 Convert PyPA package "caterpillers", whether they use `setup.py` or
 `pyproject.toml`, to beautiful `.conda` butterflies.
 
-"conda develop" but use pypa/build and convert the development wheel to a .conda
-before install. Combine grayskull pypi, whl2conda, conda-pypi in a simpler
-package. Index the outputs to a local channel then install.
+`conda-pupa` is handy for filling in a handful of [PyPI](https://pypi.org) exclusive dependencies in your `conda` environment. You can share the resulting packages with other `conda` users even if they are not using `conda-pupa`.
 
-See https://github.com/conda/schemas or maybe not - has no schema for paths.json
-or index.json
+`conda-pupa` is the easiest way to build a Python project as a `conda` package without using `conda-build` or a separate recipe.
+
+`conda-pupa` replaces `pip install -e .`, but `conda` treats the Python package the same as any other `conda` package, because it is a `conda` package, and it can use dependencies from `conda`. It is a Python-standards way to replace the simplistic `conda-build develop`; `conda-pupa` understands `pyproject.toml` as well as `setup.py`.
 
 Vision
 ======
@@ -30,3 +29,70 @@ Replace `conda-build develop` with something compatible with all modern Python
 projects, more like `pip install -e .`
 
 Have 100% test coverage.
+
+Installation
+============
+
+`conda-pupa` depends on `conda`. It provides a `conda` plugin for use without having to install into the active environment. To make it available to the main conda,
+
+`conda install -n base -c dholth conda-pupa`
+
+Alternatively, `python -m conda_pupa`.
+
+Usage
+=====
+
+`conda-pupa` works on environments that already contain `python`.
+
+```conda pupa --editable .```
+
+> Create a `conda` package that, when installed, is the same as `pip install -e .`, linking the `pyproject.toml` or `setup.py` project into the Python environment.
+
+---
+```conda pupa --build .```
+
+> Build a wheel for a Python project and convert to `.conda`.
+
+---
+```conda pupa --prefix $CONDA_PREFIX twine==6.0.1```
+
+> Convert a dependency `twine`, passed as a conda-format MatchSpec, and its dependencies from pypi wheels to conda packages. Collect the new `.conda` packages into a local channel.
+>
+> Add `--override-channels` to convert all dependencies missing from `--prefix` from `pypi` and not just the ones missing from your default conda channels.
+>
+> 🐞 Note `conda-pupa` currently packages all wheels as `noarch` even if they should be arch-specific.
+
+```
+% conda pupa --help
+Usage: conda pupa [OPTIONS] [PACKAGE_SPEC]...
+
+Options:
+  -c, --channel TEXT            Additional channel to search for packages.
+  -O, --override-channels TEXT  Do not search default or .condarc channels.
+                                Will search pypi.
+  -e, --editable TEXT           Build named path as editable package; install
+                                to link checkout to environment.
+  -b, --build TEXT              Build named path as wheel converted to conda.
+  -p, --prefix TEXT             Full path to environment location (i.e.
+                                prefix).
+  -n, --name TEXT               Name of environment.
+  -h, --help                    Show this message and exit.
+  ```
+
+  Bugs
+  ====
+
+- `conda-pupa` does not have optimizations.
+- `conda-pupa` packages all packages as `noarch` even if they should be platform specific; this works okay for local single-platform use.
+- `conda-pupa` may download wheels suited to conda's Python, and not Python in the target environment.
+- `conda-pupa` does not consider Python [extras](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-extras).
+- ... and more!
+
+Future Improvements
+===================
+
+- When available, convert `pypi` metadata files only to generate `repodata.json` during dependency discovery, like pip. Once a solution has been found, download and convert the necessary wheels.
+- Re-use `LibMambaSolver` for repeated solves, incrementally adding newly converted packages.
+- Use conda's build hash to tag wheels that may convert to more than one `conda` package in case of Python [markers](https://packaging.pypa.io/en/stable/markers.html).
+- Handle Python source distributions. Use conda to install the compiler too?
+- ...

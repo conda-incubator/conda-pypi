@@ -23,16 +23,21 @@ classifiers = [
 dynamic = ["version"]
 requires-python = ">=3.7"
 dependencies = [
-  "build",                          # conda name is python-build
+  "build",                           # conda name is python-build
   "conda-index",
+  "conda-libmamba-solver >=24.9",
   "conda-package-streaming >=0.11",
-  "installer >=0.7",                # conda name is python-installer
+  "installer >=0.7",                 # conda name is python-installer
   "packaging >=24",
+  "unearth>=0.17.2",                 # download packages from pypi
 ]
 
 [project.optional-dependencies]
 test = ["pytest >=7", "pytest-cov", "pytest-mock", "pypi-simple"]
 docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
+
+[project.entry-points.conda]
+pupa = "conda_pupa.plugin"
 
 [project.urls]
 Home = "https://github.com/dholth/conda_pupa"

@@ -30,6 +30,7 @@ author = "Daniel Holth"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "myst_parser",
 ]
 
