@@ -20,8 +20,10 @@ import conda_pupa.editable
 )
 @click.option(
     "-O",
-    "--override-channels",
+    "--override-channels/--no-override-channels",
     help="Do not search default or .condarc channels. Will search pypi.",
+    default=False,
+    show_default=True,
 )
 @click.option(
     "-e",
@@ -47,8 +49,6 @@ import conda_pupa.editable
 )
 @click.option("-n", "--name", help="Name of environment.", required=False)
 def cli(channel, editable, build, prefix, name, override_channels, package_spec):
-    print(channel, editable, prefix, name)
-
     if editable and build:
         raise click.BadOptionUsage("build", "build and editable are mutually exclusive")
 
