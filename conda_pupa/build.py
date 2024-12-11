@@ -78,7 +78,6 @@ def _paths(base, path, filter=lambda x: x.name != ".git"):
             # will Python's tarfile add pipes, device nodes to the archive?
 
 
-
 def json_dumps(object):
     """
     Consistent json formatting.
@@ -146,6 +145,7 @@ def build_conda(
 
     (build_path / "info").mkdir()
     (build_path / "info" / "index.json").write_text(json_dumps(record))
+    (build_path / "info" / "about.json").write_text(json_dumps(metadata.about))
 
     # used especially for console_scripts
     if link_json := metadata.link_json():

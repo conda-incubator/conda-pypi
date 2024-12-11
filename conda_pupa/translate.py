@@ -10,10 +10,10 @@ import sys
 import time
 from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
-from conda.models.match_spec import MatchSpec
 from typing import Any
 
-from packaging.requirements import Requirement
+from conda.models.match_spec import MatchSpec
+from packaging.requirements import InvalidRequirement, Requirement
 from packaging.utils import canonicalize_name
 
 log = logging.getLogger(__name__)
@@ -122,12 +122,28 @@ class CondaMetadata:
 
         noarch = "python"
 
+        # Common "about" keys
+        # ['channels', 'conda_build_version', 'conda_version', 'description',
+        # 'dev_url', 'doc_url', 'env_vars', 'extra', 'home', 'identifiers',
+        # 'keywords', 'license', 'license_family', 'license_file', 'root_pkgs',
+        # 'summary', 'tags', 'conda_private', 'doc_source_url', 'license_url']
+
         about = {
             "summary": metadata.get("summary"),
-            "license": metadata.get("license"),
-            # there are two license-file in grayskull e.g.
-            "license_file": metadata.get("license_file"),
+            "description": metadata.get("description"),
+            # https://packaging.python.org/en/latest/specifications/core-metadata/#license-expression
+            "license": metadata.get("license_expression") or metadata.get("license"),
         }
+
+        if project_urls := metadata.get_all("project-url"):
+            urls = dict(url.split(", ", 1) for url in project_urls)
+            for py_name, conda_name in (
+                ("Home", "home"),
+                ("Development", "dev_url"),
+                ("Documentation", "doc_url"),
+            ):
+                if py_name in urls:
+                    about[conda_name] = urls[py_name]
 
         name = pypi_to_conda_name(distribution.name)
         version = distribution.version
@@ -172,7 +188,6 @@ def requires_to_conda(requires: list[str] | None):
     extras: dict[str, list[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
-
         # requirement.marker.evaluate
 
         # if requirement.marker and not requirement.marker.evaluate():
@@ -212,8 +227,12 @@ def conda_to_requires(matchspec: MatchSpec):
         best_format = str(matchspec)
         if "version=" in best_format:
             best_format = matchspec.spec
-        # XXX ugly no-setter-on-MatchSpec.name
-        return Requirement(best_format.replace(name, pypi_name))
+        try:
+            return Requirement(best_format.replace(name, pypi_name))
+        except InvalidRequirement:
+            # attempt to catch 'httpcore 1.*' style conda requirement
+            best_format = "==".join(matchspec.spec.split())
+            return Requirement(best_format.replace(name, pypi_name))
 
 
 def pypi_to_conda_name(pypi_name: str):
