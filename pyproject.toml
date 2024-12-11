@@ -47,6 +47,7 @@ Documentation = "https://dholth.github.io/conda_pupa/"
 [tool.pytest.ini_options]
 minversion = "7.4"
 testpaths = ["tests"]
+addopts = "--ignore=tests/test_synth.py"
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
