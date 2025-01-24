@@ -151,7 +151,8 @@ def build_conda(
     if link_json := metadata.link_json():
         (build_path / "info" / "link.json").write_text(json_dumps(link_json))
 
-    # Allow pip to list us as editable
+    # Allow pip to list us as editable or show the path to our project.
+    # XXX leaks path
     if project_path:
         direct_url = project_path.absolute().as_uri()
         direct_url_path = dist_info / "direct_url.json"
@@ -199,23 +200,31 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
         writer.writerows(record_rows)
 
 
-def pypa_to_conda(project, distribution="editable"):
+def pypa_to_conda(project, distribution="editable", output_path: Path | None = None):
     project = Path(project)
-    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
-        tmp_path = Path(tmp_path)
-        output_path = Path(project / "build")
+
+    # Should this logic be moved to the caller?
+    if not output_path:
+        output_path = project / "build"
         if not output_path.exists():
             output_path.mkdir()
+
+    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
+        tmp_path = Path(tmp_path)
+
         normal_wheel = build_pypa(
             Path(project), tmp_path, sys.executable, distribution=distribution
         )
+
         build_path = tmp_path / "build"
+
         package_conda = build_conda(
             normal_wheel,
             build_path,
-            tmp_path,
+            output_path or tmp_path,
             sys.executable,
             project_path=project,
-            is_editable=True,
+            is_editable=distribution == "editable",
         )
-        print("Conda at", package_conda)
+
+    return package_conda

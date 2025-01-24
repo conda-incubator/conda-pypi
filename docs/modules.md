@@ -30,7 +30,7 @@
 ## editable
 
 ```{eval-rst}
-.. automodule:: conda_pupa.editable
+.. automodule:: conda_pupa.convert_tree
    :members:
    :undoc-members:
    :show-inheritance:
