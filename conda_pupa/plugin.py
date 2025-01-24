@@ -5,10 +5,14 @@ Conda command plugin, provide "conda pupa"
 import conda.plugins
 
 
-def command(args):
+def command(
+    args, standalone_mode=True
+):  # standalone_mode=False avoids click SystemExit(); for testing.
     import conda_pupa.cli
 
-    return conda_pupa.cli.cli(prog_name="conda pupa", args=args)
+    return conda_pupa.cli.cli(
+        prog_name="conda pupa", args=args, standalone_mode=standalone_mode
+    )
 
 
 @conda.plugins.hookimpl

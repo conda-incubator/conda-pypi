@@ -28,6 +28,15 @@ pre-existing conda channels.
 Replace `conda-build develop` with something compatible with all modern Python
 projects, more like `pip install -e .`
 
+Use Python standards to build packages, handle metadata for both `setup.py`,
+`pyproject.toml`. Glue together libraries to process packages and their metadata.
+
+- [build](https://github.com/pypa/build)
+- [importlib.metadata](https://docs.python.org/3/library/importlib.metadata.html)
+- [installer](https://github.com/pypa/installer)
+- [packaging](https://github.com/pypa/packaging)
+- [unearth](https://unearth.readthedocs.io/en/latest/)
+
 Have 100% test coverage.
 
 Installation

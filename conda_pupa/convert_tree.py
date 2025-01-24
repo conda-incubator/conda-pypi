@@ -4,12 +4,12 @@ Convert a dependency tree from pypi into .conda packages
 
 import pathlib
 import re
-import sys
 import tempfile
 from pathlib import Path
 
 import conda.exceptions
 import platformdirs
+from conda.common.path import get_python_short_path
 from conda.base.context import context
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
@@ -35,15 +35,19 @@ def parse_libmamba_error(message: str):
 class ConvertTree:
     def __init__(
         self,
-        prefix: pathlib.Path | str,
+        prefix: pathlib.Path | str | None,
         override_channels=False,
         repo: pathlib.Path | None = None,
     ):
         # platformdirs location has a space in it; ok?
         # will be expanded to %20 in "as uri" output, conda understands that.
         self.repo = repo or Path(platformdirs.user_data_dir("pupa"))
-        self.prefix = prefix or context.active_prefix
+        prefix = prefix or context.active_prefix
+        if not prefix:
+            raise ValueError("prefix is required")
+        self.prefix = prefix
         self.override_channels = override_channels
+        self.python_exe = Path(self.prefix, get_python_short_path())
 
     def convert_tree(self, requested: list[MatchSpec], max_attempts=20):
         (self.repo / "noarch").mkdir(parents=True, exist_ok=True)
@@ -107,7 +111,7 @@ class ConvertTree:
                             normal_wheel,
                             build_path,
                             repo / "noarch",  # XXX could be arch
-                            sys.executable,
+                            self.python_exe,
                             is_editable=False,
                         )
                         print("Conda at", package_conda)
@@ -129,29 +133,3 @@ class ConvertTree:
             print("Solution", changes)
 
             print(f"Install with conda install -c {repo.as_uri()} {requested}")
-
-
-# may override this fn; persist index, reload channels, to avoid LibMambaSolver
-# reloading channels each time.
-
-# @time_recorder(module_name=__name__)
-# def _collect_all_metadata(
-#     self,
-#     channels: Iterable[Channel],
-#     conda_build_channels: Iterable[Channel],
-#     subdirs: Iterable[str],
-#     in_state: SolverInputState,
-# ) -> LibMambaIndexHelper:
-#     index = LibMambaIndexHelper(
-#         channels=[*conda_build_channels, *channels],
-#         subdirs=subdirs,
-#         repodata_fn=self._repodata_fn,
-#         installed_records=(
-#             *in_state.installed.values(),
-#             *in_state.virtual.values(),
-#         ),
-#         pkgs_dirs=context.pkgs_dirs if context.offline else (),
-#     )
-#     for channel in conda_build_channels:
-#         index.reload_channel(channel)
-#     return index

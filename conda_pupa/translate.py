@@ -209,7 +209,7 @@ def requires_to_conda(requires: list[str] | None):
         else:
             requirements.append(f"{requirement.name} {requirement.specifier}".strip())
 
-    return requirements, extras
+    return requirements, dict(extras)
 
     # if there is a url or extras= here we have extra work, may need to
     # yield Requirement not str
@@ -248,12 +248,25 @@ def pypi_to_conda_name(pypi_name: str):
     )["conda_name"]
 
 
-def conda_to_pypi_name(conda_name: str):
-    # XXX build reverse map
-    for value in grayskull_pypi_mapping.values():
-        if conda_name == value["conda_name"]:
-            return value["pypi_name"]
-    return conda_name
+_to_pypi_name_map = {}
+
+
+def conda_to_pypi_name(name: str):
+    if not _to_pypi_name_map:
+        for value in grayskull_pypi_mapping.values():
+            conda_name = value["conda_name"]
+            # XXX sometimes conda:pypi is n:1
+            if name in _to_pypi_name_map:
+                print("one to many", name, value)
+                # assert conda_name not in _to_pypi_name_map
+            _to_pypi_name_map[conda_name] = value
+        return conda_to_pypi_name(name)
+
+    else:
+        found = _to_pypi_name_map.get(name)
+        if found:
+            return found["pypi_name"]
+        return name
 
 
 if __name__ == "__main__":  # pragma: no cover
