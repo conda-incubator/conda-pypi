@@ -31,7 +31,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.orm import DeclarativeBase, Session
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session
 
 from conda_pupa.translate import (
     FileDistribution,
@@ -105,9 +105,21 @@ class Repodata(Base):
 class RepodataPackages(Base):
     __table__ = repodata_packages
 
+    repodata_id: Mapped[int]
+    package: Mapped[str]
+    index_json: Mapped[dict]
+    timestamp: Mapped[str]
+    name: Mapped[str]
+    version: Mapped[str]
+
 
 class PyMetadata(Base):
     __table__ = pypi_metadata
+
+    filename: Mapped[str]
+    name: Mapped[str]
+    version: Mapped[str]
+    metadata: Mapped[str]
 
 
 def create_engine():

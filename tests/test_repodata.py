@@ -2,7 +2,7 @@
 Test functions for transforming repodata.
 """
 
-from conda_pupa.translate import FileDistribution
+from conda_pupa.translate import FileDistribution, conda_to_requires, MatchSpec
 
 
 def test_file_distribution():
@@ -17,3 +17,8 @@ Version: 0.0.1
     assert "conda_pupa" in metadata
     assert dist.read_text("missing") is None
     assert dist.locate_file("always None") is None
+
+
+def test_translate_twine():
+    requirement = conda_to_requires(MatchSpec("twine==6.0.0"))
+    assert requirement.name == "twine"
