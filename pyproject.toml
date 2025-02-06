@@ -40,8 +40,8 @@ docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
 pupa = "conda_pupa.plugin"
 
 [project.urls]
-Home = "https://github.com/dholth/conda_pupa"
-Documentation = "https://dholth.github.io/conda_pupa/"
+Home = "https://github.com/dholth/conda-pupa"
+Documentation = "https://dholth.github.io/conda-pupa/"
 
 # pyproject.toml
 [tool.pytest.ini_options]
