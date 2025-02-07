@@ -15,14 +15,13 @@ import tempfile
 from importlib.metadata import PathDistribution
 from pathlib import Path
 
-from conda.cli.main import main_subshell
 from conda_package_streaming.create import conda_builder
 
-from build import ProjectBuilder, check_dependency
+from build import ProjectBuilder
 
-from . import installer
+from . import dependencies, installer, paths
 from .conda_build_utils import PathType, sha256_checksum
-from .translate import CondaMetadata, requires_to_conda
+from .translate import CondaMetadata
 
 
 def filter(tarinfo):
@@ -89,31 +88,29 @@ def flatten(iterable):
     return [*itertools.chain(*iterable)]
 
 
-def ensure_requirements(requirements):
-    if requirements:
-        conda_requirements, _ = requires_to_conda(requirements)
-        # -y may be appropriate during tests only
-        main_subshell("install", "-y", *conda_requirements)
-
-
 def build_pypa(
-    path: Path, output_path, python_executable: str, distribution="editable"
+    path: Path,
+    output_path,
+    prefix: Path,
+    distribution="editable",
 ):
     """
     Args:
         distribution: "editable" or "wheel"
     """
+    python_executable = str(paths.get_python_executable(prefix))
+
     builder = ProjectBuilder(path, python_executable=python_executable)
 
     build_system_requires = builder.build_system_requires
-    missing = {u for d in build_system_requires for u in check_dependency(d)}
+    missing = dependencies.check_dependencies(build_system_requires, prefix=prefix)
     print("Installing requirements for build system:", missing)
     # does flatten() work for a deeper dependency chain?
-    ensure_requirements(flatten(missing))
+    dependencies.ensure_requirements(flatten(missing), prefix=prefix)
 
     requirements = builder.check_dependencies(distribution)
     print(f"Additional requirements for {distribution}:", requirements)
-    ensure_requirements(flatten(requirements))
+    dependencies.ensure_requirements(flatten(requirements), prefix=prefix)
 
     editable_file = builder.build(distribution, output_path)
     print("The wheel is at", editable_file)
@@ -200,7 +197,12 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
         writer.writerows(record_rows)
 
 
-def pypa_to_conda(project, distribution="editable", output_path: Path | None = None):
+def pypa_to_conda(
+    project,
+    prefix: Path,
+    distribution="editable",
+    output_path: Path | None = None,
+):
     project = Path(project)
 
     # Should this logic be moved to the caller?
@@ -209,11 +211,17 @@ def pypa_to_conda(project, distribution="editable", output_path: Path | None = N
         if not output_path.exists():
             output_path.mkdir()
 
-    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
+    try:
+        tmp_manager = tempfile.TemporaryDirectory(prefix="conda", delete=False)
+    except TypeError:  # pragma: no cover
+        # < Python 3.12 but output_path ought to exist
+        tmp_manager = tempfile.TemporaryDirectory(prefix="conda")
+
+    with tmp_manager as tmp_path:
         tmp_path = Path(tmp_path)
 
         normal_wheel = build_pypa(
-            Path(project), tmp_path, sys.executable, distribution=distribution
+            Path(project), tmp_path, prefix=prefix, distribution=distribution
         )
 
         build_path = tmp_path / "build"
