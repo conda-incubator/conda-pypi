@@ -9,8 +9,8 @@ from pathlib import Path
 
 import conda.exceptions
 import platformdirs
-from conda.common.path import get_python_short_path
 from conda.base.context import context
+from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
 from conda_libmamba_solver.solver import LibMambaSolver, LibMambaUnsatisfiableError
