@@ -2,6 +2,8 @@
 Command line interface for conda-pupa.
 """
 
+import contextlib
+import tempfile
 from pathlib import Path
 
 import click
@@ -9,6 +11,7 @@ import conda.base.context
 
 import conda_pupa.build
 import conda_pupa.convert_tree
+import conda_pupa.installer
 
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
@@ -29,7 +32,7 @@ import conda_pupa.convert_tree
     "-e",
     "--editable",
     required=False,
-    help="Build named path as editable package; install to link checkout to environment.",
+    help="Build and install named path as editable package, linking project into environment.",
 )
 @click.option(
     "-b",
@@ -74,15 +77,22 @@ def cli(
         prefix = Path(conda.base.context.context.target_prefix)
 
     if editable:
-        print(
-            "Editable at ",
-            conda_pupa.build.pypa_to_conda(
+        if output_folder:
+            print(
+                "--output-folder specified; saving editable .conda instead of install."
+            )
+            output_path_manager = contextlib.nullcontext(output_folder)
+        else:
+            output_path_manager = tempfile.TemporaryDirectory("pupa")
+        with output_path_manager as output_path:
+            package = conda_pupa.build.pypa_to_conda(
                 editable,
                 distribution="editable",
-                output_path=output_folder,
+                output_path=Path(output_path),
                 prefix=prefix,
-            ),
-        )
+            )
+            if not output_folder:
+                conda_pupa.installer.install_ephemeral_conda(prefix, package)
 
     elif build:
         print(

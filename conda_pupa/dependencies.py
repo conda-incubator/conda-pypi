@@ -25,6 +25,7 @@ def check_dependencies(requirements: Iterable[str], prefix: Path):
         result = subprocess.run(
             [
                 python_executable,
+                "-I",
                 "-",
                 "-r",
                 json.dumps(sorted(requirements)),
