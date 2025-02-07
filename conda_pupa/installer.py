@@ -1,12 +1,17 @@
 """
-Install a wheel.
+Install a wheel / install a conda.
 """
 
+import os
 import subprocess
 import sys
 import sysconfig
+import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
+from conda.cli.main import main_subshell
+from conda.core.package_cache_data import PackageCacheData
 from installer import install
 from installer.destinations import SchemeDictionaryDestination
 from installer.sources import WheelFile
@@ -44,3 +49,19 @@ def install_pip(python_executable: str, whl: Path, build_path: Path):
     ]
     subprocess.run(command, check=True)
     print("Installed to", build_path)
+
+
+def install_ephemeral_conda(prefix: Path, package: Path):
+    """
+    Install [editable] conda package without adding it to the environment's
+    package cache, since we don't want to accidentally re-install "a link to a
+    source checkout" elsewhere.
+
+    Installing packages directly from a file does not resolve dependencies.
+    Should we automatically install the project's dependencies also?
+    """
+    persistent_pkgs = PackageCacheData.first_writable().pkgs_dir
+    with tempfile.TemporaryDirectory(
+        dir=persistent_pkgs, prefix="ephemeral"
+    ) as cache_dir, patch.dict(os.environ, {"CONDA_PKGS_DIRS": cache_dir}):
+        main_subshell("install", "--prefix", str(prefix), str(package))
