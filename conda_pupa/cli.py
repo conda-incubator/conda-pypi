@@ -5,6 +5,7 @@ Command line interface for conda-pupa.
 from pathlib import Path
 
 import click
+import conda.base.context
 
 import conda_pupa.build
 import conda_pupa.convert_tree
@@ -67,11 +68,19 @@ def cli(
     if output_folder:
         output_folder = Path(output_folder)
 
+    if prefix:
+        prefix = Path(prefix).expanduser()
+    else:
+        prefix = Path(conda.base.context.context.target_prefix)
+
     if editable:
         print(
             "Editable at ",
             conda_pupa.build.pypa_to_conda(
-                editable, distribution="editable", output_path=output_folder
+                editable,
+                distribution="editable",
+                output_path=output_folder,
+                prefix=prefix,
             ),
         )
 
@@ -79,15 +88,11 @@ def cli(
         print(
             "Conda package at ",
             conda_pupa.build.pypa_to_conda(
-                build, distribution="wheel", output_path=output_folder
+                build, distribution="wheel", output_path=output_folder, prefix=prefix
             ),
         )
 
     else:
-        if prefix:
-            prefix = Path(prefix).expanduser()
-        # XXX or environment name plus default prefix
-
         converter = conda_pupa.convert_tree.ConvertTree(
             prefix, override_channels=override_channels
         )
