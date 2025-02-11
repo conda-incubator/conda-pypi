@@ -59,7 +59,7 @@ jobs:
         source ${{ runner.temp }}/conda-standalone/env/bin/activate
         pip install flit_core editables
         pip install -e . --no-index --no-deps --no-build-isolation
-        ${{ runner.temp }}/conda-standalone/env/bin/pytest --cov
+        ${{ runner.temp }}/conda-standalone/env/bin/pytest --cov -vv -s
         exit 0
     - name: Clean Tarballs
       env:
