@@ -14,7 +14,12 @@ import conda_pupa.convert_tree
 import conda_pupa.installer
 
 
-@click.command(context_settings={"help_option_names": ["-h", "--help"]})
+@click.command(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help="""Download named Python PACKAGE_SPEC and dependencies not
+    already installed into the current environment; convert to conda; store in a
+    local channel.""",
+)
 @click.option(
     "-c",
     "--channel",
@@ -73,6 +78,8 @@ def cli(
 
     if prefix:
         prefix = Path(prefix).expanduser()
+    elif name:
+        raise NotImplementedError()
     else:
         prefix = Path(conda.base.context.context.target_prefix)
 

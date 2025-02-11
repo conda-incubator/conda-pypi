@@ -2,6 +2,7 @@
 Convert a dependency tree from pypi into .conda packages
 """
 
+import logging
 import pathlib
 import re
 import tempfile
@@ -14,10 +15,13 @@ from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
 from conda_libmamba_solver.solver import LibMambaSolver, LibMambaUnsatisfiableError
+from unearth import PackageFinder
 
 from conda_pupa.build import build_conda
-from conda_pupa.downloader import download_pypi_pip
+from conda_pupa.downloader import find_and_fetch, get_package_finder
 from conda_pupa.index import update_index
+
+log = logging.getLogger(__name__)
 
 NOTHING_PROVIDES_RE = re.compile(r"nothing provides (.*) needed by")
 
@@ -38,6 +42,7 @@ class ConvertTree:
         prefix: pathlib.Path | str | None,
         override_channels=False,
         repo: pathlib.Path | None = None,
+        finder: PackageFinder | None = None,  # to change index_urls e.g.
     ):
         # platformdirs location has a space in it; ok?
         # will be expanded to %20 in "as uri" output, conda understands that.
@@ -45,9 +50,16 @@ class ConvertTree:
         prefix = prefix or context.active_prefix
         if not prefix:
             raise ValueError("prefix is required")
-        self.prefix = prefix
+        self.prefix = Path(prefix)
         self.override_channels = override_channels
         self.python_exe = Path(self.prefix, get_python_short_path())
+
+        if not finder:
+            finder = self.default_package_finder()
+        self.finder = finder
+
+    def default_package_finder(self):
+        return get_package_finder(self.prefix)
 
     def convert_tree(self, requested: list[MatchSpec], max_attempts=20):
         (self.repo / "noarch").mkdir(parents=True, exist_ok=True)
@@ -82,7 +94,9 @@ class ConvertTree:
             converted = set()
             fetched_packages = set()
             missing_packages = set()
-            while len(fetched_packages) < max_attempts:
+            attempts = 0
+            while len(fetched_packages) < max_attempts and attempts < max_attempts:
+                attempts += 1
                 try:
                     changes = solver.solve_for_diff()
                     break
@@ -91,11 +105,11 @@ class ConvertTree:
                     print(missing_packages)
                 except LibMambaUnsatisfiableError as e:
                     # parse message
+                    print("Unsatisfiable", e)
                     missing_packages.update(set(parse_libmamba_error(e.message)))
 
                 for package in sorted(missing_packages - fetched_packages):
-                    # XXX use unearth
-                    download_pypi_pip(MatchSpec(package), WHEEL_DIR)
+                    find_and_fetch(self.finder, WHEEL_DIR, package)
 
                 for normal_wheel in WHEEL_DIR.glob("*.whl"):
                     if normal_wheel in converted:

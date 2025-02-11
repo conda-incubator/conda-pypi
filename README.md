@@ -53,9 +53,9 @@ Usage
 
 `conda-pupa` works on environments that already contain `python`.
 
-```conda pupa --editable .```
+```conda pupa -e .```
 
-> Create a `conda` package that, when installed, is the same as `pip install -e .`, linking the `pyproject.toml` or `setup.py` project into the Python environment.
+> Create and install a `conda` package linking a `pyproject.toml` or `setup.py` project at `.` into the Python environment, like `pip install -e .`
 
 ---
 ```conda pupa --build .```
@@ -65,7 +65,7 @@ Usage
 ---
 ```conda pupa --prefix $CONDA_PREFIX twine==6.0.1```
 
-> Convert a dependency `twine`, passed as a conda-format MatchSpec, and its dependencies from pypi wheels to conda packages. Collect the new `.conda` packages into a local channel.
+> If a dependency `twine==6.0.1`, passed as a conda-format MatchSpec, is missing from `$CONDA_PREFIX`, then convert it and its dependencies from pypi wheels to conda packages. Collect the new `.conda` packages into a local channel.
 >
 > Add `--override-channels` to convert all dependencies missing from `--prefix` from `pypi` and not just the ones missing from your default conda channels.
 >
@@ -93,7 +93,6 @@ Options:
 
 - `conda-pupa` does not have optimizations.
 - `conda-pupa` packages all packages as `noarch` even if they should be platform specific; this works okay for local single-platform use.
-- `conda-pupa` may download wheels suited to conda's Python, and not Python in the target environment.
 - `conda-pupa` does not consider Python [extras](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-extras).
 - ... and more!
 
@@ -101,7 +100,6 @@ Future Improvements
 ===================
 
 - When available, convert `pypi` metadata files only to generate `repodata.json` during dependency discovery, like pip. Once a solution has been found, download and convert the necessary wheels.
-- Re-use `LibMambaSolver` for repeated solves, incrementally adding newly converted packages.
 - Use conda's build hash to tag wheels that may convert to more than one `conda` package in case of Python [markers](https://packaging.pypa.io/en/stable/markers.html).
 - Handle Python source distributions. Use conda to install the compiler too?
 - ...
