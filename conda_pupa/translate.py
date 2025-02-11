@@ -256,9 +256,6 @@ def conda_to_pypi_name(name: str):
         for value in grayskull_pypi_mapping.values():
             conda_name = value["conda_name"]
             # XXX sometimes conda:pypi is n:1
-            if name in _to_pypi_name_map:
-                print("one to many", name, value)
-                # assert conda_name not in _to_pypi_name_map
             _to_pypi_name_map[conda_name] = value
         return conda_to_pypi_name(name)
 
