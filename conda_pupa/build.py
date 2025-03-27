@@ -103,7 +103,15 @@ def build_pypa(
     builder = ProjectBuilder(path, python_executable=python_executable)
 
     build_system_requires = builder.build_system_requires
-    missing = dependencies.check_dependencies(build_system_requires, prefix=prefix)
+    for _retry in range(2):
+        try:
+            missing = dependencies.check_dependencies(
+                build_system_requires, prefix=prefix
+            )
+            break
+        except dependencies.MissingDependencyError as e:
+            dependencies.ensure_requirements(e.dependencies, prefix=prefix)
+
     print("Installing requirements for build system:", missing)
     # does flatten() work for a deeper dependency chain?
     dependencies.ensure_requirements(flatten(missing), prefix=prefix)

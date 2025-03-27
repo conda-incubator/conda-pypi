@@ -6,7 +6,6 @@ Python's in a subprocess.
 import importlib.resources
 import json
 import subprocess
-import sys
 from pathlib import Path
 from typing import Iterable
 
@@ -14,6 +13,15 @@ from conda.cli.main import main_subshell
 
 from . import paths
 from .translate import requires_to_conda
+
+
+class MissingDependencyError(Exception):
+    """
+    When the dependency subprocess can't run.
+    """
+
+    def __init__(self, dependencies: list[str]):
+        self.dependencies = dependencies
 
 
 def check_dependencies(requirements: Iterable[str], prefix: Path):
@@ -36,10 +44,13 @@ def check_dependencies(requirements: Iterable[str], prefix: Path):
             check=True,
         )
         missing = json.loads(result.stdout)
-    except subprocess.SubprocessError as e:
-        # XXX what exception to raise?
-        print(e, file=sys.stderr)
-        return []
+    except subprocess.CalledProcessError as e:
+        if (
+            "ModuleNotFound" in e.stderr
+        ):  # Missing 'build' dependency aka 'python-build' in conda land
+            raise MissingDependencyError(["build"]) from e
+        else:
+            raise
 
     return missing
 
