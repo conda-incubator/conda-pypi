@@ -7,6 +7,7 @@ import pathlib
 import re
 import tempfile
 from pathlib import Path
+from typing import Iterable
 
 import conda.exceptions
 import platformdirs
@@ -14,7 +15,12 @@ from conda.base.context import context
 from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
-from conda_libmamba_solver.solver import LibMambaSolver, LibMambaUnsatisfiableError
+from conda_libmamba_solver.solver import (
+    LibMambaIndexHelper,
+    LibMambaSolver,
+    LibMambaUnsatisfiableError,
+    SolverInputState,
+)
 from unearth import PackageFinder
 
 from conda_pupa.build import build_conda
@@ -33,6 +39,35 @@ def parse_libmamba_error(message: str):
     for line in message.splitlines():
         if match := NOTHING_PROVIDES_RE.search(line):
             yield match.group(1)
+
+
+class ReloadingLibMambaSolver(LibMambaSolver):
+    """
+    Reload channels as we add newly converted packages.
+    LibMambaIndexHelper appears to be addressing C++ singletons or global state.
+    """
+
+    def _collect_all_metadata(
+        self,
+        channels: Iterable[Channel],
+        conda_build_channels: Iterable[Channel],
+        subdirs: Iterable[str],
+        in_state: SolverInputState,
+    ) -> LibMambaIndexHelper:
+        index = LibMambaIndexHelper(
+            channels=[*conda_build_channels, *channels],
+            subdirs=subdirs,
+            repodata_fn=self._repodata_fn,
+            installed_records=(
+                *in_state.installed.values(),
+                *in_state.virtual.values(),
+            ),
+            pkgs_dirs=context.pkgs_dirs if context.offline else (),
+        )
+        for channel in channels:
+            # XXX filter by local channel we update
+            index.reload_channel(channel)
+        return index
 
 
 # import / pupate / transmogrify / ...
@@ -83,7 +118,7 @@ class ConvertTree:
             else:  # more wheels for us to convert
                 channels = [local_channel]
 
-            solver = LibMambaSolver(
+            solver = ReloadingLibMambaSolver(
                 str(prefix),
                 channels,
                 context.subdirs,
@@ -110,6 +145,7 @@ class ConvertTree:
 
                 for package in sorted(missing_packages - fetched_packages):
                     find_and_fetch(self.finder, WHEEL_DIR, package)
+                    fetched_packages.add(package)
 
                 for normal_wheel in WHEEL_DIR.glob("*.whl"):
                     if normal_wheel in converted:
@@ -138,8 +174,6 @@ class ConvertTree:
                     converted.add(normal_wheel)
 
                 update_index(repo)
-
-                fetched_packages.update(missing_packages)
             else:
                 print(f"Exceeded maximum of {max_attempts} attempts")
                 return
