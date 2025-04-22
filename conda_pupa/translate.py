@@ -262,8 +262,8 @@ def conda_to_pypi_name(name: str):
     else:
         found = _to_pypi_name_map.get(name)
         if found:
-            return found["pypi_name"]
-        return name
+            name = found["pypi_name"]
+        return canonicalize_name(name)
 
 
 if __name__ == "__main__":  # pragma: no cover
