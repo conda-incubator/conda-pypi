@@ -1,6 +1,7 @@
 from conda import plugins
 
 from . import cli
+from .installer import PipInstaller
 from .main import ensure_target_env_has_externally_managed
 
 
@@ -30,4 +31,13 @@ def conda_post_commands():
         name="conda-pypi-post-install-create",
         action=cli.install.post_command,
         run_for={"install", "create"},
+    )
+
+
+@plugins.hookimpl
+def conda_installers():
+    yield plugins.CondaInstaller(
+        name="pip",
+        types=("pip",),
+        installer=PipInstaller,
     )
