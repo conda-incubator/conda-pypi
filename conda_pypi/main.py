@@ -135,7 +135,7 @@ def run_pip_install(
     command.extend(args)
 
     logger.info("pip install command: %s", command)
-    process = run(command, capture_output=capture_output or check, text=capture_output or check)
+    process = run(command, text=capture_output or check)
     if check and process.returncode:
         raise CondaError(
             f"Failed to run pip:\n"
