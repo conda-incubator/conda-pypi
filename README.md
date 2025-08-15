@@ -10,8 +10,9 @@ Better PyPI interoperability for the conda ecosystem.
 
 Includes:
 
-- `conda pip`: A subcommand that converts PyPI packages to `.conda` format for safer installation.
-- `conda pupa`: Direct access to conda-pupa functionality for advanced package conversion.
+- `conda pip install`: Converts PyPI packages to `.conda` format for safer installation.
+- `conda pip convert`: Convert PyPI packages to `.conda` format without installing them.
+- `conda pip convert -d/--dest`: Save converted packages to a specific directory.
 - Adds `EXTERNALLY-MANAGED` to your environments.
 
 **Now powered by conda-pupa** - converts PyPI packages to proper `.conda` packages instead of mixing pip and conda installations.

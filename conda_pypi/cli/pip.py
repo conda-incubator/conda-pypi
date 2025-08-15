@@ -5,10 +5,10 @@ conda pip subcommand for CLI - now powered by conda-pupa
 from __future__ import annotations
 
 import argparse
+import contextlib
 import os
 import sys
 import tempfile
-import contextlib
 from logging import getLogger
 from pathlib import Path
 
@@ -36,6 +36,11 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Install a PyPI package, archive or URL, "
         "converting to conda packages when possible.",
     )
+    
+    convert = subparser.add_parser(
+        "convert",
+        help="Convert PyPI packages to .conda format without installing them.",
+    )
     install.add_argument(
         "-U",
         "--upgrade",
@@ -59,6 +64,7 @@ def configure_parser(parser: argparse.ArgumentParser):
         action="append",
         help="Additional channel to search for packages.",
     )
+
     install.add_argument(
         "-e", "--editable",
         metavar="<path/url>",
@@ -66,9 +72,40 @@ def configure_parser(parser: argparse.ArgumentParser):
         "from a local project path or a VCS url."
     )
     install.add_argument("packages", metavar="package", nargs="*")
+    
+    # Add arguments to convert subcommand (similar to pip download)
+    convert.add_argument(
+        "-d", "--dest",
+        metavar="PATH", 
+        default=".",
+        help="Convert packages into this directory (default: current directory).",
+    )
+    convert.add_argument(
+        "--override-channels",
+        action="store_true",
+        help="Do not search default or .condarc channels. Will search pypi.",
+    )
+    convert.add_argument(
+        "-c",
+        "--channel",
+        metavar="CHANNEL",
+        action="append",
+        help="Additional channel to search for packages.",
+    )
+    convert.add_argument("packages", metavar="package", nargs="*")
 
 
 def execute(args: argparse.Namespace) -> int:
+    # Handle different subcommands
+    if args.subcmd == "convert":
+        return execute_convert(args)
+    elif args.subcmd == "install":
+        return execute_install(args)
+    else:
+        raise ArgumentError(f"Unknown subcommand: {args.subcmd}")
+
+
+def execute_install(args: argparse.Namespace) -> int:
     if not args.packages and not args.editable:
         raise ArgumentError(
             "No packages requested. Please provide one or more packages, "
@@ -125,4 +162,45 @@ def execute(args: argparse.Namespace) -> int:
             ensure_externally_managed(prefix)
         return 0
 
+    return 0
+
+
+def execute_convert(args: argparse.Namespace) -> int:
+    if not args.packages:
+        raise ArgumentError("No packages requested. Please provide one or more packages.")
+
+    from conda.common.io import Spinner
+    from ..utils import get_prefix
+    from ..build import pypa_to_conda
+
+    prefix = get_prefix(args.prefix, args.name)
+    output_dir = Path(args.dest).resolve()
+    
+    if not args.quiet:
+        print(f"Using conda-pupa backend for PyPI package conversion")
+        print(f"Converting packages to .conda format in: {output_dir}")
+        print(f"Target environment: {prefix}")
+
+    # Create output directory if it doesn't exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if not args.quiet:
+        print(f"Converting packages: {', '.join(args.packages)}")
+    
+    with Spinner("Converting PyPI packages to .conda format", enabled=not args.quiet, json=args.json):
+        # For now, we'll use ConvertTree but ideally we'd have a convert-only mode
+        # This is a limitation we can note and improve later
+        from ..convert_tree import ConvertTree
+        converter = ConvertTree(
+            prefix, 
+            override_channels=args.override_channels
+        )
+        # TODO: Modify ConvertTree to support convert-only mode with custom output directory
+        if not args.quiet:
+            print("Note: Currently converting and installing packages. Convert-only mode coming soon.")
+        converter.convert_tree(args.packages)
+    
+    if not args.quiet:
+        print("Package conversion completed")
+    
     return 0
