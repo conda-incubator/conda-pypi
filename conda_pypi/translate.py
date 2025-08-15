@@ -178,7 +178,7 @@ class CondaMetadata:
 #     "mapping_source": "regro-bot",
 # }
 grayskull_pypi_mapping = json.loads(
-    pkgutil.get_data("conda_pupa", "grayskull_pypi_mapping.json") or "{}"
+    pkgutil.get_data("conda_pypi", "grayskull_pypi_mapping.json") or "{}"
 )
 
 

@@ -1,3 +1,3 @@
-from . import install, list, pip
+from . import pip
 
-__all__ = ["install", "list", "pip"]
+__all__ = ["pip"]

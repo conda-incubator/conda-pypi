@@ -9,9 +9,9 @@ from pathlib import Path
 import click
 import conda.base.context
 
-import conda_pupa.build
-import conda_pupa.convert_tree
-import conda_pupa.installer
+from conda_pypi.build import pypa_to_conda
+from conda_pypi.convert_tree import ConvertTree
+from conda_pypi.installer import install_ephemeral_conda
 
 
 @click.command(
@@ -92,25 +92,25 @@ def cli(
         else:
             output_path_manager = tempfile.TemporaryDirectory("pupa")
         with output_path_manager as output_path:
-            package = conda_pupa.build.pypa_to_conda(
+            package = pypa_to_conda(
                 editable,
                 distribution="editable",
                 output_path=Path(output_path),
                 prefix=prefix,
             )
             if not output_folder:
-                conda_pupa.installer.install_ephemeral_conda(prefix, package)
+                install_ephemeral_conda(prefix, package)
 
     elif build:
         print(
             "Conda package at ",
-            conda_pupa.build.pypa_to_conda(
+            pypa_to_conda(
                 build, distribution="wheel", output_path=output_folder, prefix=prefix
             ),
         )
 
     else:
-        converter = conda_pupa.convert_tree.ConvertTree(
+        converter = ConvertTree(
             prefix, override_channels=override_channels
         )
         converter.convert_tree(package_spec)
