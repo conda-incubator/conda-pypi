@@ -1,8 +1,0 @@
-[build-system]
-# sphinxcontrib has no deps and is unlikely to exist in parent environment
-requires = ["flit_core", "sphinxcontrib"]
-
-[project]
-name = "has_dep"
-version = "1"
-description = "has dependency unlikely to exist in test environment"
