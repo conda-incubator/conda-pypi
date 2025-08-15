@@ -25,8 +25,6 @@ requires-python = ">=3.8"
 dependencies = [
   "build",                          # conda name is python-build
   "conda-index",
-  "conda-libmamba-solver >=24.9",
-  "conda-package-streaming >=0.11",
   "installer >=0.7",                # conda name is python-installer
   "packaging >=24",
   "unearth >=0.17.2",               # download packages from pypi
@@ -50,6 +48,8 @@ python = ">=3.8"
 conda = ">=23.9"
 pip = "*"
 grayskull = "*"
+conda-libmamba-solver = ">=24.9"
+conda-package-streaming = ">=0.11"
 
 [tool.pixi.tasks]
 dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
