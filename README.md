@@ -31,6 +31,10 @@ by converting PyPI packages to proper `.conda` packages before installation.
 
 Refer to the [documentation](docs/) for more details.
 
+## Attribution
+
+This project now incorporates [conda-pupa](https://github.com/dholth/conda-pupa) by Daniel Holth, which provides the core PyPI-to-conda conversion functionality.
+
 ## Contributing
 
 Please refer to [`CONTRIBUTING.md`](/CONTRIBUTING.md).

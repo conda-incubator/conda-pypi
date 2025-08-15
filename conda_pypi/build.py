@@ -2,6 +2,9 @@
 Create .conda packages from wheels.
 
 Create wheels from pypa projects.
+
+Originally from conda-pupa by Daniel Holth <dholth@gmail.com>
+https://github.com/dholth/conda-pupa
 """
 
 import base64
