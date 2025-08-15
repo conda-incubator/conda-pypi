@@ -2,10 +2,13 @@
 # Copyright (C) 2014 Anaconda, Inc
 # SPDX-License-Identifier: BSD-3-Clause
 
+from __future__ import annotations
+
 import hashlib
 from enum import Enum
 from os import DirEntry
 from os.path import isfile, islink
+from typing import Optional
 
 
 class PathType(Enum):
@@ -34,7 +37,7 @@ class PathType(Enum):
         return self.name
 
 
-def sha256_checksum(filename, entry: DirEntry | None = None, buffersize=1 << 18):
+def sha256_checksum(filename, entry: Optional[DirEntry] = None, buffersize=1 << 18):
     if not entry:
         is_link = islink(filename)
         is_file = isfile(filename)

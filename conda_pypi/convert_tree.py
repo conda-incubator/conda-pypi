@@ -2,12 +2,14 @@
 Convert a dependency tree from pypi into .conda packages
 """
 
+from __future__ import annotations
+
 import logging
 import pathlib
 import re
 import tempfile
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional, Union
 
 import conda.exceptions
 import platformdirs
@@ -74,10 +76,10 @@ class ReloadingLibMambaSolver(LibMambaSolver):
 class ConvertTree:
     def __init__(
         self,
-        prefix: pathlib.Path | str | None,
+        prefix: Optional[Union[pathlib.Path, str]],
         override_channels=False,
-        repo: pathlib.Path | None = None,
-        finder: PackageFinder | None = None,  # to change index_urls e.g.
+        repo: Optional[pathlib.Path] = None,
+        finder: Optional[PackageFinder] = None,  # to change index_urls e.g.
     ):
         # platformdirs location has a space in it; ok?
         # will be expanded to %20 in "as uri" output, conda understands that.

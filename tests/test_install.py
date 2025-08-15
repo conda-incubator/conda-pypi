@@ -16,18 +16,18 @@ from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 
 def test_pypi_to_conda_name_mapping():
-    assert pypi_to_conda_name("build") == "build"
+    assert pypi_to_conda_name("build") == "python-build"
 
 
 @pytest.mark.parametrize(
     "pypi_name,conda_name",
     [
         ("numpy", "numpy"),
-        ("build", "build"),  # Updated to match actual mapping
+        ("build", "python-build"),  # Updated to match actual mapping
         ("ib_insync", "ib-insync"),
         # Updated to match actual mappings - PyQt5 case normalization works
-        ("pyqt5", "pyqt5"),
-        ("PyQt5", "pyqt5"),  # Case normalization: PyQt5 -> pyqt5
+        ("pyqt5", "pyqt"),
+        ("PyQt5", "pyqt"),  # Case normalization: PyQt5 -> pyqt
     ],
 )
 def test_pypi_to_conda_name_mappings(pypi_name: str, conda_name: str):

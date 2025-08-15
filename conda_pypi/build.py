@@ -7,6 +7,8 @@ Originally from conda-pupa by Daniel Holth <dholth@gmail.com>
 https://github.com/dholth/conda-pupa
 """
 
+from __future__ import annotations
+
 import base64
 import csv
 import hashlib
@@ -17,6 +19,7 @@ import sys
 import tempfile
 from importlib.metadata import PathDistribution
 from pathlib import Path
+from typing import Optional
 
 from conda_package_streaming.create import conda_builder
 
@@ -134,7 +137,7 @@ def build_conda(
     build_path: Path,
     output_path: Path,
     python_executable,
-    project_path: Path | None = None,
+    project_path: Optional[Path] = None,
     is_editable=False,
 ):
     if not build_path.exists():
@@ -212,7 +215,7 @@ def pypa_to_conda(
     project,
     prefix: Path,
     distribution="editable",
-    output_path: Path | None = None,
+    output_path: Optional[Path] = None,
 ):
     project = Path(project)
 

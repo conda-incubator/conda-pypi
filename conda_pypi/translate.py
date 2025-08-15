@@ -2,15 +2,25 @@
 Convert Python `*.dist-info/METADATA` to conda `info/index.json`
 """
 
+from __future__ import annotations
+
 import dataclasses
 import json
 import logging
 import pkgutil
 import sys
 import time
-from importlib.metadata import Distribution, PackageMetadata, PathDistribution
+from importlib.metadata import Distribution, PathDistribution
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING, Optional, Union, List, Dict
+
+if TYPE_CHECKING:
+    try:
+        from importlib.metadata import PackageMetadata
+    except ImportError:
+        # Python < 3.10 doesn't have PackageMetadata as a separate class
+        # In those versions, Distribution.metadata is an email.message.Message
+        from email.message import Message as PackageMetadata
 
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import InvalidRequirement, Requirement
@@ -28,7 +38,7 @@ class FileDistribution(Distribution):
     def __init__(self, raw_text):
         self.raw_text = raw_text
 
-    def read_text(self, filename: str) -> str | None:
+    def read_text(self, filename: str) -> Optional[str]:
         if filename == "METADATA":
             return self.raw_text
         else:
@@ -48,8 +58,8 @@ class PackageRecord:
     name: str
     version: str
     subdir: str
-    depends: list[str]
-    extras: dict[str, list[str]]
+    depends: List[str]
+    extras: Dict[str, List[str]]
     build_number: int = 0
     build_text: str = "pupa"  # e.g. hash
     license_family: str = ""
@@ -84,11 +94,11 @@ class PackageRecord:
 @dataclasses.dataclass
 class CondaMetadata:
     metadata: PackageMetadata
-    console_scripts: list[str]
+    console_scripts: List[str]
     package_record: PackageRecord
-    about: dict[str, Any]
+    about: Dict[str, Any]
 
-    def link_json(self) -> dict | None:
+    def link_json(self) -> Optional[Dict]:
         """
         info/link.json used for console scripts; None if empty.
 
@@ -182,10 +192,10 @@ grayskull_pypi_mapping = json.loads(
 )
 
 
-def requires_to_conda(requires: list[str] | None):
+def requires_to_conda(requires: Optional[List[str]]):
     from collections import defaultdict
 
-    extras: dict[str, list[str]] = defaultdict(list)
+    extras: Dict[str, List[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
         # requirement.marker.evaluate
