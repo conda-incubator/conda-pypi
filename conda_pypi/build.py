@@ -72,9 +72,7 @@ def _paths(base, path, filter=lambda x: x.name != ".git"):
                 st_size = 0  # symlink to nowhere
             yield {
                 "_path": relative_path,
-                "path_type": str(
-                    PathType.softlink if entry.is_symlink() else PathType.hardlink
-                ),
+                "path_type": str(PathType.softlink if entry.is_symlink() else PathType.hardlink),
                 "sha256": sha256_checksum(entry.path, entry),
                 "size_in_bytes": st_size,
             }
@@ -111,9 +109,7 @@ def build_pypa(
     build_system_requires = builder.build_system_requires
     for _retry in range(2):
         try:
-            missing = dependencies.check_dependencies(
-                build_system_requires, prefix=prefix
-            )
+            missing = dependencies.check_dependencies(build_system_requires, prefix=prefix)
             break
         except dependencies.MissingDependencyError as e:
             dependencies.ensure_requirements(e.dependencies, prefix=prefix)

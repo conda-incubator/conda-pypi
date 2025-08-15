@@ -4,7 +4,6 @@ Generate repodata.json converted from wheel metadata.
 
 from __future__ import annotations
 
-import hashlib
 import os
 
 import packaging.tags
@@ -79,26 +78,15 @@ def extract_version_of_project(
                 requires_python = f"python { python_version }"
             depends = [requires_python] + requirements
 
-            # provenance = pypi.get_provenance(package)
-            pkg_sha256 = package.digests.get("sha256")
             build = package.filename.split("-", 2)[-1].removesuffix(".whl")
             size = 0
-            md5 = ""
-            if download:
-                pkg_path = os.path.join(download_dir, package.filename)
-                pypi_simple().download_package(package, path=pkg_path)
-                size = os.path.getsize(pkg_path)
-                with open(pkg_path, "rb") as f:
-                    md5 = hashlib.md5(f.read()).hexdigest()
 
             return (
                 package.filename,
                 Package(
                     name=canonicalize_name(package.project),
                     version=package.version,
-                    # sha256=pkg_sha256,
                     size=size,
-                    # md5=md5,
                     depends=depends,
                     build=build,
                     subdir="noarch",

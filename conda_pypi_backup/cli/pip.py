@@ -58,10 +58,11 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Where to look for conda dependencies.",
     )
     install.add_argument(
-        "-e", "--editable",
+        "-e",
+        "--editable",
         metavar="<path/url>",
         help="Install a project in editable mode (i.e. setuptools 'develop mode') "
-        "from a local project path or a VCS url."
+        "from a local project path or a VCS url.",
     )
     install.add_argument(
         "--backend",

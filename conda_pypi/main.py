@@ -42,7 +42,7 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
             packages_to_process.append(pkg)
         else:
             logger.warning("package %s is already installed; ignoring", pkg)
-    
+
     return packages_to_process
 
 

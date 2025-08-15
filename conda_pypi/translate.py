@@ -12,7 +12,7 @@ import sys
 import time
 from importlib.metadata import Distribution, PathDistribution
 from pathlib import Path
-from typing import Any, TYPE_CHECKING, Optional, Union, List, Dict
+from typing import Any, TYPE_CHECKING, Optional, List, Dict
 
 if TYPE_CHECKING:
     try:

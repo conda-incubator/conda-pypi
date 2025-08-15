@@ -5,21 +5,17 @@ conda pip subcommand for CLI - now powered by conda-pupa
 from __future__ import annotations
 
 import argparse
-import contextlib
 import os
-import sys
 import tempfile
 from logging import getLogger
 from pathlib import Path
 
-from conda.cli.common import confirm_yn
 from conda.cli.conda_argparse import (
     add_output_and_prompt_options,
     add_parser_help,
     add_parser_prefix,
 )
 from conda.exceptions import ArgumentError
-import conda.base.context
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -36,7 +32,7 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Install a PyPI package, archive or URL, "
         "converting to conda packages when possible.",
     )
-    
+
     convert = subparser.add_parser(
         "convert",
         help="Convert PyPI packages to .conda format without installing them.",
@@ -66,17 +62,19 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
 
     install.add_argument(
-        "-e", "--editable",
+        "-e",
+        "--editable",
         metavar="<path/url>",
         help="Install a project in editable mode (i.e. setuptools 'develop mode') "
-        "from a local project path or a VCS url."
+        "from a local project path or a VCS url.",
     )
     install.add_argument("packages", metavar="package", nargs="*")
-    
+
     # Add arguments to convert subcommand (similar to pip download)
     convert.add_argument(
-        "-d", "--dest",
-        metavar="PATH", 
+        "-d",
+        "--dest",
+        metavar="PATH",
         default=".",
         help="Convert packages into this directory (default: current directory).",
     )
@@ -120,16 +118,16 @@ def execute_install(args: argparse.Namespace) -> int:
     from ..installer import install_ephemeral_conda
 
     prefix = get_prefix(args.prefix, args.name)
-    
+
     if not args.quiet:
-        print(f"Using conda-pupa backend for PyPI package conversion")
+        print("Using conda-pupa backend for PyPI package conversion")
         print(f"Target environment: {prefix}")
 
     # Handle editable installs
     if args.editable:
         if not args.quiet:
             print(f"Installing editable package: {args.editable}")
-        
+
         with tempfile.TemporaryDirectory("pupa") as output_path:
             package = pypa_to_conda(
                 args.editable,
@@ -138,7 +136,7 @@ def execute_install(args: argparse.Namespace) -> int:
                 prefix=prefix,
             )
             install_ephemeral_conda(prefix, package)
-        
+
         if os.environ.get("CONDA_BUILD_STATE") != "BUILD":
             ensure_externally_managed(prefix)
         return 0
@@ -147,17 +145,16 @@ def execute_install(args: argparse.Namespace) -> int:
     if args.packages:
         if not args.quiet:
             print(f"Converting and installing packages: {', '.join(args.packages)}")
-        
-        with Spinner("Converting PyPI packages to conda format", enabled=not args.quiet, json=args.json):
-            converter = ConvertTree(
-                prefix, 
-                override_channels=args.override_channels
-            )
+
+        with Spinner(
+            "Converting PyPI packages to conda format", enabled=not args.quiet, json=args.json
+        ):
+            converter = ConvertTree(prefix, override_channels=args.override_channels)
             converter.convert_tree(args.packages)
-        
+
         if not args.quiet:
             print("Package conversion and installation completed")
-        
+
         if os.environ.get("CONDA_BUILD_STATE") != "BUILD":
             ensure_externally_managed(prefix)
         return 0
@@ -171,13 +168,12 @@ def execute_convert(args: argparse.Namespace) -> int:
 
     from conda.common.io import Spinner
     from ..utils import get_prefix
-    from ..build import pypa_to_conda
 
     prefix = get_prefix(args.prefix, args.name)
     output_dir = Path(args.dest).resolve()
-    
+
     if not args.quiet:
-        print(f"Using conda-pupa backend for PyPI package conversion")
+        print("Using conda-pupa backend for PyPI package conversion")
         print(f"Converting packages to .conda format in: {output_dir}")
         print(f"Target environment: {prefix}")
 
@@ -186,21 +182,23 @@ def execute_convert(args: argparse.Namespace) -> int:
 
     if not args.quiet:
         print(f"Converting packages: {', '.join(args.packages)}")
-    
-    with Spinner("Converting PyPI packages to .conda format", enabled=not args.quiet, json=args.json):
+
+    with Spinner(
+        "Converting PyPI packages to .conda format", enabled=not args.quiet, json=args.json
+    ):
         # For now, we'll use ConvertTree but ideally we'd have a convert-only mode
         # This is a limitation we can note and improve later
         from ..convert_tree import ConvertTree
-        converter = ConvertTree(
-            prefix, 
-            override_channels=args.override_channels
-        )
+
+        converter = ConvertTree(prefix, override_channels=args.override_channels)
         # TODO: Modify ConvertTree to support convert-only mode with custom output directory
         if not args.quiet:
-            print("Note: Currently converting and installing packages. Convert-only mode coming soon.")
+            print(
+                "Note: Currently converting and installing packages. Convert-only mode coming soon."
+            )
         converter.convert_tree(args.packages)
-    
+
     if not args.quiet:
         print("Package conversion completed")
-    
+
     return 0

@@ -11,7 +11,7 @@ from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
 from conda.testing import CondaCLIFixture, TmpEnvFixture
 
-from conda_pypi.translate import pypi_to_conda_name, grayskull_pypi_mapping
+from conda_pypi.translate import pypi_to_conda_name
 from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 

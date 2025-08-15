@@ -52,9 +52,7 @@ from conda_pypi.installer import install_ephemeral_conda
     required=False,
 )
 # keep or change conda-build's argument naming?
-@click.option(
-    "--output-folder", help="Folder to write output package(s)", required=False
-)
+@click.option("--output-folder", help="Folder to write output package(s)", required=False)
 @click.argument(
     "package_spec",
     nargs=-1,
@@ -85,9 +83,7 @@ def cli(
 
     if editable:
         if output_folder:
-            print(
-                "--output-folder specified; saving editable .conda instead of install."
-            )
+            print("--output-folder specified; saving editable .conda instead of install.")
             output_path_manager = contextlib.nullcontext(output_folder)
         else:
             output_path_manager = tempfile.TemporaryDirectory("pupa")
@@ -104,13 +100,9 @@ def cli(
     elif build:
         print(
             "Conda package at ",
-            pypa_to_conda(
-                build, distribution="wheel", output_path=output_folder, prefix=prefix
-            ),
+            pypa_to_conda(build, distribution="wheel", output_path=output_folder, prefix=prefix),
         )
 
     else:
-        converter = ConvertTree(
-            prefix, override_channels=override_channels
-        )
+        converter = ConvertTree(prefix, override_channels=override_channels)
         converter.convert_tree(package_spec)
