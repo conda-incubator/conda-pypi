@@ -289,18 +289,16 @@ def test_convert_quiet_mode(
         # Should succeed
         assert rc == 0, "Convert in quiet mode should succeed"
 
-        # Output should be minimal in quiet mode
-        # Note: Some output might still appear due to underlying tools
-        # output_text = out  # Check stdout for main output in quiet mode
-
-        # In quiet mode, we should have significantly less output than normal mode
-        # The main progress messages should be suppressed
-        # TODO: Fix the --quiet implementation to actually suppress progress messages
+        # In quiet mode, the spinner message should be suppressed
         assert (
             "Converting PyPI packages to .conda format" not in out
         ), "Quiet mode should suppress progress messages"
 
-        # But the command should still succeed (we already checked rc == 0)
+        # The output directory should still be created
+        assert output_dir.exists(), "Output directory should be created"
+
+        # The command should still work (we can verify by checking that conda output appears)
+        assert "Package Plan" in out, "Conversion process should run successfully"
 
 
 def test_convert_with_version_spec(

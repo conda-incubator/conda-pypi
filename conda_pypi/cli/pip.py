@@ -90,7 +90,7 @@ def execute_install(args: argparse.Namespace) -> int:
             "or one editable specification."
         )
 
-    from conda.common.io import Spinner
+    from conda.reporters import get_spinner
     from ..utils import get_prefix
     from ..main import ensure_externally_managed, validate_target_env
     from ..convert_tree import ConvertTree
@@ -148,9 +148,11 @@ def execute_install(args: argparse.Namespace) -> int:
         if not args.quiet:
             logger.info(f"Converting and installing packages: {', '.join(args.packages)}")
 
-        with Spinner(
-            "Converting PyPI packages to conda format", enabled=not args.quiet, json=args.json
-        ):
+        if not args.quiet:
+            with get_spinner("Converting PyPI packages to conda format"):
+                converter = ConvertTree(prefix, override_channels=args.override_channels)
+                converter.convert_tree(args.packages)
+        else:
             converter = ConvertTree(prefix, override_channels=args.override_channels)
             converter.convert_tree(args.packages)
 
@@ -168,7 +170,7 @@ def execute_convert(args: argparse.Namespace) -> int:
     if not args.packages:
         raise ArgumentError("No packages requested. Please provide one or more packages.")
 
-    from conda.common.io import Spinner
+    from conda.reporters import get_spinner
     from ..utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)
@@ -185,19 +187,17 @@ def execute_convert(args: argparse.Namespace) -> int:
     if not args.quiet:
         logger.info(f"Converting packages: {', '.join(args.packages)}")
 
-    with Spinner(
-        "Converting PyPI packages to .conda format", enabled=not args.quiet, json=args.json
-    ):
-        # For now, we'll use ConvertTree but ideally we'd have a convert-only mode
-        # This is a limitation we can note and improve later
-        from ..convert_tree import ConvertTree
+    from ..convert_tree import ConvertTree
 
-        converter = ConvertTree(prefix, override_channels=args.override_channels)
-        # TODO: Modify ConvertTree to support convert-only mode with custom output directory
-        if not args.quiet:
-            logger.info(
-                "Note: Currently converting and installing packages. Convert-only mode coming soon."
-            )
+    converter = ConvertTree(prefix, override_channels=args.override_channels)
+
+    if not args.quiet:
+        logger.info(
+            "Note: Currently converting and installing packages. Convert-only mode coming soon."
+        )
+        with get_spinner("Converting PyPI packages to .conda format"):
+            converter.convert_tree(args.packages)
+    else:
         converter.convert_tree(args.packages)
 
     if not args.quiet:
