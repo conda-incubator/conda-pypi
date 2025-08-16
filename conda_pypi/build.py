@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import subprocess
-import sys
 import tempfile
 from importlib.metadata import PathDistribution
 from pathlib import Path
@@ -443,11 +442,12 @@ def _build_conda_package(
 
         # Convert wheel to conda package
         build_path = tmp_path / "build"
+        python_executable = str(paths.get_python_executable(prefix))
         package_conda = build_conda(
             wheel_path,
             build_path,
             output_path or tmp_path,
-            sys.executable,
+            python_executable,
             project_path=project_path,
             is_editable=distribution == "editable",
         )
