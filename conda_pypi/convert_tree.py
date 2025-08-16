@@ -82,7 +82,7 @@ class ConvertTree:
     ):
         # platformdirs location has a space in it; ok?
         # will be expanded to %20 in "as uri" output, conda understands that.
-        self.repo = repo or Path(platformdirs.user_data_dir("pupa"))
+        self.repo = repo or Path(platformdirs.user_data_dir("pypi"))
         prefix = prefix or context.active_prefix
         if not prefix:
             raise ValueError("prefix is required")

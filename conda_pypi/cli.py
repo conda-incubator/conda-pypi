@@ -85,7 +85,7 @@ def cli(
             print("--output-folder specified; saving editable .conda instead of install.")
             output_path_manager = contextlib.nullcontext(output_folder)
         else:
-            output_path_manager = tempfile.TemporaryDirectory("pupa")
+            output_path_manager = tempfile.TemporaryDirectory("pypi")
         with output_path_manager as output_path:
             package = pypa_to_conda(
                 editable,

@@ -1,9 +1,9 @@
 """
-Errors specific to pupa.
+Errors specific to pypi.
 """
 
 from conda.exceptions import CondaError
 
 
-class PupaError(CondaError):
+class PypiError(CondaError):
     pass

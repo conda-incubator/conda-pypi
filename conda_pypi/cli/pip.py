@@ -1,5 +1,5 @@
 """
-conda pip subcommand for CLI - now powered by conda-pupa
+conda pip subcommand for CLI - now powered by conda-pypi
 """
 
 from __future__ import annotations
@@ -126,7 +126,7 @@ def execute_install(args: argparse.Namespace) -> int:
     prefix = get_prefix(args.prefix, args.name)
 
     if not args.quiet:
-        print("Using conda-pupa backend for PyPI package conversion")
+        print("Using conda-pypi backend for PyPI package conversion")
         print(f"Target environment: {prefix}")
 
     # Handle editable installs
@@ -134,7 +134,7 @@ def execute_install(args: argparse.Namespace) -> int:
         if not args.quiet:
             print(f"Installing editable package: {args.editable}")
 
-        with tempfile.TemporaryDirectory("pupa") as output_path:
+        with tempfile.TemporaryDirectory("pypi") as output_path:
             package = pypa_to_conda(
                 args.editable,
                 distribution="editable",
@@ -201,7 +201,7 @@ def execute_convert(args: argparse.Namespace) -> int:
     output_dir = Path(args.dest).resolve()
 
     if not args.quiet:
-        print("Using conda-pupa backend for PyPI package conversion")
+        print("Using conda-pypi backend for PyPI package conversion")
         print(f"Converting packages to .conda format in: {output_dir}")
         print(f"Target environment: {prefix}")
 

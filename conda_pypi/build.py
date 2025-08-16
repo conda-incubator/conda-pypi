@@ -5,6 +5,7 @@ Create wheels from pypa projects.
 
 Originally from conda-pupa by Daniel Holth <dholth@gmail.com>
 https://github.com/dholth/conda-pupa
+Now integrated into conda-pypi
 """
 
 from __future__ import annotations
