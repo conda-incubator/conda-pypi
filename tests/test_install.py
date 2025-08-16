@@ -87,8 +87,8 @@ def test_spec_normalization(
             print(err, file=sys.stderr)
             assert rc == 0
             assert (
-                "All packages are already installed." in out + err
-                or "is already installed; ignoring" in out + err
+                "All packages are already installed." in out
+                or "is already installed; ignoring" in out
             )
 
 
@@ -347,7 +347,7 @@ def test_install_nonexistent_package(
         print(out)
         print(err, file=sys.stderr)
 
-        error_text = (out + err).lower()
+        error_text = err.lower()  # Error messages typically go to stderr
         assert any(
             phrase in error_text
             for phrase in [
@@ -412,18 +412,12 @@ def test_dry_run_functionality(
         assert rc == 0, "Dry-run should succeed"
 
         # Should indicate what would be installed
-        assert "Would install packages: requests" in (
-            out + err
-        ), "Should show what would be installed"
+        assert "Would install packages: requests" in out, "Should show what would be installed"
 
         # Should NOT contain installation messages
-        assert "Installing collected packages" not in (
-            out + err
-        ), "Should not actually install packages"
-        assert "Executing transaction: done" not in (out + err), "Should not execute transaction"
-        assert "Successfully installed" not in (
-            out + err
-        ), "Should not show successful installation"
+        assert "Installing collected packages" not in out, "Should not actually install packages"
+        assert "Executing transaction: done" not in out, "Should not execute transaction"
+        assert "Successfully installed" not in out, "Should not show successful installation"
 
         # Verify the package is NOT actually installed
         PrefixData._cache_.clear()
@@ -456,17 +450,15 @@ def test_dry_run_with_already_installed_package(
         assert rc == 0, "Dry-run should succeed"
 
         # Should indicate all packages are already installed
-        assert "All packages are already installed." in (
-            out + err
+        assert (
+            "All packages are already installed." in out
         ), "Should show packages are already installed"
 
         # Should NOT contain installation messages
-        assert "Installing collected packages" not in (
-            out + err
-        ), "Should not actually install packages"
-        assert "Executing transaction: done" not in (out + err), "Should not execute transaction"
-        assert "Would install packages" not in (
-            out + err
+        assert "Installing collected packages" not in out, "Should not actually install packages"
+        assert "Executing transaction: done" not in out, "Should not execute transaction"
+        assert (
+            "Would install packages" not in out
         ), "Should not show would install for already installed packages"
 
 
@@ -495,20 +487,18 @@ def test_dry_run_with_mixed_packages(
         assert rc == 0, "Dry-run should succeed"
 
         # Should indicate what would be installed (only the new package)
-        assert "Would install packages: requests" in (
-            out + err
+        assert (
+            "Would install packages: requests" in out
         ), "Should show only new packages would be installed"
 
         # Should warn about already installed package
-        assert "packaging is already installed; ignoring" in (
-            out + err
+        assert (
+            "packaging is already installed; ignoring" in out
         ), "Should warn about already installed package"
 
         # Should NOT contain installation messages
-        assert "Installing collected packages" not in (
-            out + err
-        ), "Should not actually install packages"
-        assert "Executing transaction: done" not in (out + err), "Should not execute transaction"
+        assert "Installing collected packages" not in out, "Should not actually install packages"
+        assert "Executing transaction: done" not in out, "Should not execute transaction"
 
         # Verify requests is NOT actually installed
         PrefixData._cache_.clear()

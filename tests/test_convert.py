@@ -34,10 +34,10 @@ def test_convert_basic_package(
         assert rc == 0, "Convert command should succeed"
 
         # Should contain conversion messages
-        assert "Converting PyPI packages to .conda format" in (
-            out + err
+        assert (
+            "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
-        assert "packaging" in (out + err), "Should mention the package being converted"
+        assert "packaging" in out, "Should mention the package being converted"
 
         # Output directory should be created
         assert output_dir.exists(), "Output directory should be created"
@@ -69,9 +69,9 @@ def test_convert_with_dest_option(
         # Should succeed
         assert rc == 0, "Convert with custom destination should succeed"
 
-        # Should contain conversion messages (destination might not be explicitly mentioned due to current implementation)
-        assert "Converting PyPI packages to .conda format" in (
-            out + err
+        # Should contain conversion messages
+        assert (
+            "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
 
         # Custom destination should be created
@@ -106,10 +106,10 @@ def test_convert_override_channels(
         assert rc == 0, "Convert with override channels should succeed"
 
         # Should contain conversion messages
-        assert "Converting PyPI packages to .conda format" in (
-            out + err
+        assert (
+            "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
-        assert "six" in (out + err), "Should mention the package being converted"
+        assert "six" in out, "Should mention the package being converted"
 
 
 def test_convert_multiple_packages(
@@ -140,12 +140,12 @@ def test_convert_multiple_packages(
         assert rc == 0, "Convert multiple packages should succeed"
 
         # Should mention both packages
-        assert "packaging" in (out + err), "Should mention first package"
-        assert "wheel" in (out + err), "Should mention second package"
+        assert "packaging" in out, "Should mention first package"
+        assert "wheel" in out, "Should mention second package"
 
         # Should show conversion progress
-        assert "Converting PyPI packages to .conda format" in (
-            out + err
+        assert (
+            "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
 
 
@@ -197,7 +197,7 @@ def test_convert_nonexistent_package(
 
         # The command might succeed but with warnings, or it might fail
         # Either way, there should be some indication of the issue
-        error_text = (out + err).lower()
+        error_text = err.lower()  # Error messages typically go to stderr
 
         # Check for various error indicators
         has_error_indication = any(
@@ -253,10 +253,10 @@ def test_convert_default_destination(
             assert rc == 0, "Convert with default destination should succeed"
 
             # Should contain conversion messages
-            assert "Converting PyPI packages to .conda format" in (
-                out + err
+            assert (
+                "Converting PyPI packages to .conda format" in out
             ), "Should show conversion progress"
-            assert "setuptools" in (out + err), "Should mention the package being converted"
+            assert "setuptools" in out, "Should mention the package being converted"
 
         finally:
             os.chdir(original_cwd)
@@ -291,11 +291,16 @@ def test_convert_quiet_mode(
 
         # Output should be minimal in quiet mode
         # Note: Some output might still appear due to underlying tools
-        output_text = out + err
+        # output_text = out  # Check stdout for main output in quiet mode
 
-        # Should still work but with less verbose output
-        # The exact behavior depends on implementation details
-        assert len(output_text.strip()) >= 0, "Quiet mode should produce minimal output"
+        # In quiet mode, we should have significantly less output than normal mode
+        # The main progress messages should be suppressed
+        # TODO: Fix the --quiet implementation to actually suppress progress messages
+        assert (
+            "Converting PyPI packages to .conda format" not in out
+        ), "Quiet mode should suppress progress messages"
+
+        # But the command should still succeed (we already checked rc == 0)
 
 
 def test_convert_with_version_spec(
@@ -325,10 +330,10 @@ def test_convert_with_version_spec(
         assert rc == 0, "Convert with version spec should succeed"
 
         # Should contain conversion messages
-        assert "Converting PyPI packages to .conda format" in (
-            out + err
+        assert (
+            "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
-        assert "packaging" in (out + err), "Should mention the package being converted"
+        assert "packaging" in out, "Should mention the package being converted"
 
         # Output directory should be created
         assert output_dir.exists(), "Output directory should be created"
