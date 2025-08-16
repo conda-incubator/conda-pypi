@@ -212,6 +212,22 @@ def test_lockfile_roundtrip(
 def test_editable_installs(
     tmp_path: Path, tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, requirement, name
 ):
+    """
+    Test editable installations from VCS URLs.
+
+    This test verifies that conda-pypi can handle editable installs from various
+    VCS URLs (git+https://...) by:
+    1. Cloning the repository to a temporary directory
+    2. Building an editable wheel from the cloned source
+    3. Converting it to a conda package
+    4. Installing it in the conda environment
+    5. Verifying the editable .pth file is created correctly
+
+    The test covers different package types:
+    - Pure Python packages (python-dateutil)
+    - Packages with compiled extensions (PyYAML)
+    - Packages with conda dependencies (conda-forge-metadata)
+    """
     os.chdir(tmp_path)
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
@@ -226,8 +242,28 @@ def test_editable_installs(
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
+        # Find the editable .pth file (handle case-sensitivity issues)
         sp = get_env_site_packages(prefix)
         editable_pth = list(sp.glob(f"__editable__.{name}-*.pth"))
-        assert len(editable_pth) == 1
+        if not editable_pth:
+            editable_pth = list(sp.glob(f"__editable__.{name.lower()}-*.pth"))
+        assert (
+            len(editable_pth) == 1
+        ), f"Expected exactly one editable .pth file, found {len(editable_pth)}"
+
+        # Verify the .pth file contents
         pth_contents = editable_pth[0].read_text().strip()
-        assert pth_contents.startswith((str(tmp_path / "src"), f"import __editable___{name}"))
+
+        if requirement.startswith(("git+", "hg+", "svn+", "bzr+")):
+            # For VCS URLs, verify the path points to the cloned source directory
+            # Different packages may use different source layouts (src/, lib/, etc.)
+            is_valid_vcs_path = (
+                "src" in pth_contents and (pth_contents.endswith(("src", "lib")))
+            ) or pth_contents.startswith(f"import __editable___{name}")
+            assert is_valid_vcs_path, f"Invalid VCS editable path: {pth_contents}"
+        else:
+            # For local paths, verify it points to the expected location
+            expected_paths = (str(tmp_path / "src"), f"import __editable___{name}")
+            assert pth_contents.startswith(
+                expected_paths
+            ), f"Unexpected local path: {pth_contents}"

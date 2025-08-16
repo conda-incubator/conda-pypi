@@ -17,6 +17,7 @@ import itertools
 import json
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 from importlib.metadata import PathDistribution
@@ -214,35 +215,240 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
         writer.writerows(record_rows)
 
 
+def _is_vcs_url(url_str: str) -> bool:
+    """
+    Check if a string is a VCS URL.
+
+    Args:
+        url_str: String to check for VCS URL format
+
+    Returns:
+        True if the string is a VCS URL (git+, hg+, svn+, bzr+), False otherwise
+
+    Examples:
+        >>> _is_vcs_url("git+https://github.com/user/repo.git")
+        True
+        >>> _is_vcs_url("/path/to/local/dir")
+        False
+    """
+    vcs_schemes = ("git+", "hg+", "svn+", "bzr+")
+    return url_str.startswith(vcs_schemes)
+
+
+def _parse_vcs_url(vcs_url: str) -> tuple[str, str, str | None]:
+    """
+    Parse a VCS URL to extract the VCS type, repository URL, and revision.
+
+    Args:
+        vcs_url: VCS URL like 'git+https://github.com/user/repo.git@tag#egg=name'
+
+    Returns:
+        Tuple of (vcs_type, repo_url, revision). revision is None if not specified.
+
+    Raises:
+        ValueError: If the VCS URL format is not supported
+
+    Examples:
+        >>> _parse_vcs_url("git+https://github.com/user/repo.git@v1.0#egg=pkg")
+        ('git', 'https://github.com/user/repo.git', 'v1.0')
+        >>> _parse_vcs_url("git+https://github.com/user/repo.git")
+        ('git', 'https://github.com/user/repo.git', None)
+    """
+    # Remove the egg fragment if present
+    if "#egg=" in vcs_url:
+        vcs_url = vcs_url.split("#egg=")[0]
+
+    # Map VCS prefixes to types and their lengths
+    vcs_mapping = {
+        "git+": ("git", 4),
+        "hg+": ("hg", 3),
+        "svn+": ("svn", 4),
+        "bzr+": ("bzr", 4),
+    }
+
+    # Find matching VCS type
+    vcs_type = None
+    repo_part = None
+    for prefix, (vcs_name, prefix_len) in vcs_mapping.items():
+        if vcs_url.startswith(prefix):
+            vcs_type = vcs_name
+            repo_part = vcs_url[prefix_len:]
+            break
+
+    if vcs_type is None:
+        raise ValueError(f"Unsupported VCS URL format: {vcs_url}")
+
+    # Extract revision if present (after @)
+    if "@" in repo_part:
+        repo_url, revision = repo_part.rsplit("@", 1)
+    else:
+        repo_url = repo_part
+        revision = None
+
+    return vcs_type, repo_url, revision
+
+
+def _clone_vcs_url(vcs_url: str, target_dir: Path) -> Path:
+    """
+    Clone a VCS URL to a target directory.
+
+    Args:
+        vcs_url: VCS URL like 'git+https://github.com/user/repo.git@tag#egg=name'
+        target_dir: Directory to clone into
+
+    Returns:
+        Path to the cloned repository
+
+    Raises:
+        RuntimeError: If cloning fails
+        NotImplementedError: If VCS type is not supported
+
+    Examples:
+        >>> target = Path("/tmp/clone")
+        >>> result = _clone_vcs_url("git+https://github.com/user/repo.git@v1.0", target)
+        >>> result.exists()
+        True
+    """
+    vcs_type, repo_url, revision = _parse_vcs_url(vcs_url)
+
+    # Create a subdirectory for the clone
+    clone_dir = target_dir / "src"
+    clone_dir.mkdir(parents=True, exist_ok=True)
+
+    if vcs_type == "git":
+        return _clone_git_repository(repo_url, revision, clone_dir)
+    else:
+        raise NotImplementedError(
+            f"VCS type '{vcs_type}' is not yet supported. Only 'git' is currently implemented."
+        )
+
+
+def _clone_git_repository(repo_url: str, revision: str | None, clone_dir: Path) -> Path:
+    """
+    Clone a git repository with optional revision checkout.
+
+    Args:
+        repo_url: Git repository URL
+        revision: Optional revision (branch, tag, or commit) to checkout
+        clone_dir: Directory to clone into
+
+    Returns:
+        Path to the cloned repository
+
+    Raises:
+        RuntimeError: If git operations fail
+    """
+    if revision:
+        # Try shallow clone with specific branch/tag first (more efficient)
+        cmd = ["git", "clone", "--branch", revision, "--depth", "1", repo_url, str(clone_dir)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode == 0:
+            logger.info(f"Successfully shallow cloned {repo_url}@{revision} to {clone_dir}")
+            return clone_dir
+
+        # Fallback: full clone and checkout (for commits or complex refs)
+        logger.debug(f"Shallow clone failed, falling back to full clone: {result.stderr}")
+        cmd = ["git", "clone", repo_url, str(clone_dir)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Git clone failed: {result.stderr}")
+
+        # Force checkout the specific revision
+        cmd = ["git", "checkout", "--force", revision]
+        result = subprocess.run(cmd, cwd=clone_dir, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Git checkout of '{revision}' failed: {result.stderr}")
+
+        logger.info(f"Successfully cloned {repo_url} and checked out {revision} to {clone_dir}")
+    else:
+        # Clone without specific revision (default branch)
+        cmd = ["git", "clone", repo_url, str(clone_dir)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Git clone failed: {result.stderr}")
+
+        logger.info(f"Successfully cloned {repo_url} to {clone_dir}")
+
+    return clone_dir
+
+
 def pypa_to_conda(
     project,
     prefix: Path,
     distribution="editable",
     output_path: Optional[Path] = None,
 ):
-    project = Path(project)
+    """
+    Convert a PyPA project to a conda package.
 
-    # Should this logic be moved to the caller?
+    Args:
+        project: Project path (local directory) or VCS URL (git+https://...)
+        prefix: Conda environment prefix path
+        distribution: Distribution type ("editable" or "wheel")
+        output_path: Optional output directory for the conda package
+
+    Returns:
+        Path to the created conda package
+
+    Raises:
+        RuntimeError: If VCS cloning or building fails
+        NotImplementedError: If unsupported VCS type is used
+    """
+    project_str = str(project)
+
+    # Determine if this is a VCS URL or local path
+    if _is_vcs_url(project_str):
+        return _build_from_vcs_url(project_str, prefix, distribution, output_path)
+    else:
+        return _build_from_local_path(Path(project), prefix, distribution, output_path)
+
+
+def _build_from_vcs_url(
+    vcs_url: str, prefix: Path, distribution: str, output_path: Optional[Path]
+) -> Path:
+    """Build conda package from VCS URL by cloning first."""
+    with tempfile.TemporaryDirectory(prefix="vcs_clone") as vcs_temp_dir:
+        vcs_temp_path = Path(vcs_temp_dir)
+        actual_project_path = _clone_vcs_url(vcs_url, vcs_temp_path)
+
+        return _build_conda_package(actual_project_path, prefix, distribution, output_path)
+
+
+def _build_from_local_path(
+    project_path: Path, prefix: Path, distribution: str, output_path: Optional[Path]
+) -> Path:
+    """Build conda package from local project path."""
+    return _build_conda_package(project_path, prefix, distribution, output_path)
+
+
+def _build_conda_package(
+    project_path: Path, prefix: Path, distribution: str, output_path: Optional[Path]
+) -> Path:
+    """Common logic for building conda packages from a local project path."""
+    # Set up output directory
     if not output_path:
-        output_path = project / "build"
+        output_path = project_path / "build"
         if not output_path.exists():
             output_path.mkdir()
 
     with tempfile.TemporaryDirectory(prefix="conda") as tmp_path:
         tmp_path = Path(tmp_path)
 
-        normal_wheel = build_pypa(
-            Path(project), tmp_path, prefix=prefix, distribution=distribution
-        )
+        # Build the wheel/editable package
+        wheel_path = build_pypa(project_path, tmp_path, prefix=prefix, distribution=distribution)
 
+        # Convert wheel to conda package
         build_path = tmp_path / "build"
-
         package_conda = build_conda(
-            normal_wheel,
+            wheel_path,
             build_path,
             output_path or tmp_path,
             sys.executable,
-            project_path=project,
+            project_path=project_path,
             is_editable=distribution == "editable",
         )
 

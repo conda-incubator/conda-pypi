@@ -41,7 +41,11 @@ def check_dependencies(requirements: Iterable[str], prefix: Path):
             capture_output=True,
             check=True,
         )
-        missing = json.loads(result.stdout)
+        if not result.stdout.strip():
+            # Empty output, assume no missing dependencies
+            missing = []
+        else:
+            missing = json.loads(result.stdout)
     except subprocess.CalledProcessError as e:
         if (
             "ModuleNotFound" in e.stderr

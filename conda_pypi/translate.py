@@ -164,8 +164,12 @@ class CondaMetadata:
                 if py_name in urls:
                     about[conda_name] = urls[py_name]
 
-        name = pypi_to_conda_name(distribution.name, skip_mapping=skip_name_mapping)
-        version = distribution.version
+        # Extract name and version, handling both Distribution and PathDistribution objects
+        dist_name = getattr(distribution, "name", None) or distribution.metadata["Name"]
+        dist_version = getattr(distribution, "version", None) or distribution.metadata["Version"]
+
+        name = pypi_to_conda_name(dist_name, skip_mapping=skip_name_mapping)
+        version = dist_version
 
         package_record = PackageRecord(
             build_number=0,
