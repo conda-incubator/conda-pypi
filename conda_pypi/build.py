@@ -15,6 +15,7 @@ import csv
 import hashlib
 import itertools
 import json
+import logging
 import os
 import sys
 import tempfile
@@ -29,6 +30,8 @@ from build import ProjectBuilder
 from . import dependencies, installer, paths
 from .conda_build_utils import PathType, sha256_checksum
 from .translate import CondaMetadata
+
+logger = logging.getLogger(__name__)
 
 
 def filter(tarinfo):
@@ -78,7 +81,7 @@ def _paths(base, path, filter=lambda x: x.name != ".git"):
                 "size_in_bytes": st_size,
             }
         else:
-            print("Not regular file", entry)
+            logger.debug(f"Not regular file: {entry}")
             # will Python's tarfile add pipes, device nodes to the archive?
 
 
@@ -115,16 +118,16 @@ def build_pypa(
         except dependencies.MissingDependencyError as e:
             dependencies.ensure_requirements(e.dependencies, prefix=prefix)
 
-    print("Installing requirements for build system:", missing)
+    logger.info(f"Installing requirements for build system: {missing}")
     # does flatten() work for a deeper dependency chain?
     dependencies.ensure_requirements(flatten(missing), prefix=prefix)
 
     requirements = builder.check_dependencies(distribution)
-    print(f"Additional requirements for {distribution}:", requirements)
+    logger.info(f"Additional requirements for {distribution}: {requirements}")
     dependencies.ensure_requirements(flatten(requirements), prefix=prefix)
 
     editable_file = builder.build(distribution, output_path)
-    print("The wheel is at", editable_file)
+    logger.info(f"The wheel is at {editable_file}")
 
     return editable_file
 

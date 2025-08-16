@@ -6,9 +6,12 @@ translation; but this one supports extras and the format in pyproject.toml.
 """
 
 import json
+import logging
 import sys
 
 import build
+
+logger = logging.getLogger(__name__)
 
 
 def check_dependencies(build_system_requires):
@@ -25,4 +28,4 @@ def main(argv):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    print(main(sys.argv))
+    logger.info(main(sys.argv))

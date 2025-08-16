@@ -1,9 +1,12 @@
+import logging
 import sys
 from conda import plugins
 from conda.base.context import context
 
 from . import cli
 from .main import ensure_target_env_has_externally_managed
+
+logger = logging.getLogger(__name__)
 
 
 @plugins.hookimpl
@@ -53,9 +56,12 @@ def _post_command_list_explicit(command: str):
     to_print = pypi_lines_for_explicit_lockfile(context.target_prefix, checksums=checksums)
     if to_print:
         sys.stdout.flush()
-        print(f"# The following lines were added by conda-pypi v{__version__}")
-        print("# This is an experimental feature subject to change. Do not use in production.")
-        print(*to_print, sep="\n")
+        logger.info(f"# The following lines were added by conda-pypi v{__version__}")
+        logger.info(
+            "# This is an experimental feature subject to change. Do not use in production."
+        )
+        for line in to_print:
+            logger.info(line)
 
 
 def _post_command_process_pypi_lines(command: str):
@@ -72,7 +78,7 @@ def _post_command_process_pypi_lines(command: str):
     from .cli.pip import execute_install
 
     if not context.quiet:
-        print("Preparing PyPI transaction")
+        logger.info("Preparing PyPI transaction")
 
     # Create args object similar to what execute_install expects
     args = argparse.Namespace(
@@ -92,7 +98,7 @@ def _post_command_process_pypi_lines(command: str):
         execute_install(args)
     except Exception as e:
         if not context.quiet:
-            print(f"Failed to install PyPI packages: {e}")
+            logger.error(f"Failed to install PyPI packages: {e}")
 
 
 def _pypi_lines_from_paths(paths=None):
@@ -135,6 +141,6 @@ def _pypi_lines_from_paths(paths=None):
                             lines.append(package_spec)
         except OSError as exc:
             if not context.quiet:
-                print(f"Could not process {path_str}: {exc}")
+                logger.warning(f"Could not process {path_str}: {exc}")
 
     return lines

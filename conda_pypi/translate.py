@@ -279,4 +279,4 @@ def conda_to_pypi_name(name: str):
 if __name__ == "__main__":  # pragma: no cover
     base = sys.argv[1]
     for path in Path(base).glob("*.dist-info"):
-        print(CondaMetadata.from_distribution(PathDistribution(path)))
+        log.info(CondaMetadata.from_distribution(PathDistribution(path)))

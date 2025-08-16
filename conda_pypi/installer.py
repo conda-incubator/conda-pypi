@@ -2,6 +2,7 @@
 Install a wheel / install a conda.
 """
 
+import logging
 import os
 import subprocess
 import sys
@@ -15,6 +16,8 @@ from conda.core.package_cache_data import PackageCacheData
 from installer import install
 from installer.destinations import SchemeDictionaryDestination
 from installer.sources import WheelFile
+
+logger = logging.getLogger(__name__)
 
 
 def install_installer(python_executable: str, whl: Path, build_path: Path):
@@ -48,7 +51,7 @@ def install_pip(python_executable: str, whl: Path, build_path: Path):
         whl,
     ]
     subprocess.run(command, check=True)
-    print("Installed to", build_path)
+    logger.info(f"Installed to {build_path}")
 
 
 def install_ephemeral_conda(prefix: Path, package: Path):

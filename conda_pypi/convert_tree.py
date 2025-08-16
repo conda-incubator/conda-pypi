@@ -141,10 +141,10 @@ class ConvertTree:
                     break
                 except conda.exceptions.PackagesNotFoundError as e:
                     missing_packages = set(e._kwargs["packages"])
-                    print(missing_packages)
+                    log.debug(f"Missing packages: {missing_packages}")
                 except LibMambaUnsatisfiableError as e:
                     # parse message
-                    print("Unsatisfiable", e)
+                    log.warning(f"Unsatisfiable: {e}")
                     missing_packages.update(set(parse_libmamba_error(e.message)))
 
                 for package in sorted(missing_packages - fetched_packages):
@@ -155,7 +155,7 @@ class ConvertTree:
                     if normal_wheel in converted:
                         continue
 
-                    print("Convert", normal_wheel)
+                    log.info(f"Converting {normal_wheel}")
 
                     build_path = tmp_path / normal_wheel.stem
                     build_path.mkdir()
@@ -168,27 +168,26 @@ class ConvertTree:
                             self.python_exe,
                             is_editable=False,
                         )
-                        print("Conda at", package_conda)
+                        log.info(f"Conda package created at {package_conda}")
                     except FileExistsError:
-                        print(
-                            "Tried to convert wheel that is already conda-ized",
-                            normal_wheel,
+                        log.info(
+                            f"Tried to convert wheel that is already conda-ized: {normal_wheel}"
                         )
 
                     converted.add(normal_wheel)
 
                 update_index(repo)
             else:
-                print(f"Exceeded maximum of {max_attempts} attempts")
+                log.error(f"Exceeded maximum of {max_attempts} attempts")
                 return
 
-            print("Solution", changes)
+            log.info(f"Solution: {changes}")
 
             # Install the packages using the solver's solution
             if changes:
                 from conda.cli.main import main_subshell
 
-                print(f"Installing packages from local channel: {repo.as_uri()}")
+                log.info(f"Installing packages from local channel: {repo.as_uri()}")
                 try:
                     # Install the originally requested packages from the local channel
                     # The solver has already resolved dependencies, so we install what was requested
@@ -208,9 +207,9 @@ class ConvertTree:
 
                     install_args.extend(requested)
                     main_subshell(*install_args)
-                    print("Installation completed successfully")
+                    log.info("Installation completed successfully")
                 except Exception as e:
-                    print(f"Installation failed: {e}")
+                    log.error(f"Installation failed: {e}")
                     fallback_cmd = f"conda install -c {repo.as_uri()}"
                     if not self.override_channels:
                         # Include configured channels for dependencies not in our local channel
@@ -221,6 +220,6 @@ class ConvertTree:
                     else:
                         fallback_cmd += " --override-channels"
                     fallback_cmd += f" {' '.join(requested)}"
-                    print(f"Manual installation: {fallback_cmd}")
+                    log.info(f"Manual installation: {fallback_cmd}")
             else:
-                print("No changes to install - all packages may already be satisfied")
+                log.info("No changes to install - all packages may already be satisfied")
