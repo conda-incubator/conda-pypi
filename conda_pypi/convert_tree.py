@@ -17,6 +17,7 @@ from conda.base.context import context
 from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
+from packaging.utils import canonicalize_name
 from conda_libmamba_solver.solver import (
     LibMambaIndexHelper,
     LibMambaSolver,
@@ -143,6 +144,23 @@ class ConvertTree:
                 build_path = tmp_path / normal_wheel.stem
                 build_path.mkdir()
 
+                # Check if this wheel corresponds to an explicitly requested package
+                # by comparing the wheel name with the requested package names
+                wheel_name = normal_wheel.stem.split("-")[0].lower().replace("_", "-")
+                is_explicit_request = any(
+                    canonicalize_name(
+                        pkg.split("==")[0]
+                        .split(">=")[0]
+                        .split("<=")[0]
+                        .split("~=")[0]
+                        .split("!=")[0]
+                        .split(">")[0]
+                        .split("<")[0]
+                    )
+                    == wheel_name
+                    for pkg in requested
+                )
+
                 try:
                     package_conda = build_conda(
                         normal_wheel,
@@ -150,6 +168,7 @@ class ConvertTree:
                         repo / "noarch",  # XXX could be arch
                         self.python_exe,
                         is_editable=False,
+                        skip_name_mapping=is_explicit_request,
                     )
                     log.info(f"Conda package created at {package_conda}")
                 except FileExistsError:
@@ -170,7 +189,8 @@ class ConvertTree:
 
             missing_packages = set()
             attempts = 0
-            while len(fetched_packages) < max_attempts and attempts < max_attempts:
+            changes = None
+            while attempts < max_attempts:
                 attempts += 1
                 try:
                     changes = solver.solve_for_diff()
@@ -183,8 +203,14 @@ class ConvertTree:
                     log.warning(f"Unsatisfiable: {e}")
                     missing_packages.update(set(parse_libmamba_error(e.message)))
 
+                # Check if there are any new packages to fetch
+                new_packages_to_fetch = missing_packages - fetched_packages
+                if not new_packages_to_fetch:
+                    log.debug("No new packages to fetch, breaking retry loop")
+                    break
+
                 # Fetch any missing dependencies from PyPI
-                for package in sorted(missing_packages - fetched_packages):
+                for package in sorted(new_packages_to_fetch):
                     try:
                         log.info(f"Fetching dependency {package} from PyPI")
                         find_and_fetch(self.finder, WHEEL_DIR, package)
@@ -203,6 +229,23 @@ class ConvertTree:
                     build_path = tmp_path / normal_wheel.stem
                     build_path.mkdir()
 
+                    # Check if this wheel corresponds to an explicitly requested package
+                    # by comparing the wheel name with the requested package names
+                    wheel_name = normal_wheel.stem.split("-")[0].lower().replace("_", "-")
+                    is_explicit_request = any(
+                        canonicalize_name(
+                            pkg.split("==")[0]
+                            .split(">=")[0]
+                            .split("<=")[0]
+                            .split("~=")[0]
+                            .split("!=")[0]
+                            .split(">")[0]
+                            .split("<")[0]
+                        )
+                        == wheel_name
+                        for pkg in requested
+                    )
+
                     try:
                         package_conda = build_conda(
                             normal_wheel,
@@ -210,6 +253,7 @@ class ConvertTree:
                             repo / "noarch",  # XXX could be arch
                             self.python_exe,
                             is_editable=False,
+                            skip_name_mapping=is_explicit_request,
                         )
                         log.info(f"Conda package created at {package_conda}")
                     except FileExistsError:
@@ -222,6 +266,10 @@ class ConvertTree:
                 update_index(repo)
             else:
                 log.error(f"Exceeded maximum of {max_attempts} attempts")
+                return
+
+            if changes is None:
+                log.error("No solution found - environment solving failed")
                 return
 
             log.info(f"Solution: {changes}")

@@ -139,6 +139,7 @@ def build_conda(
     python_executable,
     project_path: Optional[Path] = None,
     is_editable=False,
+    skip_name_mapping: bool = False,
 ):
     if not build_path.exists():
         build_path.mkdir()
@@ -147,7 +148,9 @@ def build_conda(
 
     site_packages = build_path / "site-packages"
     dist_info = next(site_packages.glob("*.dist-info"))
-    metadata = CondaMetadata.from_distribution(PathDistribution(dist_info))
+    metadata = CondaMetadata.from_distribution(
+        PathDistribution(dist_info), skip_name_mapping=skip_name_mapping
+    )
     record = metadata.package_record.to_index_json()
     # XXX set build string as hash of pypa metadata so that conda can re-install
     # when project gains new entry-points, dependencies?

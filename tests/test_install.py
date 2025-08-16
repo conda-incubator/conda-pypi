@@ -95,7 +95,7 @@ def test_spec_normalization(
 @pytest.mark.parametrize(
     "pypi_spec,requested_conda_spec,installed_conda_specs",
     [
-        ("PyQt5", "pyqt[version='>=5.0.0,<6.0.0.0dev0']", ("pyqt-5", "qt-main-5")),
+        ("PyQt5", "pyqt5", ("pyqt5",)),
     ],
 )
 def test_pyqt(

@@ -111,7 +111,16 @@ class CondaMetadata:
         }
 
     @classmethod
-    def from_distribution(cls, distribution: Distribution):
+    def from_distribution(cls, distribution: Distribution, skip_name_mapping: bool = False):
+        """
+        Create CondaMetadata from a Distribution.
+
+        Args:
+            distribution: The Python distribution to convert
+            skip_name_mapping: If True, skip grayskull mapping for the main package name.
+                              This is useful for explicitly requested packages that should
+                              be installed from PyPI rather than mapped to conda packages.
+        """
         metadata = distribution.metadata
 
         python_version = metadata["requires-python"]
@@ -155,7 +164,7 @@ class CondaMetadata:
                 if py_name in urls:
                     about[conda_name] = urls[py_name]
 
-        name = pypi_to_conda_name(distribution.name)
+        name = pypi_to_conda_name(distribution.name, skip_mapping=skip_name_mapping)
         version = distribution.version
 
         package_record = PackageRecord(
@@ -245,8 +254,21 @@ def conda_to_requires(matchspec: MatchSpec):
             return Requirement(best_format.replace(name, pypi_name))
 
 
-def pypi_to_conda_name(pypi_name: str):
+def pypi_to_conda_name(pypi_name: str, skip_mapping: bool = False):
+    """
+    Convert a PyPI package name to its conda equivalent.
+
+    Args:
+        pypi_name: The PyPI package name to convert
+        skip_mapping: If True, skip grayskull mapping and return the original name.
+                     This is useful for explicitly requested packages that should
+                     be installed from PyPI rather than mapped to conda packages.
+    """
     pypi_name = canonicalize_name(pypi_name)
+
+    if skip_mapping:
+        return pypi_name
+
     return grayskull_pypi_mapping.get(
         pypi_name,
         {
