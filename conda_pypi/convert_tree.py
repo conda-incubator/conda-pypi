@@ -196,8 +196,12 @@ class ConvertTree:
 
                     # Configure channels based on override_channels setting
                     if not self.override_channels:
-                        # Include conda-forge for dependencies not in our local channel
-                        install_args.extend(["-c", "conda-forge"])
+                        # Include configured channels for dependencies not in our local channel
+                        # Skip the first channel (local_channel) and add the rest
+                        for channel in channels[1:]:
+                            # Handle both Channel objects and strings
+                            channel_name = getattr(channel, "canonical_name", str(channel))
+                            install_args.extend(["-c", channel_name])
                     else:
                         # Only use our local channel
                         install_args.append("--override-channels")
@@ -207,9 +211,16 @@ class ConvertTree:
                     print("Installation completed successfully")
                 except Exception as e:
                     print(f"Installation failed: {e}")
-                    fallback_cmd = f"conda install -c {repo.as_uri()} {' '.join(requested)}"
-                    if self.override_channels:
+                    fallback_cmd = f"conda install -c {repo.as_uri()}"
+                    if not self.override_channels:
+                        # Include configured channels for dependencies not in our local channel
+                        for channel in channels[1:]:
+                            # Handle both Channel objects and strings
+                            channel_name = getattr(channel, "canonical_name", str(channel))
+                            fallback_cmd += f" -c {channel_name}"
+                    else:
                         fallback_cmd += " --override-channels"
+                    fallback_cmd += f" {' '.join(requested)}"
                     print(f"Manual installation: {fallback_cmd}")
             else:
                 print("No changes to install - all packages may already be satisfied")

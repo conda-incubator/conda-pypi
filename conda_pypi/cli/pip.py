@@ -37,17 +37,7 @@ def configure_parser(parser: argparse.ArgumentParser):
         "convert",
         help="Convert PyPI packages to .conda format without installing them.",
     )
-    install.add_argument(
-        "-U",
-        "--upgrade",
-        action="store_true",
-        help="Tell pip to upgrade the package if it's already installed.",
-    )
-    install.add_argument(
-        "--force-reinstall",
-        action="store_true",
-        help="Reinstall all packages even if they are already installed.",
-    )
+
     install.add_argument(
         "--override-channels",
         action="store_true",
@@ -57,14 +47,6 @@ def configure_parser(parser: argparse.ArgumentParser):
         "--dry-run",
         action="store_true",
         help="Don't actually install anything, just print what would be done.",
-    )
-
-    install.add_argument(
-        "-c",
-        "--channel",
-        metavar="CHANNEL",
-        action="append",
-        help="Additional channel to search for packages.",
     )
 
     install.add_argument(
@@ -89,13 +71,7 @@ def configure_parser(parser: argparse.ArgumentParser):
         action="store_true",
         help="Do not search default or .condarc channels. Will search pypi.",
     )
-    convert.add_argument(
-        "-c",
-        "--channel",
-        metavar="CHANNEL",
-        action="append",
-        help="Additional channel to search for packages.",
-    )
+
     convert.add_argument("packages", metavar="package", nargs="*")
 
 
