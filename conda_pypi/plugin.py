@@ -43,11 +43,13 @@ def _post_command_list_explicit(command: str):
     if command != "list":
         return
     cmd_line = context.raw_data.get("cmd_line", {})
-    if "--explicit" not in sys.argv and not cmd_line.get("explicit").value(None):
+    explicit_arg = cmd_line.get("explicit")
+    if "--explicit" not in sys.argv and not (explicit_arg and explicit_arg.value(None)):
         return
-    if "--no-pip" in sys.argv or not cmd_line.get("pip"):
+    if "--no-pip" in sys.argv:
         return
-    checksums = ("md5",) if ("--md5" in sys.argv or cmd_line.get("md5").value(None)) else None
+    md5_arg = cmd_line.get("md5")
+    checksums = ("md5",) if ("--md5" in sys.argv or (md5_arg and md5_arg.value(None))) else None
 
     # Import here to avoid circular imports
     from .main import pypi_lines_for_explicit_lockfile
@@ -56,12 +58,10 @@ def _post_command_list_explicit(command: str):
     to_print = pypi_lines_for_explicit_lockfile(context.target_prefix, checksums=checksums)
     if to_print:
         sys.stdout.flush()
-        logger.info(f"# The following lines were added by conda-pypi v{__version__}")
-        logger.info(
-            "# This is an experimental feature subject to change. Do not use in production."
-        )
+        print(f"# The following lines were added by conda-pypi v{__version__}")
+        print("# This is an experimental feature subject to change. Do not use in production.")
         for line in to_print:
-            logger.info(line)
+            print(line)
 
 
 def _post_command_process_pypi_lines(command: str):
@@ -95,7 +95,11 @@ def _post_command_process_pypi_lines(command: str):
 
     # Use our existing install logic to handle PyPI packages
     try:
+        if not context.quiet:
+            logger.info("Executing PyPI transaction")
         execute_install(args)
+        if not context.quiet:
+            logger.info("Verifying PyPI transaction")
     except Exception as e:
         if not context.quiet:
             logger.error(f"Failed to install PyPI packages: {e}")

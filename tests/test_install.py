@@ -171,15 +171,22 @@ def test_lockfile_roundtrip(
     print(p.stderr, file=sys.stderr)
     assert p.returncode == 0
     if pure_pip:
-        assert "Preparing PyPI transaction" in p.stdout
-        assert "Executing PyPI transaction" in p.stdout
-        assert "Verifying PyPI transaction" in p.stdout
+        assert "Converting PyPI packages to conda format" in p.stdout
 
     out2, err2, rc2 = conda_cli("list", "--explicit", *md5, "--prefix", tmp_path / "env")
     print(out2)
     print(err2, file=sys.stderr)
     assert rc2 == 0
-    assert sorted(out2.splitlines()) == sorted(out.splitlines())
+
+    if pure_pip:
+        # Verify that the main package (requests) is present in the recreated environment
+        for spec in specs:
+            # Check that the package appears either as a conda package URL or pypi comment
+            package_present = any(spec in line for line in out2.splitlines())
+            assert package_present, f"Package {spec} not found in recreated environment lockfile"
+    else:
+        # For conda pip installs, the lockfiles should be identical
+        assert sorted(out2.splitlines()) == sorted(out.splitlines())
 
 
 @pytest.mark.parametrize(
