@@ -267,3 +267,122 @@ def test_editable_installs(
             assert pth_contents.startswith(
                 expected_paths
             ), f"Unexpected local path: {pth_contents}"
+
+
+def test_install_package_with_extras(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    """Test installing a package with extras (e.g., package[extra])."""
+    with tmp_env("python=3.10", "pip") as prefix:
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "packaging[test]",
+        )
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0
+
+        PrefixData._cache_.clear()
+        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+
+        packaging_records = list(pd.query("packaging"))
+        assert len(packaging_records) >= 1, "packaging package not found"
+
+
+def test_update_already_installed_package(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    """Test behavior when trying to install a package that's already installed."""
+    with tmp_env("python=3.10", "pip") as prefix:
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "packaging",
+        )
+        assert rc == 0, "Initial installation should succeed"
+
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "packaging",
+        )
+        print("Reinstall output:")
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0, "Reinstalling existing package should succeed"
+
+        PrefixData._cache_.clear()
+        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        packaging_records = list(pd.query("packaging"))
+        assert len(packaging_records) >= 1, "packaging should still be installed"
+
+
+def test_install_nonexistent_package(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    """Test installing a package that doesn't exist."""
+    with tmp_env("python=3.10", "pip") as prefix:
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "this-package-definitely-does-not-exist-12345",
+        )
+        print("Nonexistent package install attempt:")
+        print(out)
+        print(err, file=sys.stderr)
+
+        error_text = (out + err).lower()
+        assert any(
+            phrase in error_text
+            for phrase in [
+                "not found",
+                "could not find",
+                "no matching distribution",
+                "error",
+                "failed",
+                "exceeded maximum",
+                "404",
+            ]
+        ), "Should have an appropriate error message about the missing package"
+
+
+def test_install_with_invalid_environment(
+    conda_cli: CondaCLIFixture,
+):
+    """Test installing to a non-existent environment."""
+    try:
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            "/this/path/definitely/does/not/exist",
+            "--yes",
+            "install",
+            "requests",
+        )
+        print("Install to invalid environment:")
+        print(out)
+        print(err, file=sys.stderr)
+
+        assert rc != 0, "Should fail when environment doesn't exist"
+
+    except Exception as e:
+        print(f"Expected exception caught: {e}")
+        assert "python>=3.2" in str(e) or "does not exist" in str(
+            e
+        ), "Should have appropriate error message about the environment"
