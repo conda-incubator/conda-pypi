@@ -25,12 +25,19 @@ requirements:
     - pip
     - hatchling >=1.12.2
     - hatch-vcs >=0.2.0
+    - conda >=23.9.0
+    - conda-index
+    - conda-package-streaming
+    - conda-libmamba-solver
     - importlib_resources  # [py<39]
   run:
     - python
     - conda >=23.9.0
     - pip >=23.0.1
     - grayskull
+    - conda-index
+    - conda-package-streaming
+    - conda-libmamba-solver
     - importlib_resources  # [py<39]
     - packaging
 
