@@ -1,6 +1,4 @@
-"""
-conda pip subcommand for CLI - now powered by conda-pypi
-"""
+"""conda pip subcommand."""
 
 from __future__ import annotations
 
@@ -140,11 +138,11 @@ def execute_install(args: argparse.Namespace) -> int:
         if is_dry_run:
             if not packages_to_process:
                 if not args.quiet:
-                    logger.info("All packages are already installed.")
+                    print("All packages are already installed.")
                 return 0
             else:
                 if not args.quiet:
-                    logger.info(f"Would install packages: {', '.join(packages_to_process)}")
+                    print(f"Would install packages: {', '.join(packages_to_process)}")
                 return 0
 
         if not args.quiet:

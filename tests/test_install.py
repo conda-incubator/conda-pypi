@@ -386,3 +386,132 @@ def test_install_with_invalid_environment(
         assert "python>=3.2" in str(e) or "does not exist" in str(
             e
         ), "Should have appropriate error message about the environment"
+
+
+def test_dry_run_functionality(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    """Test that --dry-run doesn't actually install packages."""
+    with tmp_env("python=3.10", "pip") as prefix:
+        # Test dry-run with a new package that isn't installed
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "--dry-run",
+            "requests",
+        )
+        print("Dry-run output:")
+        print(out)
+        print(err, file=sys.stderr)
+
+        # Should succeed
+        assert rc == 0, "Dry-run should succeed"
+
+        # Should indicate what would be installed
+        assert "Would install packages: requests" in (
+            out + err
+        ), "Should show what would be installed"
+
+        # Should NOT contain installation messages
+        assert "Installing collected packages" not in (
+            out + err
+        ), "Should not actually install packages"
+        assert "Executing transaction: done" not in (out + err), "Should not execute transaction"
+        assert "Successfully installed" not in (
+            out + err
+        ), "Should not show successful installation"
+
+        # Verify the package is NOT actually installed
+        PrefixData._cache_.clear()
+        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        requests_records = list(pd.query("requests"))
+        assert len(requests_records) == 0, "Package should not be installed after dry-run"
+
+
+def test_dry_run_with_already_installed_package(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    """Test that --dry-run correctly handles already installed packages."""
+    with tmp_env("python=3.10", "pip", "packaging") as prefix:
+        # Test dry-run with an already installed package
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "--dry-run",
+            "packaging",
+        )
+        print("Dry-run with installed package output:")
+        print(out)
+        print(err, file=sys.stderr)
+
+        # Should succeed
+        assert rc == 0, "Dry-run should succeed"
+
+        # Should indicate all packages are already installed
+        assert "All packages are already installed." in (
+            out + err
+        ), "Should show packages are already installed"
+
+        # Should NOT contain installation messages
+        assert "Installing collected packages" not in (
+            out + err
+        ), "Should not actually install packages"
+        assert "Executing transaction: done" not in (out + err), "Should not execute transaction"
+        assert "Would install packages" not in (
+            out + err
+        ), "Should not show would install for already installed packages"
+
+
+def test_dry_run_with_mixed_packages(
+    tmp_env: TmpEnvFixture,
+    conda_cli: CondaCLIFixture,
+):
+    """Test that --dry-run correctly handles mix of installed and new packages."""
+    with tmp_env("python=3.10", "pip", "packaging") as prefix:
+        # Test dry-run with mix of installed and new packages
+        out, err, rc = conda_cli(
+            "pip",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "--dry-run",
+            "packaging",  # already installed
+            "requests",  # not installed
+        )
+        print("Dry-run with mixed packages output:")
+        print(out)
+        print(err, file=sys.stderr)
+
+        # Should succeed
+        assert rc == 0, "Dry-run should succeed"
+
+        # Should indicate what would be installed (only the new package)
+        assert "Would install packages: requests" in (
+            out + err
+        ), "Should show only new packages would be installed"
+
+        # Should warn about already installed package
+        assert "packaging is already installed; ignoring" in (
+            out + err
+        ), "Should warn about already installed package"
+
+        # Should NOT contain installation messages
+        assert "Installing collected packages" not in (
+            out + err
+        ), "Should not actually install packages"
+        assert "Executing transaction: done" not in (out + err), "Should not execute transaction"
+
+        # Verify requests is NOT actually installed
+        PrefixData._cache_.clear()
+        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        requests_records = list(pd.query("requests"))
+        assert len(requests_records) == 0, "New package should not be installed after dry-run"
