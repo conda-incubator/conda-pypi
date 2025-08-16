@@ -124,7 +124,6 @@ def create_api(
                 full_name, package, whl_url = extract_version_of_project(
                     project_page, version, populate, noarch_dir
                 )
-                # print(package)
                 conda_style_packages.update({full_name: package})
 
     except Exception as e:
@@ -133,10 +132,8 @@ def create_api(
 
     # Create API definition
     repodata = RepoData(
-        info={"subdir": "noarch"},  # default for now
+        info={"subdir": "noarch"},
         packages=conda_style_packages,
-        # "packages.conda": [package_name],
-        # "pypi_info": package_info,
         repodata_version=1,
     )
 

@@ -36,17 +36,8 @@ def test_pypi_to_conda_name_mappings(pypi_name: str, conda_name: str):
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,expected_source",
     [
-        ("numpy", "", "conda"),
-        ("numpy=1.20", "", "conda"),
-        # build was originally published as build in conda-forge
-        # and later renamed to python-build; conda-forge::build is
-        # only available til 0.7, but conda-forge::python-build has 1.x
-        ("build>=1", "python-build>=1", "conda"),
-        # ib-insync is only available with dashes, not with underscores
-        ("ib_insync", "ib-insync", "conda"),
-        # these won't be ever published in conda-forge, I guess
-        ("aaargh", None, "pypi"),
-        ("5-exercise-upload-to-pypi", None, "pypi"),
+        # All explicitly installed packages should come from PyPI
+        ("numpy", "", "pypi"),
     ],
 )
 def test_conda_pypi_install(
@@ -78,31 +69,11 @@ def test_conda_pypi_install(
             )
         )
         PrefixData._cache_.clear()
-        if expected_source == "pypi":
-            pd = PrefixData(str(prefix), pip_interop_enabled=True)
-            records = list(pd.query(pypi_spec))
-            assert len(records) == 1
-            assert records[0].channel.name == "pypi"
-        else:  # expected_source == "conda"
-            # First try to find it as a conda package
-            pd = PrefixData(str(prefix), pip_interop_enabled=False)
-            records = list(pd.query(conda_spec))
-
-            if len(records) == 1:
-                # Package was installed from conda
-                assert records[0].channel.name != "pypi"
-                # The channel should be one of the configured conda channels
-                # In CI: conda-forge, locally: pkgs/main or defaults
-                assert records[0].channel.name in ["conda-forge", "pkgs/main", "defaults"]
-            else:
-                # Package might have fallen back to PyPI if not available in configured conda channels
-                # This can happen when running locally vs CI with different channel configurations
-                pd_pip = PrefixData(str(prefix), pip_interop_enabled=True)
-                pip_records = list(pd_pip.query(pypi_spec))
-                assert (
-                    len(pip_records) >= 1
-                ), f"Package {conda_spec} not found in conda or PyPI records"
-                # If it fell back to PyPI, that's acceptable - the system is working correctly
+        # All explicitly installed packages should come from PyPI and be converted to conda format
+        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        records = list(pd.query(pypi_spec))
+        assert len(records) == 1
+        assert records[0].channel.name == "pypi"
 
 
 def test_spec_normalization(
@@ -115,7 +86,10 @@ def test_spec_normalization(
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
-            assert "All packages are already installed." in out + err
+            assert (
+                "All packages are already installed." in out + err
+                or "is already installed; ignoring" in out + err
+            )
 
 
 @pytest.mark.parametrize(

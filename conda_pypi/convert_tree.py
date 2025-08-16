@@ -122,6 +122,44 @@ class ConvertTree:
             else:  # more wheels for us to convert
                 channels = [local_channel]
 
+            # Always fetch explicitly requested packages from PyPI first
+            fetched_packages = set()
+            for package in requested:
+                try:
+                    log.info(f"Fetching {package} from PyPI")
+                    find_and_fetch(self.finder, WHEEL_DIR, package)
+                    fetched_packages.add(package)
+                except Exception as e:
+                    log.warning(f"Failed to fetch {package} from PyPI: {e}")
+
+            # Convert any fetched wheels to conda packages
+            converted = set()
+            for normal_wheel in WHEEL_DIR.glob("*.whl"):
+                if normal_wheel in converted:
+                    continue
+
+                log.info(f"Converting {normal_wheel}")
+
+                build_path = tmp_path / normal_wheel.stem
+                build_path.mkdir()
+
+                try:
+                    package_conda = build_conda(
+                        normal_wheel,
+                        build_path,
+                        repo / "noarch",  # XXX could be arch
+                        self.python_exe,
+                        is_editable=False,
+                    )
+                    log.info(f"Conda package created at {package_conda}")
+                except FileExistsError:
+                    log.info(f"Tried to convert wheel that is already conda-ized: {normal_wheel}")
+
+                converted.add(normal_wheel)
+
+            # Update the local channel index with newly converted packages
+            update_index(repo)
+
             solver = ReloadingLibMambaSolver(
                 str(prefix),
                 channels,
@@ -130,8 +168,6 @@ class ConvertTree:
                 [],
             )
 
-            converted = set()
-            fetched_packages = set()
             missing_packages = set()
             attempts = 0
             while len(fetched_packages) < max_attempts and attempts < max_attempts:
@@ -147,10 +183,17 @@ class ConvertTree:
                     log.warning(f"Unsatisfiable: {e}")
                     missing_packages.update(set(parse_libmamba_error(e.message)))
 
+                # Fetch any missing dependencies from PyPI
                 for package in sorted(missing_packages - fetched_packages):
-                    find_and_fetch(self.finder, WHEEL_DIR, package)
-                    fetched_packages.add(package)
+                    try:
+                        log.info(f"Fetching dependency {package} from PyPI")
+                        find_and_fetch(self.finder, WHEEL_DIR, package)
+                        fetched_packages.add(package)
+                    except Exception as e:
+                        log.warning(f"Failed to fetch dependency {package} from PyPI: {e}")
+                        # Continue - dependency might be available in conda channels
 
+                # Convert any newly fetched dependency wheels
                 for normal_wheel in WHEEL_DIR.glob("*.whl"):
                     if normal_wheel in converted:
                         continue
