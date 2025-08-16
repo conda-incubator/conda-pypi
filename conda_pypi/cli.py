@@ -1,5 +1,5 @@
 """
-Command line interface for conda-pupa.
+Command line interface for conda-pypi.
 """
 
 import contextlib
@@ -51,7 +51,6 @@ from conda_pypi.installer import install_ephemeral_conda
     help="Full path to environment location (i.e. prefix).",
     required=False,
 )
-# keep or change conda-build's argument naming?
 @click.option("--output-folder", help="Folder to write output package(s)", required=False)
 @click.argument(
     "package_spec",

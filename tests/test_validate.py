@@ -23,7 +23,7 @@ def test_pip_required_in_target_env(
         with pytest.raises(CondaError, match="requires python"):
             out, err, rc = conda_cli(*args)
         out, err, rc = conda_cli("install", "-p", prefix, "--yes", "python=3.9")
-        PrefixData._cache_.clear()  # clear cache to force re-read of prefix
+        PrefixData._cache_.clear()
         assert package_is_installed(str(prefix), "python=3.9")
         assert not package_is_installed(str(prefix), "pip")
         PrefixData._cache_.clear()
@@ -31,7 +31,7 @@ def test_pip_required_in_target_env(
         with pytest.raises(CondaError, match="requires pip"):
             out, err, rc = conda_cli(*args)
         out, err, rc = conda_cli("install", "-p", prefix, "--yes", "pip")
-        PrefixData._cache_.clear()  # clear cache to force re-read of prefix
+        PrefixData._cache_.clear()
         assert package_is_installed(str(prefix), "pip")
         PrefixData._cache_.clear()
 
@@ -56,7 +56,7 @@ def test_externally_managed(
     assert "conda pip" in text
 
     with tmp_env("python", "pip") as prefix:
-        conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
+        conda_cli("pip", "-p", prefix, "--yes", "install", "requests")
         target_site_packages = get_env_stdlib(prefix)
         externally_managed_file = target_site_packages / "EXTERNALLY-MANAGED"
         text = (externally_managed_file).read_text().strip()

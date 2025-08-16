@@ -54,6 +54,12 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Do not search default or .condarc channels. Will search pypi.",
     )
     install.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Don't actually install anything, just print what would be done.",
+    )
+
+    install.add_argument(
         "-c",
         "--channel",
         metavar="CHANNEL",
@@ -112,7 +118,7 @@ def execute_install(args: argparse.Namespace) -> int:
 
     from conda.common.io import Spinner
     from ..utils import get_prefix
-    from ..main import ensure_externally_managed
+    from ..main import ensure_externally_managed, validate_target_env
     from ..convert_tree import ConvertTree
     from ..build import pypa_to_conda
     from ..installer import install_ephemeral_conda
@@ -143,6 +149,28 @@ def execute_install(args: argparse.Namespace) -> int:
 
     # Handle regular package installs using conda-pupa's ConvertTree
     if args.packages:
+        # Always validate the target environment first
+        try:
+            packages_to_process = validate_target_env(prefix, args.packages)
+        except Exception as e:
+            # Re-raise as CondaError for consistency with expected test behavior
+            from conda.exceptions import CondaError
+
+            raise CondaError(str(e))
+
+        # Handle dry-run mode (check both top-level and subcommand-level)
+        # The top-level --dry-run is stored in args.dry_run by conda's argument parser
+        is_dry_run = getattr(args, "dry_run", False)
+        if is_dry_run:
+            if not packages_to_process:
+                if not args.quiet:
+                    print("All packages are already installed.")
+                return 0
+            else:
+                if not args.quiet:
+                    print(f"Would install packages: {', '.join(packages_to_process)}")
+                return 0
+
         if not args.quiet:
             print(f"Converting and installing packages: {', '.join(args.packages)}")
 

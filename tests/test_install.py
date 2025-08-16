@@ -23,19 +23,16 @@ def test_pypi_to_conda_name_mapping():
     "pypi_name,conda_name",
     [
         ("numpy", "numpy"),
-        ("build", "python-build"),  # Updated to match actual mapping
+        ("build", "python-build"),
         ("ib_insync", "ib-insync"),
-        # Updated to match actual mappings - PyQt5 case normalization works
         ("pyqt5", "pyqt"),
-        ("PyQt5", "pyqt"),  # Case normalization: PyQt5 -> pyqt
+        ("PyQt5", "pyqt"),
     ],
 )
 def test_pypi_to_conda_name_mappings(pypi_name: str, conda_name: str):
     assert pypi_to_conda_name(pypi_name) == conda_name
 
 
-# Removed backend parameterization as BACKENDS no longer exists in the refactored codebase
-# @pytest.mark.parametrize("backend", BACKENDS)
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,channel",
     [
@@ -72,7 +69,6 @@ def test_conda_pypi_install(
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
-        # One these package names will be mentioned:
         assert any(
             name in out
             for name in (
@@ -98,7 +94,7 @@ def test_spec_normalization(
 ):
     with tmp_env("python=3.9", "pip", "pytest-cov") as prefix:
         for spec in ("pytest-cov", "pytest_cov", "PyTest-Cov"):
-            out, err, rc = conda_cli("pip", "--dry-run", "-p", prefix, "--yes", "install", spec)
+            out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "install", "--dry-run", spec)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0

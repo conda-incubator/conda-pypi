@@ -72,7 +72,6 @@ class ReloadingLibMambaSolver(LibMambaSolver):
         return index
 
 
-# import / pupate / transmogrify / ...
 class ConvertTree:
     def __init__(
         self,
@@ -98,10 +97,13 @@ class ConvertTree:
     def default_package_finder(self):
         return get_package_finder(self.prefix)
 
-    def convert_tree(self, requested: list[MatchSpec], max_attempts=20):
+    def convert_tree(self, requested: list[str], max_attempts=20):
         (self.repo / "noarch").mkdir(parents=True, exist_ok=True)
         if not (self.repo / "noarch" / "repodata.json").exists():
             update_index(self.repo)
+
+        # Convert string package specs to MatchSpec objects
+        requested_specs = [MatchSpec(pkg) for pkg in requested]
 
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = pathlib.Path(tmp_path)
@@ -124,7 +126,7 @@ class ConvertTree:
                 str(prefix),
                 channels,
                 context.subdirs,
-                requested,
+                requested_specs,
                 [],
             )
 
@@ -182,4 +184,32 @@ class ConvertTree:
 
             print("Solution", changes)
 
-            print(f"Install with conda install -c {repo.as_uri()} {requested}")
+            # Install the packages using the solver's solution
+            if changes:
+                from conda.cli.main import main_subshell
+
+                print(f"Installing packages from local channel: {repo.as_uri()}")
+                try:
+                    # Install the originally requested packages from the local channel
+                    # The solver has already resolved dependencies, so we install what was requested
+                    install_args = ["install", "--prefix", str(prefix), "-c", repo.as_uri(), "-y"]
+
+                    # Configure channels based on override_channels setting
+                    if not self.override_channels:
+                        # Include conda-forge for dependencies not in our local channel
+                        install_args.extend(["-c", "conda-forge"])
+                    else:
+                        # Only use our local channel
+                        install_args.append("--override-channels")
+
+                    install_args.extend(requested)
+                    main_subshell(*install_args)
+                    print("Installation completed successfully")
+                except Exception as e:
+                    print(f"Installation failed: {e}")
+                    fallback_cmd = f"conda install -c {repo.as_uri()} {' '.join(requested)}"
+                    if self.override_channels:
+                        fallback_cmd += " --override-channels"
+                    print(f"Manual installation: {fallback_cmd}")
+            else:
+                print("No changes to install - all packages may already be satisfied")
