@@ -1,0 +1,534 @@
+"""
+Package building and metadata translation for conda-pypi.
+
+This module handles:
+1. Converting a Python wheels to a conda package
+2. Building a conda package from Python project
+3. Translating Python metadata to conda format
+4. Managing package metadata and dependencies
+
+Originally from conda-pupa by Daniel Holth <dholth@gmail.com>
+https://github.com/dholth/conda-pupa
+Now integrated and enhanced in conda-pypi
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import itertools
+import json
+import logging
+import os
+import sys
+import tempfile
+import time
+from importlib.metadata import Distribution, PathDistribution
+from pathlib import Path
+from typing import Any, TYPE_CHECKING, Optional, List, Dict
+
+if TYPE_CHECKING:
+    try:
+        from importlib.metadata import PackageMetadata
+    except ImportError:
+        # Python < 3.10 doesn't have PackageMetadata as a separate class
+        # In those versions, Distribution.metadata is an email.message.Message
+        from email.message import Message as PackageMetadata
+
+from build import ProjectBuilder
+from conda.models.match_spec import MatchSpec
+from conda_package_streaming.create import conda_builder
+from packaging.requirements import InvalidRequirement, Requirement
+from packaging.utils import canonicalize_name
+from installer import install
+from installer.destinations import SchemeDictionaryDestination
+from installer.sources import WheelFile
+
+from .utils import PathType, sha256_checksum, get_python_executable
+from .mapping import pypi_to_conda_name, conda_to_pypi_name
+
+log = logging.getLogger(__name__)
+
+
+def install_wheel(wheel_path: Path, install_dir: Path):
+    """Install a wheel using the installer library."""
+    # Handler for installation directories and writing into them.
+    destination = SchemeDictionaryDestination(
+        {
+            "platlib": str(install_dir),
+            "purelib": str(install_dir),
+            "headers": str(install_dir / "include"),
+            "scripts": str(install_dir / "bin"),
+            "data": str(install_dir),
+        },
+        interpreter=sys.executable,
+        script_kind="posix",
+    )
+
+    # Install the wheel
+    with WheelFile.open(wheel_path) as source:
+        install(source, destination, {})
+
+    log.info(f"Installed wheel {wheel_path} to {install_dir}")
+
+
+# =============================================================================
+# Metadata Translation Classes
+# =============================================================================
+
+
+class FileDistribution(Distribution):
+    """
+    Distribution from a file (e.g. a single `.metadata` fetched from PyPI)
+    instead of a `*.dist-info` folder.
+    """
+
+    def __init__(self, raw_text):
+        self.raw_text = raw_text
+
+    def read_text(self, filename: str) -> Optional[str]:
+        if filename == "METADATA":
+            return self.raw_text
+        else:
+            return None
+
+    def locate_file(self, path):
+        """
+        Given a path to a file in this distribution, return a path to it.
+        """
+        return None
+
+
+@dataclasses.dataclass
+class PackageRecord:
+    """
+    Represents conda package metadata that goes in info/index.json
+    """
+
+    name: str
+    version: str
+    subdir: str
+    depends: List[str]
+    extras: Dict[str, List[str]]
+    build_number: int = 0
+    build_text: str = "pypi"  # e.g. hash
+    license_family: str = ""
+    license: str = ""
+    noarch: str = ""
+    timestamp: int = 0
+
+    def to_index_json(self):
+        return {
+            "build_number": self.build_number,
+            "build": self.build,
+            "depends": self.depends,
+            "extras": self.extras,
+            "license_family": self.license_family,
+            "license": self.license,
+            "name": self.name,
+            "noarch": self.noarch,
+            "subdir": self.subdir,
+            "timestamp": self.timestamp,
+            "version": self.version,
+        }
+
+    @property
+    def build(self):
+        return f"{self.build_text}_{self.build_number}"
+
+    @property
+    def stem(self):
+        return f"{self.name}-{self.version}-{self.build}"
+
+
+@dataclasses.dataclass
+class CondaMetadata:
+    """
+    Complete conda package metadata including Python metadata, console scripts,
+    package record, and about information.
+    """
+
+    metadata: PackageMetadata
+    console_scripts: List[str]
+    package_record: PackageRecord
+    about: Dict[str, Any]
+
+    def link_json(self) -> Optional[Dict]:
+        """
+        Generate info/link.json used for console scripts; None if empty.
+
+        Note: The METADATA file (PackageRecord) does not list console scripts.
+        """
+        # XXX gui scripts?
+        return {
+            "noarch": {"entry_points": self.console_scripts, "type": "python"},
+            "package_metadata_version": 1,
+        }
+
+    @classmethod
+    def from_distribution(cls, distribution: Distribution, skip_name_mapping: bool = False):
+        """
+        Create CondaMetadata from a Distribution.
+
+        Args:
+            distribution: The Python distribution to convert
+            skip_name_mapping: If True, skip grayskull mapping for the main package name.
+                              This is useful for explicitly requested packages that should
+                              be installed from PyPI rather than mapped to conda packages.
+        """
+        metadata = distribution.metadata
+
+        python_version = metadata["requires-python"]
+        requires_python = "python"
+        if python_version:
+            requires_python = f"python { python_version }"
+
+        requirements, extras = requires_to_conda(distribution.requires)
+
+        # conda does support ~=3.0.0 "compatibility release" matches
+        depends = [requires_python] + requirements
+
+        console_scripts = [
+            f"{ep.name} = {ep.value}"
+            for ep in distribution.entry_points
+            if ep.group == "console_scripts"
+        ]
+
+        noarch = "python"
+
+        # Common "about" keys
+        # ['channels', 'conda_build_version', 'conda_version', 'description',
+        # 'dev_url', 'doc_url', 'env_vars', 'extra', 'home', 'identifiers',
+        # 'keywords', 'license', 'license_family', 'license_file', 'root_pkgs',
+        # 'summary', 'tags']
+        about = {
+            "description": metadata.get("description", ""),
+            "home": metadata.get("home-page", ""),
+            "license": metadata.get("license", ""),
+            "summary": metadata.get("summary", ""),
+        }
+
+        if skip_name_mapping:
+            conda_name = metadata["name"]
+        else:
+            conda_name = pypi_to_conda_name(metadata["name"])
+
+        package_record = PackageRecord(
+            name=conda_name,
+            version=metadata["version"],
+            subdir="noarch",
+            depends=depends,
+            extras=extras,
+            noarch=noarch,
+            license=metadata.get("license", ""),
+            timestamp=int(time.time()),
+        )
+
+        return cls(
+            metadata=metadata,
+            console_scripts=console_scripts,
+            package_record=package_record,
+            about=about,
+        )
+
+
+# =============================================================================
+# Dependency Translation Functions
+# =============================================================================
+
+
+def requires_to_conda(requires: Optional[List[str]]):
+    """
+    Convert Python requirements to conda format.
+
+    Args:
+        requires: List of Python requirement strings
+
+    Returns:
+        Tuple of (requirements, extras) where requirements is a list of conda
+        requirement strings and extras is a dict mapping extra names to their requirements.
+    """
+    from collections import defaultdict
+
+    extras: Dict[str, List[str]] = defaultdict(list)
+    requirements = []
+    for requirement in [Requirement(dep) for dep in requires or []]:
+        # requirement.marker.evaluate
+
+        # if requirement.marker and not requirement.marker.evaluate():
+        #     # excluded by environment marker
+        #     # see also marker evaluation according to given sys.executable
+        #     continue
+
+        name = canonicalize_name(requirement.name)
+        requirement.name = pypi_to_conda_name(name)
+        as_conda = f"{requirement.name} {requirement.specifier}"
+
+        if (marker := requirement.marker) is not None:
+            # for var, _, value in marker._markers:
+            for mark in marker._markers:
+                if isinstance(mark, tuple):
+                    var, _, value = mark
+                    if str(var) == "extra":
+                        extras[str(value)].append(as_conda)
+        else:
+            requirements.append(f"{requirement.name} {requirement.specifier}".strip())
+
+    return requirements, dict(extras)
+
+
+def conda_to_requires(matchspec: MatchSpec):
+    """
+    Convert conda MatchSpec to Python Requirement.
+
+    Args:
+        matchspec: Conda MatchSpec to convert
+
+    Returns:
+        Python Requirement object or None if conversion fails
+    """
+    name = matchspec.name
+    pypi_name = conda_to_pypi_name(name)
+
+    # Try different formats to find a valid requirement string
+    for best_format in [
+        f"{pypi_name} {matchspec.version}",
+        f"{pypi_name}=={matchspec.version}",
+        f"{pypi_name}",
+    ]:
+        try:
+            return Requirement(best_format.replace(name, pypi_name))
+        except InvalidRequirement:
+            continue
+
+    return None
+
+
+# =============================================================================
+# Package Building Functions
+# =============================================================================
+
+
+def filter_tarinfo(tarinfo):
+    """
+    Filter function for tar archives: anonymize uid/gid and exclude .git directories.
+    """
+    if tarinfo.name.endswith(".git"):
+        return None
+    tarinfo.uid = tarinfo.gid = 0
+    tarinfo.uname = tarinfo.gname = ""
+    return tarinfo
+
+
+def paths_json(base: Path | str):
+    """
+    Build simple paths.json with only 'hardlink' or 'symlink' types.
+
+    This is used by conda to track files in packages.
+    """
+    base = str(base)
+
+    if not base.endswith(os.sep):
+        base = base + os.sep
+
+    return {
+        "paths": sorted(_paths(base, base), key=lambda entry: entry["_path"]),
+        "paths_version": 1,
+    }
+
+
+def _paths(base, path, filter_func=lambda x: x.name != ".git"):
+    """
+    Recursively generate path entries for paths.json
+    """
+    for entry in os.scandir(path):
+        # TODO convert \\ to /
+        relative_path = entry.path[len(base) :]
+        if relative_path == "info" or not filter_func(entry):
+            continue
+        if entry.is_dir():
+            yield from _paths(base, entry.path, filter_func)
+        elif entry.is_file() or entry.is_symlink():
+            try:
+                st_size = entry.stat().st_size
+            except FileNotFoundError:
+                st_size = 0  # symlink to nowhere
+            yield {
+                "_path": relative_path,
+                "path_type": str(PathType.softlink if entry.is_symlink() else PathType.hardlink),
+                "sha256": sha256_checksum(entry.path, entry),
+                "size_in_bytes": st_size,
+            }
+        else:
+            log.debug(f"Not regular file: {entry}")
+
+
+def json_dumps(obj):
+    """
+    Consistent JSON formatting for conda packages.
+    """
+    return json.dumps(obj, indent=2, sort_keys=True)
+
+
+def flatten(iterable):
+    """
+    Flatten nested iterables.
+    """
+    return [*itertools.chain(*iterable)]
+
+
+def build_pypa(
+    path: Path,
+    output_path,
+    prefix: Path,
+    distribution="editable",
+):
+    """
+    Build a conda package from a Python project (pyproject.toml, setup.py, etc.).
+
+    Args:
+        path: Path to the project directory
+        output_path: Where to save the built package
+        prefix: Conda environment prefix
+        distribution: Type of distribution to build ("editable" or "wheel")
+    """
+    # Use the Python from the target environment
+    python_exe = get_python_executable(prefix)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        if distribution == "editable":
+            # Build editable installation
+            editable_file = tmpdir / "editable.whl"
+            builder = ProjectBuilder(path)
+            builder.build("editable", str(editable_file), {})
+
+            # Install the editable wheel
+            install_wheel(editable_file, tmpdir / "install")
+
+            return editable_file
+        else:
+            # Build regular wheel
+            wheel_file = tmpdir / "package.whl"
+            builder = ProjectBuilder(path)
+            builder.build("wheel", str(wheel_file), {})
+
+            # Convert wheel to conda package
+            return build_conda(wheel_file, tmpdir, output_path, python_exe)
+
+
+def build_conda(
+    wheel_path,
+    build_path: Path,
+    output_path: Path,
+    python_exe: Path,
+):
+    """
+    Convert a wheel file to a conda package.
+
+    Args:
+        wheel_path: Path to the wheel file
+        build_path: Temporary directory for building
+        output_path: Directory where the conda package will be saved
+        python_exe: Path to Python executable
+
+    Returns:
+        Path to the created conda package
+    """
+    wheel_path = Path(wheel_path)
+    build_path = Path(build_path)
+    output_path = Path(output_path)
+
+    # Create build directories
+    install_dir = build_path / "install"
+    info_dir = install_dir / "info"
+    install_dir.mkdir(parents=True, exist_ok=True)
+    info_dir.mkdir(parents=True, exist_ok=True)
+
+    # Install wheel to get the files
+    install_wheel(wheel_path, install_dir)
+
+    # Get distribution metadata
+    try:
+        # Try to find the installed distribution
+        dist_info_dirs = list(install_dir.glob("*.dist-info"))
+        if dist_info_dirs:
+            distribution = PathDistribution(dist_info_dirs[0])
+        else:
+            # Fallback: create distribution from wheel metadata
+            import zipfile
+
+            with zipfile.ZipFile(wheel_path) as zf:
+                metadata_files = [f for f in zf.namelist() if f.endswith("/METADATA")]
+                if metadata_files:
+                    metadata_content = zf.read(metadata_files[0]).decode("utf-8")
+                    distribution = FileDistribution(metadata_content)
+                else:
+                    raise ValueError(f"No metadata found in wheel: {wheel_path}")
+
+        # Convert to conda metadata
+        conda_metadata = CondaMetadata.from_distribution(distribution)
+
+        # Write conda package files
+        with open(info_dir / "index.json", "w") as f:
+            f.write(json_dumps(conda_metadata.package_record.to_index_json()))
+
+        with open(info_dir / "about.json", "w") as f:
+            f.write(json_dumps(conda_metadata.about))
+
+        if conda_metadata.console_scripts:
+            with open(info_dir / "link.json", "w") as f:
+                f.write(json_dumps(conda_metadata.link_json()))
+
+        # Generate paths.json
+        with open(info_dir / "paths.json", "w") as f:
+            f.write(json_dumps(paths_json(install_dir)))
+
+        # Create the conda package
+        output_path.mkdir(parents=True, exist_ok=True)
+        package_stem = conda_metadata.package_record.stem
+        conda_package_path = output_path / f"{package_stem}.conda"
+
+        with conda_builder(package_stem, output_path) as builder:
+            # Add all files from the install directory
+            for root, dirs, files in os.walk(install_dir):
+                for file in files:
+                    file_path = Path(root) / file
+                    arcname = str(file_path.relative_to(install_dir))
+                    builder.add(str(file_path), arcname=arcname)
+                for dir_name in dirs:
+                    dir_path = Path(root) / dir_name
+                    arcname = str(dir_path.relative_to(install_dir))
+                    builder.add(str(dir_path), arcname=arcname)
+
+        log.info(f"Created conda package: {conda_package_path}")
+        return conda_package_path
+
+    except Exception as e:
+        log.error(f"Failed to build conda package from {wheel_path}: {e}")
+        raise
+
+
+def extract_wheel_metadata(wheel_path: Path) -> CondaMetadata:
+    """
+    Extract metadata from a wheel file without installing it.
+
+    Args:
+        wheel_path: Path to the wheel file
+
+    Returns:
+        CondaMetadata object with the wheel's metadata
+    """
+    import zipfile
+
+    with zipfile.ZipFile(wheel_path) as zf:
+        # Find METADATA file
+        metadata_files = [f for f in zf.namelist() if f.endswith("/METADATA")]
+        if not metadata_files:
+            raise ValueError(f"No METADATA file found in wheel: {wheel_path}")
+
+        # Read metadata
+        metadata_content = zf.read(metadata_files[0]).decode("utf-8")
+        distribution = FileDistribution(metadata_content)
+
+        return CondaMetadata.from_distribution(distribution)

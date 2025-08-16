@@ -15,10 +15,7 @@ from conda.history import History
 from conda.exceptions import CondaError
 from conda.models.enums import PackageType
 
-from .python_paths import (
-    ensure_externally_managed,
-    get_externally_managed_paths,
-)
+from .utils import ensure_externally_managed, get_externally_managed_paths
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -62,16 +59,13 @@ def ensure_target_env_has_externally_managed(command: str):
     target_prefix = Path(context.target_prefix)
     if base_prefix == target_prefix or base_prefix.resolve() == target_prefix.resolve():
         return
-    # ensure conda-pypi was explicitly installed in base env (and not as a dependency)
     requested_specs_map = History(base_prefix).get_requested_specs_map()
     if requested_specs_map and "conda-pypi" not in requested_specs_map:
         return
     prefix_data = PrefixData(target_prefix)
     if command in {"create", "install", "update"}:
-        # ensure target env has pip installed
         if not list(prefix_data.query("pip")):
             return
-        # Check if there are some leftover EXTERNALLY-MANAGED files from other Python versions
         if command != "create" and os.name != "nt":
             for path in get_externally_managed_paths(target_prefix):
                 if path.exists():

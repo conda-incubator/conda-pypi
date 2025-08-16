@@ -14,8 +14,8 @@ def conda_subcommands():
     yield plugins.CondaSubcommand(
         name="pip",
         summary="Install PyPI packages by converting them to .conda format",
-        action=cli.pip.execute,
-        configure_parser=cli.pip.configure_parser,
+        action=cli.execute,
+        configure_parser=cli.configure_parser,
     )
 
 
@@ -51,7 +51,6 @@ def _post_command_list_explicit(command: str):
     md5_arg = cmd_line.get("md5")
     checksums = ("md5",) if ("--md5" in sys.argv or (md5_arg and md5_arg.value(None))) else None
 
-    # Import here to avoid circular imports
     from .main import pypi_lines_for_explicit_lockfile
     from . import __version__
 
@@ -75,7 +74,7 @@ def _post_command_process_pypi_lines(command: str):
 
     # Import here to avoid circular imports
     import argparse
-    from .cli.pip import execute_install
+    from .cli import execute_install
 
     if not context.quiet:
         logger.info("Preparing PyPI transaction")

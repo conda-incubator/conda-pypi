@@ -37,10 +37,13 @@ def test_convert_basic_package(
         assert (
             "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
-        assert "packaging" in out, "Should mention the package being converted"
 
         # Output directory should be created
         assert output_dir.exists(), "Output directory should be created"
+
+        # Should have created .conda files in the output directory
+        conda_files = list(output_dir.glob("*.conda"))
+        assert len(conda_files) > 0, "Should have created at least one .conda file"
 
 
 def test_convert_with_dest_option(
@@ -77,6 +80,10 @@ def test_convert_with_dest_option(
         # Custom destination should be created
         assert custom_dest.exists(), "Custom destination directory should be created"
 
+        # Should have created .conda files in the custom destination
+        conda_files = list(custom_dest.glob("*.conda"))
+        assert len(conda_files) > 0, "Should have created at least one .conda file"
+
 
 def test_convert_override_channels(
     tmp_env: TmpEnvFixture,
@@ -109,7 +116,10 @@ def test_convert_override_channels(
         assert (
             "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
-        assert "six" in out, "Should mention the package being converted"
+
+        # Should have created .conda files in the output directory
+        conda_files = list(output_dir.glob("*.conda"))
+        assert len(conda_files) > 0, "Should have created at least one .conda file"
 
 
 def test_convert_multiple_packages(
@@ -139,14 +149,14 @@ def test_convert_multiple_packages(
         # Should succeed
         assert rc == 0, "Convert multiple packages should succeed"
 
-        # Should mention both packages
-        assert "packaging" in out, "Should mention first package"
-        assert "wheel" in out, "Should mention second package"
-
         # Should show conversion progress
         assert (
             "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
+
+        # Should have created .conda files for multiple packages
+        conda_files = list(output_dir.glob("*.conda"))
+        assert len(conda_files) >= 2, "Should have created at least two .conda files"
 
 
 def test_convert_no_packages_error(
@@ -256,7 +266,10 @@ def test_convert_default_destination(
             assert (
                 "Converting PyPI packages to .conda format" in out
             ), "Should show conversion progress"
-            assert "setuptools" in out, "Should mention the package being converted"
+
+            # Should have created .conda files in the current directory
+            conda_files = list(tmp_path.glob("*.conda"))
+            assert len(conda_files) > 0, "Should have created at least one .conda file"
 
         finally:
             os.chdir(original_cwd)
@@ -297,8 +310,9 @@ def test_convert_quiet_mode(
         # The output directory should still be created
         assert output_dir.exists(), "Output directory should be created"
 
-        # The command should still work (we can verify by checking that conda output appears)
-        assert "Package Plan" in out, "Conversion process should run successfully"
+        # The command should still work (we can verify by checking that .conda files are created)
+        conda_files = list(output_dir.glob("*.conda"))
+        assert len(conda_files) > 0, "Conversion process should create .conda files"
 
 
 def test_convert_with_version_spec(
@@ -331,7 +345,10 @@ def test_convert_with_version_spec(
         assert (
             "Converting PyPI packages to .conda format" in out
         ), "Should show conversion progress"
-        assert "packaging" in out, "Should mention the package being converted"
 
         # Output directory should be created
         assert output_dir.exists(), "Output directory should be created"
+
+        # Should have created .conda files in the output directory
+        conda_files = list(output_dir.glob("*.conda"))
+        assert len(conda_files) > 0, "Should have created at least one .conda file"

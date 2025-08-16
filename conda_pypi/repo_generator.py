@@ -1,5 +1,13 @@
 """
-Generate repodata.json converted from wheel metadata.
+Generate conda repository metadata from PyPI package information.
+
+This module creates conda-compatible repository structures and repodata.json
+files from PyPI wheel metadata, enabling conda to discover and plan
+installations of PyPI packages without requiring actual conversion.
+
+The generated repositories contain metadata that makes PyPI packages appear
+as conda packages to the conda solver, facilitating dependency resolution
+and installation planning.
 """
 
 from __future__ import annotations
@@ -15,7 +23,7 @@ from pydantic import BaseModel
 from pypi_simple import ProjectPage, PyPISimple
 from typing import Optional, List, Dict
 
-from conda_pypi.translate import FileDistribution, requires_to_conda
+from conda_pypi.builder import FileDistribution, requires_to_conda
 
 app = typer.Typer()
 
@@ -23,6 +31,10 @@ yaml = ruamel.yaml.YAML(typ="safe", pure=True)
 
 
 class Package(BaseModel):
+    """
+    Represents a conda package entry in repodata.json.
+    """
+
     build: str = ""
     build_number: int = 0
     depends: List[str] = []
@@ -37,6 +49,10 @@ class Package(BaseModel):
 
 
 class RepoData(BaseModel):
+    """
+    Represents the structure of a conda repodata.json file.
+    """
+
     info: dict
     packages: dict[str, Package]
     # "packages.conda": list[str]
@@ -49,8 +65,14 @@ def compatible_wheel(filename):
     Compare filename with supported tags, determine if wheel is compatible.
 
     An installer would rank the wheels based on the order of sys_tags().
+
+    Args:
+        filename: The wheel filename to check
+
+    Returns:
+        True if the wheel is compatible with the current system
     """
-    # TODO get sys_tags from target Python interpreter, not interpreter running synth.py
+    # TODO get sys_tags from target Python interpreter, not interpreter running repo_generator.py
     name, version, build_tag, tags = packaging.utils.parse_wheel_filename(filename)
     supported_tags = list(packaging.tags.sys_tags())
     return not tags.isdisjoint(supported_tags)
@@ -61,6 +83,15 @@ def extract_version_of_project(
 ):
     """
     Extract the version and details of the project from the project page.
+
+    Args:
+        project_page: PyPI project page containing package information
+        version: Specific version to extract
+        download: Whether to download the wheel file
+        download_dir: Directory to download wheels to
+
+    Returns:
+        Tuple of (filename, Package object, download_url)
     """
     for package in project_page.packages:
         if package.version == version and package.filename.endswith(".whl"):
@@ -98,15 +129,18 @@ def extract_version_of_project(
 
 
 @app.command()
-def create_api(
+def create_repository(
     config_file: str = typer.Option("config.yaml", help="filename of config file"),
     repo_dir: str = typer.Option(
-        "synthetic_repo", help="Directory where a conda repo will be created"
+        "generated_repo", help="Directory where a conda repo will be created"
     ),
     populate: bool = typer.Option(False, help="Populate the repo with wheels"),
 ):
     """
-    Create a repodata.json file based on the list of projects provided.
+    Create a conda repository with repodata.json based on the list of PyPI packages provided.
+
+    This command generates a conda-compatible repository structure from PyPI package
+    metadata, allowing conda to discover and plan installations of PyPI packages.
     """
 
     with open(config_file, "rb") as fh:
@@ -130,7 +164,7 @@ def create_api(
         typer.echo(f"Error fetching package info: {e}")
         raise e
 
-    # Create API definition
+    # Create repository metadata
     repodata = RepoData(
         info={"subdir": "noarch"},
         packages=conda_style_packages,
@@ -143,10 +177,16 @@ def create_api(
     repodata_file = os.path.join(noarch_dir, "repodata.json")
     with open(repodata_file, "w") as f:
         f.write(repodata.model_dump_json(indent=2, exclude_none=True))
-    typer.echo(f"Repodata saved to {repodata_file}")
+    typer.echo(f"Repository metadata saved to {repodata_file}")
 
 
 def pypi_simple():
+    """
+    Get or create a PyPISimple client instance.
+
+    Returns:
+        PyPISimple client for accessing PyPI metadata
+    """
     global pypi
     try:
         return pypi
