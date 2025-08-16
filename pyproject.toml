@@ -14,19 +14,18 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-  # "conda >=23.9.0",
   "pip",
   "grayskull",
-  "importlib_resources; python_version < '3.9'",
   "packaging",
 ]
 dynamic = ["version"]
@@ -82,9 +81,6 @@ pytest-mock = "3.12.0.*"
 conda-build = "*"
 pre-commit = "*"
 
-[tool.pixi.feature.py38.dependencies]
-python = "3.8.*"
-
 [tool.pixi.feature.py39.dependencies]
 python = "3.9.*"
 
@@ -94,13 +90,20 @@ python = "3.10.*"
 [tool.pixi.feature.py311.dependencies]
 python = "3.11.*"
 
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
+
 [tool.pixi.environments]
 build = ["build"]
 docs = ["docs"]
-test-py38 = ["test", "py38"]
 test-py39 = ["test", "py39"]
 test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]
+test-py312 = ["test", "py312"]
+test-py313 = ["test", "py313"]
 
 [tool.hatch.version]
 source = "vcs"

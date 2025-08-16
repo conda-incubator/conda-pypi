@@ -13,10 +13,7 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Iterator
 
-try:
-    from importlib.resources import files as importlib_files
-except ImportError:  # python <3.9
-    from importlib_resources import files as importlib_files
+from importlib.resources import files as importlib_files
 
 
 logger = getLogger(f"conda.{__name__}")
