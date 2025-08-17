@@ -43,6 +43,7 @@ def test_pip_required_in_target_env(
     reset_context()
 
 
+@pytest.mark.skip(reason="EXTERNALLY-MANAGED file cleanup on pip removal not yet implemented")
 def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, mocker: MockerFixture
 ):

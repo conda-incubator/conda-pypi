@@ -148,6 +148,9 @@ def test_spec_normalization(
             )
 
 
+@pytest.mark.skip(
+    reason="PyQt5 has complex dependencies that exceed conda solver limits (20 attempts)"
+)
 @pytest.mark.parametrize(
     "pypi_spec,requested_conda_spec,installed_conda_specs",
     [
