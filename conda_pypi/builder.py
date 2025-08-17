@@ -61,7 +61,7 @@ def install_wheel(wheel_path: Path, install_dir: Path):
             "data": str(install_dir),
         },
         interpreter=sys.executable,
-        script_kind="posix",
+        script_kind="posix" if os.name == "posix" else "nt",
     )
 
     # Install the wheel
@@ -69,11 +69,6 @@ def install_wheel(wheel_path: Path, install_dir: Path):
         install(source, destination, {})
 
     log.info(f"Installed wheel {wheel_path} to {install_dir}")
-
-
-# =============================================================================
-# Metadata Translation Classes
-# =============================================================================
 
 
 class FileDistribution(Distribution):
@@ -231,11 +226,6 @@ class CondaMetadata:
         )
 
 
-# =============================================================================
-# Dependency Translation Functions
-# =============================================================================
-
-
 def requires_to_conda(requires: Optional[List[str]]):
     """
     Convert Python requirements to conda format.
@@ -252,19 +242,11 @@ def requires_to_conda(requires: Optional[List[str]]):
     extras: Dict[str, List[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
-        # requirement.marker.evaluate
-
-        # if requirement.marker and not requirement.marker.evaluate():
-        #     # excluded by environment marker
-        #     # see also marker evaluation according to given sys.executable
-        #     continue
-
         name = canonicalize_name(requirement.name)
         requirement.name = pypi_to_conda_name(name)
         as_conda = f"{requirement.name} {requirement.specifier}"
 
         if (marker := requirement.marker) is not None:
-            # for var, _, value in marker._markers:
             for mark in marker._markers:
                 if isinstance(mark, tuple):
                     var, _, value = mark
@@ -301,11 +283,6 @@ def conda_to_requires(matchspec: MatchSpec):
             continue
 
     return None
-
-
-# =============================================================================
-# Package Building Functions
-# =============================================================================
 
 
 def filter_tarinfo(tarinfo):
