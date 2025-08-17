@@ -39,7 +39,7 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
         # Check all variants of the package name (with dashes and underscores)
         for spec_variant in pypi_spec_variants(pkg):
             if list(pd.query(spec_variant)):
-                logger.warning("package %s is already installed; ignoring", pkg)
+                print(f"package {pkg} is already installed; ignoring")
                 break
         else:
             packages_to_process.append(pkg)

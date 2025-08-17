@@ -160,7 +160,7 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     for pkg in packages:
         for spec_variant in pypi_spec_variants(pkg):
             if list(pd.query(spec_variant)):
-                log.warning("package %s is already installed; ignoring", pkg)
+                print(f"package {pkg} is already installed; ignoring")
                 break
         else:
             packages_to_process.append(pkg)
@@ -300,14 +300,13 @@ def prepare_packages_for_installation(
         vcs_packages = [pkg for pkg in requested if VCSHandler.is_vcs_url(pkg)]
         local_packages = [pkg for pkg in requested if not VCSHandler.is_vcs_url(pkg)]
 
-        installed_packages = []
         if vcs_packages:
-            installed_packages.extend(_install_vcs_editable_packages(vcs_packages, prefix))
+            _install_vcs_editable_packages(vcs_packages, prefix)
 
         if local_packages:
             log.info("Local editable installs will be handled directly by pip")
 
-        return installed_packages
+        return []
 
     if with_dependencies:
         solver = PyPIDependencySolver(

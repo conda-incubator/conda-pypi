@@ -109,16 +109,14 @@ def execute_install(args: argparse.Namespace) -> int:
     packages_to_process = validate_target_env(prefix, args.packages)
     if not packages_to_process:
         if not args.quiet:
-            logger.info("All requested packages are already installed")
+            print("All packages are already installed.")
         return 0
 
     ensure_externally_managed("conda pip install")
 
     if args.dry_run:
         if not args.quiet:
-            logger.info("Dry run mode - would install packages:")
-            for pkg in packages_to_process:
-                logger.info(f"  - {pkg}")
+            print(f"Would install packages: {', '.join(packages_to_process)}")
         return 0
 
     try:

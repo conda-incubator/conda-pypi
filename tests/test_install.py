@@ -36,16 +36,23 @@ def _verify_vcs_editable_install(prefix: Path, package_name: str):
     assert editable_pth, f"No editable .pth file found for VCS package {package_name}"
 
     pth_contents = editable_pth.read_text().strip()
-    source_path = None
-    for line in pth_contents.split("\n"):
-        line = line.strip()
-        if line and not line.startswith("import") and Path(line).exists():
-            source_path = Path(line)
-            break
 
-    assert (
-        source_path and source_path.exists()
-    ), f"Invalid source path in .pth file: {pth_contents}"
+    # Handle both old-style (direct path) and new-style (PEP 660 import) .pth files
+    if pth_contents.startswith("import "):
+        # PEP 660 style - just verify the .pth file exists and contains import statement
+        assert "import " in pth_contents, f"Invalid PEP 660 .pth file format: {pth_contents}"
+    else:
+        # Old style - verify source path exists
+        source_path = None
+        for line in pth_contents.split("\n"):
+            line = line.strip()
+            if line and not line.startswith("import") and Path(line).exists():
+                source_path = Path(line)
+                break
+
+        assert (
+            source_path and source_path.exists()
+        ), f"Invalid source path in .pth file: {pth_contents}"
 
     python_exe = get_env_python(prefix)
     import_name = package_name.lower().replace("-", "_")

@@ -274,7 +274,7 @@ def pypi_spec_variants(spec_str: str) -> Iterator[str]:
             seen.add(name_variant)
 
 
-def extract_package_name_from_spec(package_spec: str) -> str:
+def extract_package_name_from_spec(package_spec) -> str:
     """
     Extract the base package name from a package specification.
 
@@ -283,6 +283,12 @@ def extract_package_name_from_spec(package_spec: str) -> str:
         'numpy==1.21.0' -> 'numpy'
         'scipy' -> 'scipy'
     """
+    # Handle both string specs and MatchSpec objects
+    if hasattr(package_spec, "name"):
+        # It's a MatchSpec object
+        return package_spec.name
+
+    # It's a string spec
     # Remove version constraints and extras
     name = package_spec.split("[")[0]  # Remove extras like package[extra]
     name = re.split(r"[<>=!]", name)[0]  # Remove version constraints
