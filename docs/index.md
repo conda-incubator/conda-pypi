@@ -65,6 +65,12 @@ Technical architecture and plugin system design
 Complete command-line interface documentation
 :::
 
+:::{grid-item-card} 🔧 Troubleshooting
+:link: reference/troubleshooting
+:link-type: doc
+Common issues and how to resolve them
+:::
+
 ::::
 
 ```{toctree}
@@ -75,4 +81,5 @@ why
 features
 architecture
 reference/cli-reference
+reference/troubleshooting
 ```
