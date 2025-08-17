@@ -2,51 +2,97 @@
 
 ## Installation
 
-`conda-pypi` is a `conda` plugin that needs to be installed next to `conda` in the `base` environment:
+`conda-pypi` is a `conda` plugin that needs to be installed next to
+`conda` in the `base` environment:
 
-```
+```bash
 conda install -n base conda-pypi
 ```
 
+Once installed, the `conda pypi` subcommand becomes available across all your
+conda environments.
+
 ## Basic usage
 
-`conda-pypi` provides several {doc}`features`. Some of them are discussed here:
+`conda-pypi` provides several {doc}`features`. The main functionality is
+accessed through the `conda pypi` command:
 
-### Safer pip installations
+### Installing PyPI packages
 
-Assuming you have an activated conda environment named `my-python-env` that includes `python` and `pip` installed, and `conda-forge` in your configured channels, you can run `conda pip` like this:
+Assuming you have an activated conda environment named `my-python-env` that
+includes `python` and `pip` installed, and a configured conda channel, you can
+use `conda pypi install` like this:
 
-```
-conda pip install requests
-```
-
-This will install `requests` from conda-forge, along with all its dependencies, because everything is available there. The dependency tree translates one-to-one from PyPI to conda, so there are no issues.
-
-```
-conda pip install build
+```bash
+conda pypi install requests
 ```
 
-This will install the `python-build` package from conda-forge. Note how `conda pip` knows how to map the different project names. This is done via semi-automated mappings provided by the `grayskull`, `cf-graph-countyfair` and `parselmouth` projects.
+This will download and convert `requests` from PyPI to `.conda` format
+(since it was explicitly requested), but install its dependencies from
+the conda channel when available. For example, if `requests` depends on
+`urllib3` and `certifi`, and both are available on the conda channel, those
+dependencies will be installed from conda rather than PyPI.
 
-```
-conda pip install PyQt5
-```
-
-This will install `pyqt=5` from conda, which also brings `qt=5` separately. This is because `pyqt` on conda _depends_ on the Qt libraries instead of bundling them in the same package. Again, the `PyQt5 -> pyqt` mapping is handled as expected.
-
-```
-conda pip install ib_insync
+```bash
+conda pypi install build
 ```
 
-This will install `ib-insync` from conda-forge. Since the conda ecosystem does not normalize dashes and underscores, we have to try all the combinations when searching for the equivalent in conda-forge. This heuristic is not as robust as the mappings mentioned above, though! We are hoping
-there are no conda packages where the underscore and dash variants refer to different packages.
+This will download and convert the `build` package from PyPI to `.conda`
+format. Even though `python-build` exists on conda, the explicitly requested
+package always comes from PyPI to ensure you get exactly what you asked for.
+However, its dependencies will preferentially come from conda channels when
+available.
 
+```bash
+conda pypi install some-package-with-many-deps
 ```
-conda pip install 5-exercise-upload-to-pypi
+
+Here's where the hybrid approach really shines:
+`some-package-with-many-deps` itself will be converted from PyPI, but
+conda-pypi will analyze its dependency tree and:
+- Install dependencies like `numpy`, `pandas`, etc. from the conda channel (if
+  available)
+- Convert only the dependencies that aren't available on conda channels from
+  PyPI
+
+```bash
+conda pypi install --override-channels some-package
 ```
 
-This package is not available on conda-forge. We will analyze the dependency tree and install all the available ones with `conda`. The rest will be installed with `pip install --no-deps`.
+This forces dependency resolution to use only PyPI, bypassing conda channel
+checks for dependencies. The requested package is always converted from PyPI
+regardless of this flag.
 
+### Converting packages without installing
+
+You can also convert PyPI packages to `.conda` format without installing
+them:
+
+```bash
+# Convert to current directory
+conda pypi convert requests packaging
+
+# Convert to specific directory
+conda pypi convert -d ./my_packages requests packaging
+```
+
+This is useful for creating conda packages from PyPI distributions or
+preparing packages for offline installation.
+
+### Development and editable installations
+
+`conda-pypi` supports editable installations for development workflows:
+
+```bash
+# Install local project in editable mode
+conda pypi install -e ./my-project/
+
+# Install from version control in editable mode
+conda pypi install -e git+https://github.com/user/project.git
+
+# Preview what would be installed
+conda pypi install --dry-run requests pandas
+```
 
 ### Lockfiles support
 
@@ -90,10 +136,11 @@ https://conda.anaconda.org/conda-forge/noarch/pip-24.0-pyhd8ed1ab_0.conda#f586ac
 
 ### Environment protection
 
-`conda-pypi` ships a special file, `EXTERNALLY-MANAGED`, that will be installed in:
+`conda-pypi` ships a special file called `EXTERNALLY-MANAGED` that helps
+protect your conda environments from accidental pip usage that could break
+their integrity. This file is automatically installed in the `base`
+environment, all new environments, and existing environments that after running
+a `conda pypi` command on them.
 
-- The `base` environment.
-- All new environments that include `pip`.
-- Existing environments that already have `pip`, but only after running a conda command on them.
-
-More details at {ref}`externally-managed`.
+More details about this protection mechanism can be found at
+{ref}`externally-managed`.
