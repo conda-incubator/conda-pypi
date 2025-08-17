@@ -19,6 +19,7 @@ import itertools
 import json
 import logging
 import os
+import platform
 import sys
 import tempfile
 import time
@@ -49,6 +50,28 @@ from .mapping import pypi_to_conda_name, conda_to_pypi_name
 log = logging.getLogger(__name__)
 
 
+def _get_script_kind():
+    """Get the appropriate script kind for the current platform."""
+    if os.name == "posix":
+        return "posix"
+    elif os.name == "nt":
+        machine = platform.machine().lower()
+        if machine in ("amd64", "x86_64"):
+            return "win-amd64"
+        elif machine == "arm64":
+            return "win-arm64"
+        elif machine in ("i386", "i686", "x86"):
+            return "win-ia32"
+        elif machine == "arm":
+            return "win-arm"
+        else:
+            log.warning(f"Unknown Windows architecture '{machine}', defaulting to win-amd64")
+            return "win-amd64"
+    else:
+        log.warning(f"Unknown platform '{os.name}', defaulting to posix")
+        return "posix"
+
+
 def install_wheel(wheel_path: Path, install_dir: Path):
     """Install a wheel using the installer library."""
     # Handler for installation directories and writing into them.
@@ -61,7 +84,7 @@ def install_wheel(wheel_path: Path, install_dir: Path):
             "data": str(install_dir),
         },
         interpreter=sys.executable,
-        script_kind="posix" if os.name == "posix" else "nt",
+        script_kind=_get_script_kind(),
     )
 
     # Install the wheel
@@ -317,9 +340,10 @@ def _paths(base, path, filter_func=lambda x: x.name != ".git"):
     """
     Recursively generate path entries for paths.json
     """
+    base_path = Path(base)
     for entry in os.scandir(path):
-        # TODO convert \\ to /
-        relative_path = entry.path[len(base) :]
+        entry_path = Path(entry.path)
+        relative_path = entry_path.relative_to(base_path).as_posix()
         if relative_path == "info" or not filter_func(entry):
             continue
         if entry.is_dir():
@@ -481,10 +505,10 @@ def build_conda(
 
                 for file in files:
                     file_path = Path(root) / file
-                    # Calculate relative path from install_dir, excluding info
                     rel_path = file_path.relative_to(install_dir)
-                    print(f"DEBUG: Adding package file: {rel_path}")
-                    builder.add(str(file_path), arcname=str(rel_path))
+                    arcname = rel_path.as_posix()
+                    print(f"DEBUG: Adding package file: {arcname}")
+                    builder.add(str(file_path), arcname=arcname)
 
         log.info(f"Created conda package: {conda_package_path}")
         return conda_package_path

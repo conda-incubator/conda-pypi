@@ -27,7 +27,7 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     """
 
     context.validate_configuration()
-    pd = PrefixData(path, pip_interop_enabled=True)
+    pd = PrefixData(path, interoperability=True)
 
     if not list(pd.query("python>=3.2")):
         raise CondaError(f"Target environment at {path} requires python>=3.2")
@@ -89,7 +89,7 @@ def pypi_lines_for_explicit_lockfile(
     """
 
     PrefixData._cache_.clear()
-    pd = PrefixData(str(prefix), pip_interop_enabled=True)
+    pd = PrefixData(str(prefix), interoperability=True)
     pd.load()
     lines = []
 

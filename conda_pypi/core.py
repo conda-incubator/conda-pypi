@@ -149,7 +149,7 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     and filter out already installed packages.
     """
     context.validate_configuration()
-    pd = PrefixData(path, pip_interop_enabled=True)
+    pd = PrefixData(path, interoperability=True)
 
     if not list(pd.query("python>=3.2")):
         raise CondaError(f"Target environment at {path} requires python>=3.2")

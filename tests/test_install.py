@@ -126,7 +126,7 @@ def test_conda_pypi_install(
         )
         PrefixData._cache_.clear()
         # All explicitly installed packages should come from PyPI and be converted to conda format
-        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        pd = PrefixData(str(prefix), interoperability=True)
         records = list(pd.query(pypi_spec))
         assert len(records) == 1
         assert records[0].channel.name == "pypi"
@@ -344,7 +344,7 @@ def test_install_package_with_extras(
         assert rc == 0
 
         PrefixData._cache_.clear()
-        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        pd = PrefixData(str(prefix), interoperability=True)
 
         packaging_records = list(pd.query("packaging"))
         assert len(packaging_records) >= 1, "packaging package not found"
@@ -380,7 +380,7 @@ def test_update_already_installed_package(
         assert rc == 0, "Reinstalling existing package should succeed"
 
         PrefixData._cache_.clear()
-        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        pd = PrefixData(str(prefix), interoperability=True)
         packaging_records = list(pd.query("packaging"))
         assert len(packaging_records) >= 1, "packaging should still be installed"
 
@@ -477,7 +477,7 @@ def test_dry_run_functionality(
 
         # Verify the package is NOT actually installed
         PrefixData._cache_.clear()
-        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        pd = PrefixData(str(prefix), interoperability=True)
         requests_records = list(pd.query("requests"))
         assert len(requests_records) == 0, "Package should not be installed after dry-run"
 
@@ -558,6 +558,6 @@ def test_dry_run_with_mixed_packages(
 
         # Verify requests is NOT actually installed
         PrefixData._cache_.clear()
-        pd = PrefixData(str(prefix), pip_interop_enabled=True)
+        pd = PrefixData(str(prefix), interoperability=True)
         requests_records = list(pd.query("requests"))
         assert len(requests_records) == 0, "New package should not be installed after dry-run"
