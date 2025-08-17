@@ -1,65 +1,77 @@
 # CLI Reference
 
-This reference documents all available commands, options, and usage patterns for the `conda pip` command-line interface.
+This reference documents all available commands, options, and usage patterns
+for the `conda pip` command-line interface.
 
 ## Overview
 
-`conda-pypi` adds the `conda pip` subcommand to conda, providing two main operations:
+`conda-pypi` adds the `conda pip` subcommand to conda, providing two main
+operations:
 
-- `conda pip install` - Install PyPI packages with conversion to conda format
-- `conda pip convert` - Convert PyPI packages to `.conda` format without installing
+- `conda pip install` - Install PyPI packages with conversion to conda
+  format
+- `conda pip convert` - Convert PyPI packages to `.conda` format without
+  installing
 
 ## Global Options
 
-These options are inherited from conda and available for all `conda pip` commands:
+These options are inherited from conda and available for all `conda pip`
+commands:
 
 ### Target Environment Specification
 
 ```bash
 -n ENVIRONMENT, --name ENVIRONMENT
 ```
-Name of the conda environment to operate on. If not specified, uses the currently active environment.
+Name of the conda environment to operate on. If not specified, uses the
+currently active environment.
 
 ```bash
--p PATH, --prefix PATH  
+-p PATH, --prefix PATH
 ```
-Full path to environment location (i.e. prefix). Use this instead of `-n` when working with environments outside the default envs directory.
+Full path to environment location (i.e. prefix). Use this instead of `-n`
+when working with environments outside the default envs directory.
 
 ### Output, Prompt, and Flow Control Options
 
 ```bash
 --json
 ```
-Report all output as JSON. Suitable for using conda programmatically or parsing output in scripts.
+Report all output as JSON. Suitable for using conda programmatically or
+parsing output in scripts.
 
 ```bash
 --console CONSOLE
 ```
-Select the backend to use for normal output rendering. Options depend on your conda installation.
+Select the backend to use for normal output rendering. Options depend on
+your conda installation.
 
 ```bash
 -v, --verbose
 ```
 Increase verbosity level. Can be used multiple times:
 - Once: detailed output
-- Twice: INFO logging  
+- Twice: INFO logging
 - Thrice: DEBUG logging
 - Four times: TRACE logging
 
 ```bash
 -q, --quiet
 ```
-Do not display progress bar or other non-essential output. Useful for scripting.
+Do not display progress bar or other non-essential output. Useful for
+scripting.
 
 ```bash
 -d, --dry-run
 ```
-Only display what would have been done without actually performing the operation. Useful for previewing changes.
+Only display what would have been done without actually performing the
+operation. Useful for previewing changes.
 
 ```bash
 -y, --yes
 ```
-Sets any confirmation values to 'yes' automatically. Users will not be asked to confirm any operations.
+Sets any confirmation values to 'yes' automatically. Users will not be
+asked to confirm any operations.
 
 ```bash
 -h, --help
@@ -80,7 +92,10 @@ conda pip install [options] -e vcs+url
 
 ### Description
 
-The install command takes PyPI packages and converts them to `.conda` format when possible, falling back to direct pip installation when needed. Explicitly requested packages are always converted from PyPI, while dependencies are preferentially installed from conda channels when available.
+The install command takes PyPI packages and converts them to `.conda` format
+when possible, falling back to direct pip installation when needed.
+Explicitly requested packages are always converted from PyPI, while
+dependencies are preferentially installed from conda channels when available.
 
 ### Arguments
 
@@ -90,7 +105,8 @@ package
 Package specification(s) to install. Can be:
 - Package names: `requests`, `numpy`
 - Version specifications: `requests>=2.25.0`, `numpy==1.21.*`
-- URLs to wheels or source distributions: `https://files.pythonhosted.org/packages/...`
+- URLs to wheels or source distributions:
+  `https://files.pythonhosted.org/packages/...`
 - Local file paths: `./my-package-1.0.tar.gz`
 
 ### Options
@@ -98,12 +114,17 @@ Package specification(s) to install. Can be:
 ```bash
 --override-channels
 ```
-Do not search default or `.condarc` channels during dependency resolution. Requested packages are always converted from PyPI regardless of this flag, but dependencies will be forced to convert from PyPI instead of using conda channels like conda-forge.
+Do not search default or `.condarc` channels during dependency resolution.
+Requested packages are always converted from PyPI regardless of this flag,
+but dependencies will be forced to convert from PyPI instead of using conda
+channels like conda-forge.
 
 ```bash
 --dry-run
 ```
-Don't actually install anything, just print what would be done. Shows which packages would be converted from PyPI and which would be installed from conda channels.
+Don't actually install anything, just print what would be done. Shows which
+packages would be converted from PyPI and which would be installed from conda
+channels.
 
 ```bash
 -e, --editable
@@ -112,7 +133,8 @@ Install packages in editable mode (development mode). Supports:
 - Local directories: `-e ./my-project/`
 - VCS URLs: `-e git+https://github.com/user/repo.git`
 - VCS URLs with branches: `-e git+https://github.com/user/repo.git@branch`
-- VCS URLs with subdirectories: `-e git+https://github.com/user/repo.git#subdirectory=sub`
+- VCS URLs with subdirectories:
+  `-e git+https://github.com/user/repo.git#subdirectory=sub`
 
 ### Examples
 
@@ -178,7 +200,10 @@ conda pip convert [options] package [package ...]
 
 ### Description
 
-The convert command transforms PyPI packages to `.conda` format without installing them. This is useful for creating conda packages from PyPI distributions, preparing packages for offline installation, or building custom conda channels.
+The convert command transforms PyPI packages to `.conda` format without
+installing them. This is useful for creating conda packages from PyPI
+distributions, preparing packages for offline installation, or building
+custom conda channels.
 
 ### Arguments
 
@@ -186,7 +211,7 @@ The convert command transforms PyPI packages to `.conda` format without installi
 package
 ```
 Package specification(s) to convert. Same format as install command:
-- Package names: `requests`, `numpy`  
+- Package names: `requests`, `numpy`
 - Version specifications: `requests>=2.25.0`, `numpy==1.21.*`
 - URLs to wheels: `https://files.pythonhosted.org/packages/...`
 
@@ -195,12 +220,16 @@ Package specification(s) to convert. Same format as install command:
 ```bash
 --override-channels
 ```
-Do not search default or `.condarc` channels during conversion. Since the convert command only converts the explicitly requested packages (not dependencies), this flag mainly affects whether conda-pypi checks for existing conda equivalents before converting.
+Do not search default or `.condarc` channels during conversion. Since the
+convert command only converts the explicitly requested packages (not
+dependencies), this flag mainly affects whether conda-pypi checks for
+existing conda equivalents before converting.
 
 ```bash
 -d OUTPUT_DIR, --dest OUTPUT_DIR, -o OUTPUT_DIR, --output-dir OUTPUT_DIR
 ```
-Directory to save converted `.conda` packages. If not specified, saves to current directory. The directory will be created if it doesn't exist.
+Directory to save converted `.conda` packages. If not specified, saves to
+current directory. The directory will be created if it doesn't exist.
 
 ### Examples
 
@@ -236,7 +265,8 @@ conda pip convert --quiet -d ./output requests
 
 ## Package Specifications
 
-Both install and convert commands accept various package specification formats:
+Both install and convert commands accept various package specification
+formats:
 
 ### Basic Package Names
 ```bash
@@ -279,7 +309,8 @@ conda pip install -e svn+https://svn.example.com/repo/trunk
 
 ## Environment Variables
 
-`conda-pypi` respects standard conda environment variables and adds a few of its own:
+`conda-pypi` respects standard conda environment variables and adds a few
+of its own:
 
 ### Conda Variables
 - `CONDA_DEFAULT_ENV`: Default environment name
@@ -293,7 +324,9 @@ conda pip install -e svn+https://svn.example.com/repo/trunk
 
 ## Integration with conda list
 
-When `conda-pypi` converts and installs packages, they appear in `conda list` output and are tracked by conda's package management system. Converted packages can be removed with `conda remove`.
+When `conda-pypi` converts and installs packages, they appear in `conda
+list` output and are tracked by conda's package management system. Converted
+packages can be removed with `conda remove`.
 
 ### Lockfile Integration
 
@@ -303,7 +336,7 @@ When `conda-pypi` converts and installs packages, they appear in `conda list` ou
 # Generate lockfile with PyPI packages
 conda list --explicit --md5 > environment.lock
 
-# Generate lockfile without PyPI packages  
+# Generate lockfile without PyPI packages
 conda list --explicit --no-pip > environment.lock
 
 # Create environment from lockfile (automatically processes PyPI lines)
