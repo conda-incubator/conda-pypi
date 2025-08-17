@@ -7,17 +7,27 @@ to conda format, with and without dependency resolution.
 
 from __future__ import annotations
 
+import configparser
+import hashlib
 import logging
+import re
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
 import platformdirs
 from conda.base.context import context
+from conda.cli.main import main_subshell
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import CondaError
 from pip._internal.index.package_finder import PackageFinder
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore
 
 from .utils import (
     ensure_externally_managed,
@@ -29,6 +39,7 @@ from .utils import (
     pypi_spec_variants,
 )
 from .solver import PyPIDependencySolver
+from .vcs import VCSHandler
 
 log = logging.getLogger(__name__)
 
@@ -44,11 +55,6 @@ def _install_vcs_editable_packages(vcs_packages: list[str], prefix: Union[Path, 
     Returns:
         List of successfully installed package names
     """
-    import subprocess
-    import shutil
-    import hashlib
-    from .vcs import VCSHandler
-    from .utils import get_python_executable
 
     prefix = Path(prefix)
     python_exe = get_python_executable(prefix)
@@ -104,17 +110,10 @@ def _extract_package_name_from_source(repo_path: Path) -> str:
     Tries pyproject.toml, setup.cfg, then setup.py in order.
     Falls back to directory name if no package name is found.
     """
-    import configparser
-    import re
 
     pyproject_path = repo_path / "pyproject.toml"
     if pyproject_path.exists():
         try:
-            try:
-                import tomllib
-            except ImportError:
-                import tomli as tomllib
-
             with open(pyproject_path, "rb") as f:
                 data = tomllib.load(f)
                 if name := data.get("project", {}).get("name"):
@@ -298,8 +297,6 @@ def prepare_packages_for_installation(
     pypi_channel_dir = Path(platformdirs.user_data_dir("pypi"))
 
     if editable:
-        from .vcs import VCSHandler
-
         vcs_packages = [pkg for pkg in requested if VCSHandler.is_vcs_url(pkg)]
         local_packages = [pkg for pkg in requested if not VCSHandler.is_vcs_url(pkg)]
 
@@ -356,7 +353,6 @@ def install_packages(
         prefix: Conda environment prefix where packages will be installed
         override_channels: Whether to override default conda channels
     """
-    from conda.cli.main import main_subshell
 
     cmd_args = ["install", "--prefix", str(prefix), "--yes"]
 

@@ -45,7 +45,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [tool.pixi.dependencies]
 python = ">=3.8"
-conda = ">=23.9"
+conda = ">=24.11.0"
 pip = "*"
 grayskull = "*"
 conda-libmamba-solver = ">=24.9"

@@ -8,6 +8,7 @@ PyPI packages using conda-pypi.
 from __future__ import annotations
 
 import argparse
+import traceback
 from logging import getLogger
 from pathlib import Path
 
@@ -17,6 +18,12 @@ from conda.cli.conda_argparse import (
     add_parser_prefix,
 )
 from conda.exceptions import ArgumentError
+from conda.reporters import get_spinner
+
+from .core import convert_packages, install_packages, prepare_packages_for_installation
+from .main import ensure_externally_managed, validate_target_env
+from .utils import get_prefix
+
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -94,15 +101,6 @@ def execute_install(args: argparse.Namespace) -> int:
             "or one editable specification."
         )
 
-    try:
-        from conda.reporters import get_spinner
-    except ImportError:
-        # Fallback for older conda versions that don't have conda.reporters
-        from contextlib import nullcontext as get_spinner
-
-    from .utils import get_prefix
-    from .main import ensure_externally_managed, validate_target_env
-
     prefix = get_prefix(args.prefix, args.name)
 
     if not args.quiet:
@@ -127,8 +125,6 @@ def execute_install(args: argparse.Namespace) -> int:
         if not args.quiet:
             action = "Installing" if args.editable else "Converting and installing"
             logger.info(f"{action} packages: {', '.join(args.packages)}")
-
-        from .core import prepare_packages_for_installation, install_packages
 
         if not args.quiet:
             spinner_message = (
@@ -171,8 +167,6 @@ def execute_install(args: argparse.Namespace) -> int:
     except Exception as e:
         logger.error(f"Installation failed: {e}")
         if getattr(args, "verbose", False):
-            import traceback
-
             traceback.print_exc()
         return 1
 
@@ -184,14 +178,6 @@ def execute_convert(args: argparse.Namespace) -> int:
     if not args.packages:
         raise ArgumentError("No packages requested. Please provide one or more packages.")
 
-    try:
-        from conda.reporters import get_spinner
-    except ImportError:
-        # Fallback for older conda versions that don't have conda.reporters
-        from contextlib import nullcontext as get_spinner
-
-    from .utils import get_prefix
-
     prefix = get_prefix(args.prefix, args.name)
 
     output_dir = args.output_dir or Path.cwd()
@@ -199,8 +185,6 @@ def execute_convert(args: argparse.Namespace) -> int:
 
     if not args.quiet:
         logger.info(f"Converting packages: {', '.join(args.packages)}")
-
-    from .core import convert_packages
 
     if not args.quiet:
         with get_spinner("Converting PyPI packages to .conda format"):

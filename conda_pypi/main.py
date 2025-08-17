@@ -15,7 +15,7 @@ from conda.history import History
 from conda.exceptions import CondaError
 from conda.models.enums import PackageType
 
-from .utils import ensure_externally_managed, get_externally_managed_paths
+from .utils import ensure_externally_managed, get_externally_managed_paths, pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -25,7 +25,6 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     Validate that the target environment has the required dependencies
     and filter out already installed packages.
     """
-    from .utils import pypi_spec_variants
 
     context.validate_configuration()
     pd = PrefixData(path, pip_interop_enabled=True)
@@ -88,7 +87,6 @@ def pypi_lines_for_explicit_lockfile(
     """
     Generate PyPI package lines for conda list --explicit output.
     """
-    from conda.core.prefix_data import PrefixData
 
     PrefixData._cache_.clear()
     pd = PrefixData(str(prefix), pip_interop_enabled=True)

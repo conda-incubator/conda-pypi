@@ -13,22 +13,36 @@ from __future__ import annotations
 
 import hashlib
 import os
+import pkgutil
 import re
 import subprocess
+import sys
 from enum import Enum
 from logging import getLogger
+from os.path import isfile, islink
 from pathlib import Path
 from typing import Iterator, Optional
 
+import conda.common.path
 from conda.base.context import context, locate_prefix_by_name
 from conda.core.prefix_data import get_python_version_for_prefix
 from conda.gateways.connection.download import download
 from conda.models.match_spec import MatchSpec
 from conda_index.index import ChannelIndex
+from pip._internal.index.collector import LinkCollector
 from pip._internal.index.package_finder import PackageFinder
+from pip._internal.models.search_scope import SearchScope
+from pip._internal.models.selection_prefs import SelectionPreferences
 from pip._internal.models.target_python import TargetPython
+from pip._internal.network.session import PipSession
 
 from .exceptions import PypiError
+
+# Lazy imports to avoid circular dependencies
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -59,7 +73,6 @@ class PathType(Enum):
 
 def sha256_checksum(filename, entry: Optional[os.DirEntry] = None, buffersize=1 << 18):
     """Calculate SHA256 checksum of a file."""
-    from os.path import islink, isfile
 
     if not entry:
         is_link = islink(filename)
@@ -97,7 +110,6 @@ def get_prefix(prefix: os.PathLike = None, name: str = None) -> Path:
 
 def get_python_short_path():
     """Get the short path to Python executable within a conda environment."""
-    import conda.common.path
 
     return conda.common.path.get_python_short_path()
 
@@ -155,8 +167,6 @@ def ensure_externally_managed(path_or_prefix, command: str = "conda pip"):
     else:
         paths = [path_or_prefix]
 
-    import pkgutil
-
     template = pkgutil.get_data("conda_pypi", "data/EXTERNALLY-MANAGED")
     if template:
         content = template.decode("utf-8").replace("conda pip install", command)
@@ -211,8 +221,6 @@ def get_env_stdlib(prefix: Path) -> Path:
         return Path(result.stdout.strip())
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Fallback: construct manually
-        import sys
-
         version_info = sys.version_info
         return prefix / "lib" / f"python{version_info.major}.{version_info.minor}"
 
@@ -241,8 +249,6 @@ def get_env_site_packages(prefix: Path) -> Path:
         return Path(result.stdout.strip())
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Fallback: construct manually
-        import sys
-
         version_info = sys.version_info
         return (
             prefix / "lib" / f"python{version_info.major}.{version_info.minor}" / "site-packages"
@@ -292,10 +298,6 @@ def get_package_finder(prefix: Path) -> PackageFinder:
     """
     Create a PackageFinder with the prefix's Python version, not our Python.
     """
-    from pip._internal.index.collector import LinkCollector
-    from pip._internal.models.search_scope import SearchScope
-    from pip._internal.models.selection_prefs import SelectionPreferences
-    from pip._internal.network.session import PipSession
 
     py_ver = get_python_version_for_prefix(prefix)
     if not py_ver:
