@@ -15,21 +15,11 @@ subcommand hook adds the `conda pip` subcommand to conda through
 for installing PyPI packages with conversion and `conda pip convert` for
 converting PyPI packages without installing them.
 
-The plugin also registers three post-command hooks that extend conda's
-existing commands. The environment protection hook triggers after `install`,
-`create`, `update`, and `remove` commands to automatically deploy
-`EXTERNALLY-MANAGED` files that prevent accidental pip usage. This is
-implemented through `ensure_target_env_has_externally_managed()`.
-
-The explicit lockfile hook activates after `conda list --explicit` commands
-to add PyPI package information as comments to explicit lockfiles. The
-implementation in `_post_command_list_explicit()` appends `# pypi:` comment
-lines to lockfile output.
-
-Finally, the PyPI lines processing hook triggers after `conda install` and
-`conda create` commands to automatically process PyPI lines found in
-lockfiles during environment creation or installation. This is handled by
-`_post_command_process_pypi_lines()`.
+The plugin also registers a post-command hook that extends conda's existing
+commands. The environment protection hook triggers after `install`, `create`,
+`update`, and `remove` commands to automatically deploy `EXTERNALLY-MANAGED`
+files that prevent accidental pip usage. This is implemented through
+`ensure_target_env_has_externally_managed()`.
 
 ## Module Architecture
 
@@ -41,8 +31,8 @@ responsibilities:
 #### `plugin.py` - Plugin Entry Point
 - **Role**: Conda plugin registration and hook implementations
 - **Key Functions**:
-  - Register subcommands and post-command hooks
-  - Handle lockfile PyPI line processing
+  - Register `conda pip` subcommand
+  - Register post-command hook for EXTERNALLY-MANAGED deployment
   - Coordinate with conda's plugin system
 
 #### `cli.py` - Command Line Interface
@@ -176,17 +166,15 @@ Save to Output Directory
 conda command executed
          ↓
 Post-command hook?
-    ↓        ↓           ↓
-list      install/    install/create/
---explicit  create     update/remove
-    ↓        ↓           ↓
-Add PyPI  Process    Deploy
-lines     PyPI       EXTERNALLY-
-    ↓     lines      MANAGED
-Output to   ↓           ↓
-stdout   Install    Create marker
-         PyPI       files
-         packages
+         ↓
+install/create/update/remove
+         ↓
+      Deploy
+   EXTERNALLY-
+     MANAGED
+         ↓
+   Create marker
+      files
 ```
 
 ## Key Design Principles

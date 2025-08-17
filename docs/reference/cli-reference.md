@@ -330,16 +330,14 @@ packages can be removed with `conda remove`.
 
 ### Lockfile Integration
 
-`conda-pypi` integrates with `conda list --explicit`:
+Since `conda-pypi` converts PyPI packages to conda format, they appear as
+regular conda packages in lockfiles:
 
 ```bash
-# Generate lockfile with PyPI packages
+# Generate lockfile with all packages (including converted PyPI packages)
 conda list --explicit --md5 > environment.lock
 
-# Generate lockfile without PyPI packages
-conda list --explicit --no-pip > environment.lock
-
-# Create environment from lockfile (automatically processes PyPI lines)
+# Create environment from lockfile
 conda create --name newenv --file environment.lock
 ```
 

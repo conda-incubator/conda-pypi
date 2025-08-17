@@ -66,50 +66,19 @@ mapping of PyPI dependencies to conda equivalents and provides cross-platform
 support for package conversion, ensuring that converted packages work
 seamlessly across different operating systems and architectures.
 
-(pypi-lines)=
+## Package Management Integration
 
-## `conda list` integrations
+When `conda-pypi` converts PyPI packages to conda format, they become
+first-class conda packages that appear in `conda list` output and can be
+managed with standard conda commands like `conda remove`. This seamless
+integration means that converted packages are indistinguishable from
+packages installed directly from conda channels, providing a unified package
+management experience.
 
-While `conda` has native support for listing PyPI dependencies as part of
-`conda list`, this is not enabled in all output modes. Notably, `conda list
---explicit`, which is sometimes used as a lockfile replacement, does not
-include any information about PyPI dependencies.
-
-To address this limitation, we have added a post-command plugin that lists
-PyPI dependencies via `# pypi:` comments. This is currently an experimental,
-non-standard extension of the file format that is subject to change. The
-simplified syntax focuses on essential package information including the
-package name, version, and Python version, with optional placeholder
-checksums when the `--md5` flag is used.
-
-The current implementation automatically detects only packages installed via
-conda-pypi conversion and excludes PyPI packages from explicit listings when
-you use the `--no-pip` option. The format looks like this:
-
-```
-# pypi: <name>==<version> --python-version <version> [--record-checksum=md5:placeholder]
-```
-
-Here are some example PyPI lines you might see:
-```
-# pypi: requests==2.32.2 --python-version 3.12
-# pypi: packaging==24.0 --python-version 3.12
-# pypi: converted-package==1.0.0 --python-version 3.12 --record-checksum=md5:placeholder
-```
-
-## `conda install` integrations
-
-A post-command plugin automatically processes `@EXPLICIT` lockfiles and
-searches for `# pypi:` lines during `conda install` and `conda create`
-operations. When PyPI lines are found, the packages are automatically
-installed using conda-pypi's hybrid approach, working transparently with
-existing conda workflows.
-
-The system provides clear error messages if PyPI package installation fails
-and uses the same smart conversion logic as `conda pip install` for
-dependency resolution. This enables full environment reproducibility that
-includes both conda and converted PyPI packages, ensuring that environments
-can be recreated exactly as they were originally configured.
+The conversion process preserves all essential package metadata, ensuring
+that dependency relationships and version constraints are properly maintained
+in the conda environment. This approach eliminates the complexity of managing
+two separate package ecosystems within a single environment.
 
 ## Editable Package Support
 

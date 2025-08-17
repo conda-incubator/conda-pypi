@@ -97,17 +97,20 @@ conda pip install --dry-run requests pandas
 
 ### Lockfiles support
 
-`conda-pypi` integrates with `conda list --explicit` to add PyPI package
-information to your `@EXPLICIT` lockfiles. It also integrates with `conda
-install` and `conda create` to automatically process these PyPI lines when
-recreating environments from lockfiles. See more at {ref}`pypi-lines`.
+Since `conda-pypi` converts PyPI packages to conda format, they appear as
+regular conda packages in `conda list --explicit` lockfiles. This means you
+can create reproducible environments using standard conda lockfile workflows:
 
-You can generate lockfiles with PyPI packages included using `conda list
---explicit --md5 > environment.lock`, or generate lockfiles without PyPI
-packages using `conda list --explicit --no-pip > environment.lock`.
+```bash
+# Generate lockfile with all packages (including converted PyPI packages)
+conda list --explicit --md5 > environment.lock
 
-The generated lockfiles include PyPI packages as comment lines with a
-simplified format:
+# Create environment from lockfile
+conda create --name myenv --file environment.lock
+```
+
+The generated lockfiles contain standard conda package URLs for all packages,
+including those that were originally installed from PyPI:
 
 ```
 # This file may be used to create an environment using:
@@ -116,24 +119,12 @@ simplified format:
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/osx-arm64/python-3.12.2-hdf0ec26_0_cpython.conda#85e91138ae921a2771f57a50120272bd
 https://conda.anaconda.org/conda-forge/noarch/pip-24.0-pyhd8ed1ab_0.conda#f586ac1e56c8638b64f9c8122a7b8a67
-# The following lines were added by conda-pypi v0.1.0
-# This is an experimental feature subject to change. Do not use in
-# production.
-# pypi: requests==2.32.2 --python-version 3.12
-# pypi: packaging==24.0 --python-version 3.12
-# pypi: some-converted-package==1.0.0 --python-version 3.12 --record-checksum=md5:placeholder
+file:///path/to/conda/envs/myenv/conda-bld/converted-requests-2.32.2-py312_0.conda#abcd1234
 ```
 
-When you create or install from a lockfile containing PyPI lines,
-conda-pypi automatically processes them. You can create an environment from a
-lockfile using `conda create --name myenv --file environment.lock`, and PyPI
-packages will be automatically installed. Similarly, you can install packages
-from a lockfile into an existing environment using `conda install --file
-environment.lock`.
-
-The PyPI packages in the lockfile are processed using the same hybrid
-approach as `conda pip install`, installing from conda channels when
-available and otherwise converting from PyPI format.
+This unified approach eliminates the complexity of managing separate PyPI and
+conda package lists, providing a single source of truth for environment
+reproduction.
 
 ### Environment protection
 
