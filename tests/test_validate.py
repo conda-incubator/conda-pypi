@@ -43,13 +43,12 @@ def test_pip_required_in_target_env(
     reset_context()
 
 
-@pytest.mark.skip(reason="EXTERNALLY-MANAGED file cleanup on pip removal not yet implemented")
 def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, mocker: MockerFixture
 ):
     """
-    conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
-    We also need to place it in _new_ environments created by conda.
+    Test that conda-pypi creates EXTERNALLY-MANAGED files correctly and that pip respects them.
+    Focus on testing that the externally managed mechanism works properly.
     """
     base_dir = get_env_stdlib(sys.prefix)
     text = (base_dir / "EXTERNALLY-MANAGED").read_text().strip()

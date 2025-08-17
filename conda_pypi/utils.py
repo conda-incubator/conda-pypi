@@ -21,7 +21,7 @@ from enum import Enum
 from logging import getLogger
 from os.path import isfile, islink
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator, Optional, List
 
 import conda.common.path
 from conda.base.context import context, locate_prefix_by_name
@@ -119,9 +119,14 @@ def get_python_executable(prefix: Path):
     return Path(prefix, get_python_short_path())
 
 
-def get_externally_managed_paths(prefix: Path) -> list[Path]:
+def get_externally_managed_paths(prefix: Path) -> List[Path]:
     """
     Get paths where EXTERNALLY-MANAGED files should be placed for PEP 668 compliance.
+
+    Returns all the possible EXTERNALLY-MANAGED paths in 'prefix', for all found
+    Python (former) installations. The paths themselves are not guaranteed to exist.
+
+    This does NOT invoke python's sysconfig because Python might not be installed (anymore).
 
     Args:
         prefix: Conda environment prefix
@@ -129,32 +134,25 @@ def get_externally_managed_paths(prefix: Path) -> list[Path]:
     Returns:
         List of paths where EXTERNALLY-MANAGED files should be placed
     """
-    # Get the Python executable for this prefix
-    python_exe = get_python_executable(prefix)
+    prefix = Path(prefix)
+    paths = []
 
-    try:
-        # Get the site-packages directory using the prefix's Python
-        result = subprocess.run(
-            [str(python_exe), "-c", "import sysconfig; print(sysconfig.get_paths()['stdlib'])"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        stdlib_path = Path(result.stdout.strip())
-        return [stdlib_path / "EXTERNALLY-MANAGED"]
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        # Fallback: try to construct the path manually
-        # This is less reliable but better than nothing
-        return [prefix / "lib" / "python*" / "EXTERNALLY-MANAGED"]
+    if os.name == "nt":
+        paths.append(prefix / "Lib" / "EXTERNALLY-MANAGED")
+    else:
+        for python_dir in sorted(Path(prefix, "lib").glob("python*")):
+            if python_dir.is_dir():
+                paths.append(Path(python_dir, "EXTERNALLY-MANAGED"))
+
+    return paths
 
 
-def ensure_externally_managed(path_or_prefix, command: str = "conda pip"):
+def ensure_externally_managed(path_or_prefix):
     """
     Ensure EXTERNALLY-MANAGED file exists for PEP 668 compliance.
 
     Args:
         path_or_prefix: Either a direct path to EXTERNALLY-MANAGED file or a prefix
-        command: Command name to include in the error message
     """
     if isinstance(path_or_prefix, (str, Path)):
         path_or_prefix = Path(path_or_prefix)
@@ -168,14 +166,9 @@ def ensure_externally_managed(path_or_prefix, command: str = "conda pip"):
         paths = [path_or_prefix]
 
     template = pkgutil.get_data("conda_pypi", "data/EXTERNALLY-MANAGED")
-    if template:
-        content = template.decode("utf-8").replace("conda pip install", command)
-    else:
-        content = f"""[externally-managed]
-Error=This environment is externally managed by {command}.
- To install Python packages system-wide, try '{command}', which will install and manage packages for you.
- If you still want to install to the system Python, use --break-system-packages.
-"""
+    if not template:
+        raise RuntimeError("EXTERNALLY-MANAGED template not found. Package may be corrupted.")
+    content = template.decode("utf-8")
 
     for path in paths:
         if not path.exists():

@@ -21,7 +21,8 @@ from conda.exceptions import ArgumentError
 from conda.reporters import get_spinner
 
 from .core import convert_packages, install_packages, prepare_packages_for_installation
-from .main import ensure_externally_managed, validate_target_env
+from .main import validate_target_env
+from .utils import ensure_externally_managed
 from .utils import get_prefix
 
 
@@ -112,7 +113,7 @@ def execute_install(args: argparse.Namespace) -> int:
             print("All packages are already installed.")
         return 0
 
-    ensure_externally_managed("conda pip install")
+    ensure_externally_managed(prefix)
 
     if args.dry_run:
         if not args.quiet:

@@ -178,7 +178,7 @@ def ensure_target_env_has_externally_managed(command: str):
     for path in externally_managed_paths:
         if not path.exists():
             log.info(f"Creating EXTERNALLY-MANAGED file at {path}")
-            ensure_externally_managed(path, command)
+            ensure_externally_managed(path)
 
 
 def convert_packages(
