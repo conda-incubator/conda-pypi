@@ -33,6 +33,117 @@ from .solver import PyPIDependencySolver
 log = logging.getLogger(__name__)
 
 
+def _install_vcs_editable_packages(vcs_packages: list[str], prefix: Union[Path, str]) -> list[str]:
+    """
+    Install VCS packages in editable mode using pip directly.
+
+    Args:
+        vcs_packages: List of VCS URLs (git+https://..., etc.)
+        prefix: Conda environment prefix
+
+    Returns:
+        List of successfully installed package names
+    """
+    import subprocess
+    import shutil
+    import hashlib
+    from .vcs import VCSHandler
+    from .utils import get_python_executable
+
+    prefix = Path(prefix)
+    python_exe = get_python_executable(prefix)
+    installed_packages = []
+
+    for vcs_url in vcs_packages:
+        try:
+            vcs_info = VCSHandler.parse_vcs_url(vcs_url)
+            log.info(f"Installing VCS package in editable mode: {vcs_url}")
+
+            vcs_cache_dir = prefix / "conda-pypi-vcs"
+            vcs_cache_dir.mkdir(exist_ok=True)
+
+            url_hash = hashlib.md5(vcs_url.encode()).hexdigest()[:8]
+            repo_name = vcs_info.url.split("/")[-1].replace(".git", "")
+            persistent_dir = vcs_cache_dir / f"{repo_name}-{url_hash}"
+
+            if persistent_dir.exists():
+                shutil.rmtree(persistent_dir)
+
+            repo_path = VCSHandler.clone_repository(vcs_info, persistent_dir)
+
+            cmd = [
+                str(python_exe),
+                "-m",
+                "pip",
+                "install",
+                "-e",
+                str(repo_path),
+                "--no-deps",
+                "--break-system-packages",
+            ]
+
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
+
+            package_name = _extract_package_name_from_source(repo_path)
+            if package_name:
+                installed_packages.append(package_name)
+                log.info(f"Successfully installed VCS package: {package_name}")
+
+        except subprocess.CalledProcessError as e:
+            log.error(f"Failed to install VCS package {vcs_url}: {e.stderr}")
+        except Exception as e:
+            log.error(f"Error installing VCS package {vcs_url}: {e}")
+
+    return installed_packages
+
+
+def _extract_package_name_from_source(repo_path: Path) -> str:
+    """
+    Extract package name from Python project source directory.
+
+    Tries pyproject.toml, setup.cfg, then setup.py in order.
+    Falls back to directory name if no package name is found.
+    """
+    import configparser
+    import re
+
+    pyproject_path = repo_path / "pyproject.toml"
+    if pyproject_path.exists():
+        try:
+            try:
+                import tomllib
+            except ImportError:
+                import tomli as tomllib
+
+            with open(pyproject_path, "rb") as f:
+                data = tomllib.load(f)
+                if name := data.get("project", {}).get("name"):
+                    return name
+        except Exception:
+            pass
+
+    setup_cfg_path = repo_path / "setup.cfg"
+    if setup_cfg_path.exists():
+        try:
+            config = configparser.ConfigParser()
+            config.read(setup_cfg_path)
+            if name := config.get("metadata", "name", fallback=None):
+                return name
+        except Exception:
+            pass
+
+    setup_py_path = repo_path / "setup.py"
+    if setup_py_path.exists():
+        try:
+            content = setup_py_path.read_text()
+            if match := re.search(r'name\s*=\s*["\']([^"\']+)["\']', content):
+                return match.group(1)
+        except Exception:
+            pass
+
+    return repo_path.name
+
+
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     """
     Validate that the target environment has the required dependencies
@@ -165,24 +276,41 @@ def prepare_packages_for_installation(
     override_channels: bool = False,
     finder: Optional[PackageFinder] = None,
     with_dependencies: bool = True,
+    editable: bool = False,
 ) -> list[str]:
     """
-    Convert PyPI packages to conda format and cache them in the persistent pypi channel.
+    Prepare packages for installation by converting to conda format or installing directly.
 
-    This function is designed for the install workflow - it converts packages and
-    caches them in a persistent location for efficient installation.
+    For editable VCS packages, installs directly with pip. For other packages,
+    converts to conda format and caches in persistent pypi channel.
 
     Args:
-        requested: List of package names/specs to convert
-        prefix: Conda environment prefix (used for Python executable)
+        requested: List of package names/specs or VCS URLs
+        prefix: Conda environment prefix
         override_channels: Whether to override default conda channels
         finder: Optional PackageFinder for custom PyPI indices
-        with_dependencies: Whether to resolve and convert dependencies (default: True)
+        with_dependencies: Whether to resolve and convert dependencies
+        editable: Whether to handle packages as editable installs
 
     Returns:
-        List of package names that were successfully converted and cached
+        List of package names that were successfully processed
     """
     pypi_channel_dir = Path(platformdirs.user_data_dir("pypi"))
+
+    if editable:
+        from .vcs import VCSHandler
+
+        vcs_packages = [pkg for pkg in requested if VCSHandler.is_vcs_url(pkg)]
+        local_packages = [pkg for pkg in requested if not VCSHandler.is_vcs_url(pkg)]
+
+        installed_packages = []
+        if vcs_packages:
+            installed_packages.extend(_install_vcs_editable_packages(vcs_packages, prefix))
+
+        if local_packages:
+            log.info("Local editable installs will be handled directly by pip")
+
+        return installed_packages
 
     if with_dependencies:
         solver = PyPIDependencySolver(

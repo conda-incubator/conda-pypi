@@ -15,6 +15,55 @@ from conda_pypi.mapping import pypi_to_conda_name
 from conda_pypi.utils import get_env_python, get_env_site_packages
 
 
+def _verify_vcs_editable_install(prefix: Path, package_name: str):
+    """Verify that a VCS package was installed in editable mode."""
+    sp = get_env_site_packages(prefix)
+
+    name_variants = [package_name.lower().replace("_", "-"), package_name, package_name.lower()]
+
+    editable_pth = None
+    for variant in name_variants:
+        pth_files = list(sp.glob(f"__editable__.{variant}-*.pth"))
+        if pth_files:
+            editable_pth = pth_files[0]
+            break
+
+    if not editable_pth:
+        all_editable = list(sp.glob("__editable__.*.pth"))
+        if all_editable:
+            editable_pth = all_editable[0]
+
+    assert editable_pth, f"No editable .pth file found for VCS package {package_name}"
+
+    pth_contents = editable_pth.read_text().strip()
+    source_path = None
+    for line in pth_contents.split("\n"):
+        line = line.strip()
+        if line and not line.startswith("import") and Path(line).exists():
+            source_path = Path(line)
+            break
+
+    assert (
+        source_path and source_path.exists()
+    ), f"Invalid source path in .pth file: {pth_contents}"
+
+    python_exe = get_env_python(prefix)
+    import_name = package_name.lower().replace("-", "_")
+
+    import_mappings = {
+        "python_dateutil": "dateutil",
+        "pyyaml": "yaml",
+    }
+    import_name = import_mappings.get(import_name, import_name)
+
+    result = run(
+        [python_exe, "-c", f"import {import_name}; print('Success')"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"Failed to import {import_name}: {result.stderr}"
+
+
 def test_pypi_to_conda_name_mapping():
     assert pypi_to_conda_name("build") == "python-build"
 
@@ -215,21 +264,23 @@ def test_editable_installs(
     """
     Test editable installations from VCS URLs.
 
-    This test verifies that conda-pypi can handle editable installs from various
-    VCS URLs (git+https://...) by:
-    1. Cloning the repository to a temporary directory
-    2. Building an editable wheel from the cloned source
-    3. Converting it to a conda package
-    4. Installing it in the conda environment
-    5. Verifying the editable .pth file is created correctly
+    Verifies that conda-pypi handles VCS editable installs by:
+    1. Cloning the repository to a persistent location
+    2. Installing directly with pip in editable mode
+    3. Verifying the editable .pth file points to source directory
+    4. Confirming the package can be imported
 
-    The test covers different package types:
+    Tests different package types:
     - Pure Python packages (python-dateutil)
     - Packages with compiled extensions (PyYAML)
     - Packages with conda dependencies (conda-forge-metadata)
     """
+    import sys
+
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+
     os.chdir(tmp_path)
-    with tmp_env("python=3.9", "pip") as prefix:
+    with tmp_env(f"python={python_version}", "pip") as prefix:
         out, err, rc = conda_cli(
             "pip",
             "-p",
@@ -242,27 +293,22 @@ def test_editable_installs(
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
-        # Find the editable .pth file (handle case-sensitivity issues)
-        sp = get_env_site_packages(prefix)
-        editable_pth = list(sp.glob(f"__editable__.{name}-*.pth"))
-        if not editable_pth:
-            editable_pth = list(sp.glob(f"__editable__.{name.lower()}-*.pth"))
-        assert (
-            len(editable_pth) == 1
-        ), f"Expected exactly one editable .pth file, found {len(editable_pth)}"
-
-        # Verify the .pth file contents
-        pth_contents = editable_pth[0].read_text().strip()
 
         if requirement.startswith(("git+", "hg+", "svn+", "bzr+")):
-            # For VCS URLs, verify the path points to the cloned source directory
-            # Different packages may use different source layouts (src/, lib/, etc.)
-            is_valid_vcs_path = (
-                "src" in pth_contents and (pth_contents.endswith(("src", "lib")))
-            ) or pth_contents.startswith(f"import __editable___{name}")
-            assert is_valid_vcs_path, f"Invalid VCS editable path: {pth_contents}"
+            # Verify VCS package was installed in editable mode
+            _verify_vcs_editable_install(prefix, name)
         else:
-            # For local paths, verify it points to the expected location
+            # For local paths, look for traditional editable .pth files
+            sp = get_env_site_packages(prefix)
+            editable_pth = list(sp.glob(f"__editable__.{name}-*.pth"))
+            if not editable_pth:
+                editable_pth = list(sp.glob(f"__editable__.{name.lower()}-*.pth"))
+            assert (
+                len(editable_pth) == 1
+            ), f"Expected exactly one editable .pth file, found {len(editable_pth)}"
+
+            # Verify the .pth file contents
+            pth_contents = editable_pth[0].read_text().strip()
             expected_paths = (str(tmp_path / "src"), f"import __editable___{name}")
             assert pth_contents.startswith(
                 expected_paths

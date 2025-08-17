@@ -94,7 +94,12 @@ def execute_install(args: argparse.Namespace) -> int:
             "or one editable specification."
         )
 
-    from conda.reporters import get_spinner
+    try:
+        from conda.reporters import get_spinner
+    except ImportError:
+        # Fallback for older conda versions that don't have conda.reporters
+        from contextlib import nullcontext as get_spinner
+
     from .utils import get_prefix
     from .main import ensure_externally_managed, validate_target_env
 
@@ -120,20 +125,33 @@ def execute_install(args: argparse.Namespace) -> int:
 
     try:
         if not args.quiet:
-            logger.info(f"Converting and installing packages: {', '.join(args.packages)}")
+            action = "Installing" if args.editable else "Converting and installing"
+            logger.info(f"{action} packages: {', '.join(args.packages)}")
 
         from .core import prepare_packages_for_installation, install_packages
 
         if not args.quiet:
-            with get_spinner("Converting PyPI packages to conda format"):
+            spinner_message = (
+                "Installing packages"
+                if args.editable
+                else "Converting PyPI packages to conda format"
+            )
+            with get_spinner(spinner_message):
                 cached_package_names = prepare_packages_for_installation(
-                    args.packages, prefix, override_channels=args.override_channels
+                    args.packages,
+                    prefix,
+                    override_channels=args.override_channels,
+                    editable=args.editable,
                 )
         else:
             cached_package_names = prepare_packages_for_installation(
-                args.packages, prefix, override_channels=args.override_channels
+                args.packages,
+                prefix,
+                override_channels=args.override_channels,
+                editable=args.editable,
             )
 
+        # Install conda packages (if any were converted)
         if cached_package_names:
             if not args.quiet:
                 with get_spinner("Installing converted packages"):
@@ -141,8 +159,10 @@ def execute_install(args: argparse.Namespace) -> int:
             else:
                 install_packages(cached_package_names, prefix, args.override_channels)
 
+        # Provide appropriate completion message
+        if cached_package_names or args.editable:
             if not args.quiet:
-                logger.info("Package conversion and installation completed")
+                logger.info("Installation completed")
         else:
             if not args.quiet:
                 logger.warning("No packages were successfully converted")
@@ -164,7 +184,12 @@ def execute_convert(args: argparse.Namespace) -> int:
     if not args.packages:
         raise ArgumentError("No packages requested. Please provide one or more packages.")
 
-    from conda.reporters import get_spinner
+    try:
+        from conda.reporters import get_spinner
+    except ImportError:
+        # Fallback for older conda versions that don't have conda.reporters
+        from contextlib import nullcontext as get_spinner
+
     from .utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)

@@ -398,23 +398,19 @@ def build_pypa(
         tmpdir = Path(tmpdir)
 
         if distribution == "editable":
-            # Build editable installation
-            editable_file = tmpdir / "editable.whl"
+            # Build editable wheel
             builder = ProjectBuilder(path)
-            builder.build("editable", str(editable_file), {})
+            editable_file = builder.build("editable", str(tmpdir), {})
 
-            # Install the editable wheel
-            install_wheel(editable_file, tmpdir / "install")
-
-            return editable_file
+            # Convert editable wheel to conda package
+            return build_conda(Path(editable_file), tmpdir, output_path, python_exe)
         else:
             # Build regular wheel
-            wheel_file = tmpdir / "package.whl"
             builder = ProjectBuilder(path)
-            builder.build("wheel", str(wheel_file), {})
+            wheel_file = builder.build("wheel", str(tmpdir), {})
 
             # Convert wheel to conda package
-            return build_conda(wheel_file, tmpdir, output_path, python_exe)
+            return build_conda(Path(wheel_file), tmpdir, output_path, python_exe)
 
 
 def build_conda(
@@ -489,17 +485,29 @@ def build_conda(
         package_stem = conda_metadata.package_record.stem
         conda_package_path = output_path / f"{package_stem}.conda"
 
+        # Remove existing package if it exists
+        if conda_package_path.exists():
+            conda_package_path.unlink()
+
         with conda_builder(package_stem, output_path) as builder:
-            # Add all files from the install directory
+            # Add metadata files from info directory
+            for info_file in info_dir.iterdir():
+                if info_file.is_file():
+                    print(f"DEBUG: Adding info file: info/{info_file.name}")
+                    builder.add(str(info_file), arcname=f"info/{info_file.name}")
+
+            # Add package files (everything except info directory)
             for root, dirs, files in os.walk(install_dir):
+                # Skip the info directory - it's handled separately above
+                if Path(root).name == "info":
+                    continue
+
                 for file in files:
                     file_path = Path(root) / file
-                    arcname = str(file_path.relative_to(install_dir))
-                    builder.add(str(file_path), arcname=arcname)
-                for dir_name in dirs:
-                    dir_path = Path(root) / dir_name
-                    arcname = str(dir_path.relative_to(install_dir))
-                    builder.add(str(dir_path), arcname=arcname)
+                    # Calculate relative path from install_dir, excluding info
+                    rel_path = file_path.relative_to(install_dir)
+                    print(f"DEBUG: Adding package file: {rel_path}")
+                    builder.add(str(file_path), arcname=str(rel_path))
 
         log.info(f"Created conda package: {conda_package_path}")
         return conda_package_path
