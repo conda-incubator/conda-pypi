@@ -38,10 +38,11 @@ requirements:
     - conda-index
     - conda-package-streaming
     - conda-libmamba-solver
-    - importlib_resources  # [py<39]
     - packaging
 
 test:
+  requires:
+    - conda-pypi  # Ensure conda-pypi is installed to trigger post-command hook
   imports:
     - conda_pypi
     - conda_pypi.main
@@ -51,8 +52,8 @@ test:
     - pip install requests && exit 1 || exit 0
 
 about:
-  home: https://github.com/jaimergp/conda-pypi
+  home: https://github.com/conda-incubator/conda-pypi
   license: MIT
   license_file: LICENSE
   summary: Better PyPI interoperability for the conda ecosystem
-  dev_url: https://github.com/jaimergp/conda-pypi
+  dev_url: https://github.com/conda-incubator/conda-pypi
