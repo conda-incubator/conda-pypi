@@ -14,6 +14,7 @@ import sys
 import tempfile
 from importlib.metadata import PathDistribution
 from pathlib import Path
+from typing import Union, Optional
 
 from conda_package_streaming.create import conda_builder
 
@@ -36,7 +37,7 @@ def filter(tarinfo):
 
 
 # see conda_build.build.build_info_files_json_v1
-def paths_json(base: Path | str):
+def paths_json(base: Union[Path, str]):
     """
     Build simple paths.json with only 'hardlink' or 'symlink' types.
     """
@@ -127,7 +128,7 @@ def build_conda(
     build_path: Path,
     output_path: Path,
     python_executable,
-    project_path: Path | None = None,
+    project_path: Optional[Path] = None,
     is_editable=False,
 ):
     if not build_path.exists():
@@ -205,7 +206,7 @@ def pypa_to_conda(
     project,
     prefix: Path,
     distribution="editable",
-    output_path: Path | None = None,
+    output_path: Optional[Path] = None,
 ):
     project = Path(project)
 

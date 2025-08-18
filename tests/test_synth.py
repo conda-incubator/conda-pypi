@@ -8,10 +8,18 @@ import conda_pupa.synth
 def test_synth():
     # TODO too much network access
     config_path = pathlib.Path(__file__).parents[1] / "config.yaml"
-    conda_pupa.synth.create_api(str(config_path), "synthetic_repo", True)
-    assert (
-        pathlib.Path(__file__).parents[1] / "synthetic_repo" / "noarch" / "repodata.json"
-    ).exists()
+    repo_path = "synthetic_repo"
+
+    if not config_path.exists():
+        pytest.skip(f"Config file not found at {config_path}")
+
+    try:
+        conda_pupa.synth.create_api(str(config_path), repo_path, True)
+    except Exception as e:
+        pytest.fail(f"create_api failed: {e}")
+
+    repodata_file = pathlib.Path(__file__).parents[1] / repo_path / "noarch" / "repodata.json"
+    assert repodata_file.exists(), f"repodata.json not found at {repodata_file}"
 
 
 def test_extract_version_of_project():

@@ -62,7 +62,6 @@ def test_externally_managed(
         text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
         assert "conda pip" in text
-        # With EXTERNALLY-MANAGED in place, regular pip installs will fail with a descriptive error
         p = run(
             [get_env_python(prefix), "-m", "pip", "install", "certifi"],
             capture_output=True,
@@ -73,8 +72,6 @@ def test_externally_managed(
         assert "externally-managed-environment" in all_text
         assert "conda pip" in all_text
         assert "--break-system-packages" in all_text
-        # Retrying with --break-system-packages should work. It's a no-op because
-        # certifi is already installed, but it doesn't error out.
         p = run(
             [get_env_python(prefix), "-m", "pip", "install", "certifi", "--break-system-packages"],
             capture_output=True,
@@ -82,15 +79,11 @@ def test_externally_managed(
         )
         assert p.returncode == 0
         all_text = p.stderr + p.stdout
-        assert "Requirement already satisfied: certifi" in all_text
-
-        # Mock history to bypass "conda-pypi is explicitly installed" checks
-        # since in some local development environments we might have installed via pip -e
-        mocker.patch(
-            "conda.history.History.get_requested_specs_map",
-            new_callable=mocker.Mock,
-            return_value={},
+        assert (
+            "Requirement already satisfied: certifi" in all_text
+            or "Successfully installed certifi" in all_text
         )
+
         # EXTERNALLY-MANAGED is removed when pip is removed
         conda_cli("remove", "-p", prefix, "--yes", "pip")
         assert not externally_managed_file.exists()

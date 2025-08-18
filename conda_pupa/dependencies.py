@@ -7,7 +7,7 @@ import importlib.resources
 import json
 import subprocess
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List
 
 from conda.cli.main import main_subshell
 
@@ -20,7 +20,7 @@ class MissingDependencyError(Exception):
     When the dependency subprocess can't run.
     """
 
-    def __init__(self, dependencies: list[str]):
+    def __init__(self, dependencies: List[str]):
         self.dependencies = dependencies
 
 
@@ -53,7 +53,7 @@ def check_dependencies(requirements: Iterable[str], prefix: Path):
     return missing
 
 
-def ensure_requirements(requirements: list[str], prefix: Path):
+def ensure_requirements(requirements: List[str], prefix: Path):
     if requirements:
         conda_requirements, _ = requires_to_conda(requirements)
         # -y may be appropriate during tests only

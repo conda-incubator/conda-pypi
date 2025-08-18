@@ -11,6 +11,7 @@ import typer
 from packaging.utils import canonicalize_name
 from pydantic import BaseModel
 from pypi_simple import ProjectPage, PyPISimple
+from typing import Optional, List, Dict
 
 from conda_pupa.translate import FileDistribution, requires_to_conda
 
@@ -22,11 +23,11 @@ yaml = ruamel.yaml.YAML(typ="safe", pure=True)
 class Package(BaseModel):
     build: str = ""
     build_number: int = 0
-    depends: list[str] = []
-    extras: dict[str, list[str]] = {}
-    md5: str | None = None
+    depends: List[str] = []
+    extras: Dict[str, List[str]] = {}
+    md5: Optional[str] = None
     name: str = ""
-    sha256: str | None = None
+    sha256: Optional[str] = None
     size: int = 0
     subdir: str = ""
     timestamp: int = 0
@@ -35,7 +36,7 @@ class Package(BaseModel):
 
 class RepoData(BaseModel):
     info: dict
-    packages: dict[str, Package]
+    packages: Dict[str, Package]
     # "packages.conda": list[str]
     # remove: list[Package]
     repodata_version: int
