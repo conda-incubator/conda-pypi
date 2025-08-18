@@ -27,31 +27,7 @@ jobs:
       - name: Build Documentation
         shell: bash -el {0}
         run: |
-          pip install flit-core
-          pip install -e .[docs] --no-build-isolation
+          pip install hatchling hatch-vcs editables
+          pip install sphinx sphinx-copybutton sphinx-design sphinx-sitemap sphinx-reredirects myst-parser conda-sphinx-theme linkify-it-py pypi-simple
+          pip install -e . --no-build-isolation
           make html
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'build/html'
-
-  pages:
-
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: [sphinx]
-
-    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
