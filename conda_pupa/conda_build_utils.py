@@ -19,9 +19,7 @@ class PathType(Enum):
     directory = "directory"  # rare or unused?
 
     # these additional types should not be included by conda-build in packages
-    linked_package_record = (
-        "linked_package_record"  # a package's .json file in conda-meta
-    )
+    linked_package_record = "linked_package_record"  # a package's .json file in conda-meta
     pyc_file = "pyc_file"
     unix_python_entry_point = "unix_python_entry_point"
     windows_python_entry_point_script = "windows_python_entry_point_script"

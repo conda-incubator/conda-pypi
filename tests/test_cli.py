@@ -23,10 +23,10 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         ["-b=.", "-e=."],
     )
 
-    print(result.stdout)
+    print(result.output)
 
     assert result.exit_code != 0
-    assert "Error:" in result.stdout and "exclusive" in result.stdout
+    assert "Error:" in result.output and "exclusive" in result.output
 
     # build editable, ordinary wheel
     for kind, option in ("editable", "-e"), ("wheel", "-b"):
@@ -49,9 +49,7 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr("conda_pupa.convert_tree.ConvertTree", mock)
 
-    runner.invoke(
-        cli, ["--prefix", str(tmp_path), "package==4"], catch_exceptions=False
-    )
+    runner.invoke(cli, ["--prefix", str(tmp_path), "package==4"], catch_exceptions=False)
 
     assert mock.args[0] == tmp_path
     assert not mock.kwargs["override_channels"]

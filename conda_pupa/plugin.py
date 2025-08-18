@@ -10,9 +10,7 @@ def command(
 ):  # standalone_mode=False avoids click SystemExit(); for testing.
     import conda_pupa.cli
 
-    return conda_pupa.cli.cli(
-        prog_name="conda pupa", args=args, standalone_mode=standalone_mode
-    )
+    return conda_pupa.cli.cli(prog_name="conda pupa", args=args, standalone_mode=standalone_mode)
 
 
 @conda.plugins.hookimpl
