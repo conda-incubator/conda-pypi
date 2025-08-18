@@ -164,9 +164,7 @@ def main():
                         )
                     )
             session.execute(
-                repodata.update()
-                .where(repodata.c.id == id)
-                .values(repodata_json=repodata_json)
+                repodata.update().where(repodata.c.id == id).values(repodata_json=repodata_json)
             )
 
 
@@ -226,9 +224,7 @@ def fetch_pypi_metadata():
                         print(pkg)
                         # avoid unique errors
                         session.execute(
-                            pypi_metadata.delete().where(
-                                pypi_metadata.c.filename == pkg.filename
-                            )
+                            pypi_metadata.delete().where(pypi_metadata.c.filename == pkg.filename)
                         )
                         session.execute(
                             pypi_metadata.insert().values(

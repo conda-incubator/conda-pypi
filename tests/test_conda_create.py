@@ -24,9 +24,7 @@ def test_indexable(tmp_path):
     NAME = "somepackage"
     VERSION = "1.0"
 
-    record = PackageRecord(
-        name=NAME, version=VERSION, subdir="noarch", depends=[], extras={}
-    )
+    record = PackageRecord(name=NAME, version=VERSION, subdir="noarch", depends=[], extras={})
     dest = tmp_path / record.stem
     dest.mkdir()
 
@@ -60,9 +58,7 @@ def test_indexable(tmp_path):
         "somepackage",
     )
 
-    conda_meta = json.loads(
-        (tmp_path / "env" / "conda-meta" / f"{record.stem}.json").read_text()
-    )
+    conda_meta = json.loads((tmp_path / "env" / "conda-meta" / f"{record.stem}.json").read_text())
     assert len(conda_meta["files"])
 
 

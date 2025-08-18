@@ -32,7 +32,9 @@ Grab parameters from target Python; evaluate marker.
 
 ```python
 some_environment = packaging.markers.default_environment()
-packaging.markers.Marker("python_full_version=='3.12.4'").evaluate(environment=some_environment)
+packaging.markers.Marker("python_full_version=='3.12.4'").evaluate(
+    environment=some_environment
+)
 ```
 
 `build`, which we use for tests uses environment markers, and extras.

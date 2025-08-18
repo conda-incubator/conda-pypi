@@ -26,9 +26,7 @@ class MissingDependencyError(Exception):
 
 def check_dependencies(requirements: Iterable[str], prefix: Path):
     python_executable = str(paths.get_python_executable(prefix))
-    dependency_getter = importlib.resources.read_text(
-        "conda_pupa", "dependencies_subprocess.py"
-    )
+    dependency_getter = importlib.resources.read_text("conda_pupa", "dependencies_subprocess.py")
     try:
         result = subprocess.run(
             [

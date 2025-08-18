@@ -7,12 +7,10 @@ import conda_pupa.synth
 
 def test_synth():
     # TODO too much network access
-    conda_pupa.synth.create_api("config.yaml", "synthetic_repo", True)
+    config_path = pathlib.Path(__file__).parents[1] / "config.yaml"
+    conda_pupa.synth.create_api(str(config_path), "synthetic_repo", True)
     assert (
-        pathlib.Path(__file__).parents[1]
-        / "synthetic_repo"
-        / "noarch"
-        / "repodata.json"
+        pathlib.Path(__file__).parents[1] / "synthetic_repo" / "noarch" / "repodata.json"
     ).exists()
 
 

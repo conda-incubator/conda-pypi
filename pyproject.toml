@@ -64,9 +64,10 @@ homepage = "https://github.com/conda-incubator/conda-pypi"
 
 [project.entry-points.conda]
 conda-pypi = "conda_pypi.plugin"
+pupa = "conda_pupa.plugin"
 
 [tool.pixi.project]
-channels = ["conda-forge"]
+channels = ["conda-forge", "dholth"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [tool.pixi.dependencies]
@@ -109,6 +110,19 @@ fmt = "!=10.2.0"
 pytest-mock = "3.12.0.*"
 conda-build = "*"
 pre-commit = "*"
+# conda_pupa dependencies
+typer = "*"
+conda-package-streaming = ">=0.11"
+unearth = ">=0.17.2"
+python-build = "*"
+pydantic = "*"
+python-installer = ">=0.7"
+conda-index = "*"
+conda-libmamba-solver = ">=24.9"
+packaging = ">=24"
+
+[tool.pixi.feature.test.pypi-dependencies]
+pypi-simple = "*"
 
 [tool.pixi.feature.py38.dependencies]
 python = "3.8.*"

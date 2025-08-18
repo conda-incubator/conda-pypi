@@ -34,19 +34,13 @@ def test_many_from_distribution():
     versions = set()
     for row in session.query(corpus.PyMetadata):
         try:
-            CondaMetadata.from_distribution(
-                FileDistribution(row.metadata)
-            ).package_record
+            CondaMetadata.from_distribution(FileDistribution(row.metadata)).package_record
             names.add(row.name)
             versions.add((row.name, row.version))
         except Exception as e:
-            print(
-                "Couldn't convert %s %s (%s)" % (row.name, row.version, row.filename), e
-            )
+            print("Couldn't convert %s %s (%s)" % (row.name, row.version, row.filename), e)
 
-    print(
-        f"Converted {len(names)} distinct names and {len(versions)} distinct (name, version)"
-    )
+    print(f"Converted {len(names)} distinct names and {len(versions)} distinct (name, version)")
 
 
 @pytest.mark.skipif(skip, reason="corpus not available")
@@ -75,9 +69,7 @@ def test_conda_deps_to_pypi():
                     )
                 failed.append(conda_requires)
 
-    print(
-        f"Converted {success} and failed {len(failed)} conda to pypi dependency specifiers."
-    )
+    print(f"Converted {success} and failed {len(failed)} conda to pypi dependency specifiers.")
 
 
 if __name__ == "__main__":
