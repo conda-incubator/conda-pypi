@@ -41,4 +41,6 @@ Overview of what `conda-pypi` can do for you
 quickstart
 why
 features
+modules
+changelog
 ```

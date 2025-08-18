@@ -15,8 +15,9 @@ REPO = pathlib.Path(__file__).parents[1] / "synthetic_repo"
 
 
 def list_envs():
+    conda_exe = os.environ.get("CONDA_EXE", "conda")
     output = subprocess.run(
-        f"{os.environ['CONDA_EXE']} info --envs --json".split(),
+        f"{conda_exe} info --envs --json".split(),
         capture_output=True,
         check=True,
     )
@@ -28,8 +29,9 @@ def create_test_env(prefix):
     """
     Create named environment at prefix.
     """
+    conda_exe = os.environ.get("CONDA_EXE", "conda")
     subprocess.run(
-        [os.environ["CONDA_EXE"], "create", "-p", prefix, "-y", "python 3.12"],
+        [conda_exe, "create", "-p", prefix, "-y", "python 3.12"],
         check=True,
         encoding="utf-8",
     )

@@ -61,7 +61,8 @@ def install_ephemeral_conda(prefix: Path, package: Path):
     Should we automatically install the project's dependencies also?
     """
     persistent_pkgs = PackageCacheData.first_writable().pkgs_dir
-    with tempfile.TemporaryDirectory(
-        dir=persistent_pkgs, prefix="ephemeral"
-    ) as cache_dir, patch.dict(os.environ, {"CONDA_PKGS_DIRS": cache_dir}):
+    with (
+        tempfile.TemporaryDirectory(dir=persistent_pkgs, prefix="ephemeral") as cache_dir,
+        patch.dict(os.environ, {"CONDA_PKGS_DIRS": cache_dir}),
+    ):
         main_subshell("install", "--prefix", str(prefix), str(package))

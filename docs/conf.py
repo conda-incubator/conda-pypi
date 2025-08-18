@@ -35,6 +35,7 @@ extensions = [
     "myst_parser",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx.ext.autodoc",
     "sphinx.ext.graphviz",
     "sphinx.ext.ifconfig",
     "sphinx.ext.inheritance_diagram",
@@ -44,6 +45,17 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_reredirects",
 ]
+
+# Autodoc configuration
+autodoc_mock_imports = []
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
+}
+
+# Handle missing imports gracefully
+autodoc_typehints = "description"
 
 myst_heading_anchors = 3
 myst_enable_extensions = [
