@@ -157,24 +157,23 @@ def ensure_externally_managed(path_or_prefix):
     if isinstance(path_or_prefix, (str, Path)):
         path_or_prefix = Path(path_or_prefix)
 
-        # If it's a directory (prefix), get the EXTERNALLY-MANAGED paths
         if path_or_prefix.is_dir():
-            paths = get_externally_managed_paths(path_or_prefix)
+            stdlib_path = get_env_stdlib(path_or_prefix)
+            externally_managed_path = stdlib_path / "EXTERNALLY-MANAGED"
         else:
-            paths = [path_or_prefix]
+            externally_managed_path = path_or_prefix
     else:
-        paths = [path_or_prefix]
+        externally_managed_path = path_or_prefix
 
     template = pkgutil.get_data("conda_pypi", "data/EXTERNALLY-MANAGED")
     if not template:
         raise RuntimeError("EXTERNALLY-MANAGED template not found. Package may be corrupted.")
     content = template.decode("utf-8")
 
-    for path in paths:
-        if not path.exists():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content)
-            logger.info(f"Created EXTERNALLY-MANAGED file at {path}")
+    if not externally_managed_path.exists():
+        externally_managed_path.parent.mkdir(parents=True, exist_ok=True)
+        externally_managed_path.write_text(content)
+        logger.info(f"Created EXTERNALLY-MANAGED file at {externally_managed_path}")
 
 
 def get_env_python(prefix: Path) -> Path:
