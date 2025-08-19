@@ -1,6 +1,14 @@
-https://pypi.org/project/torch/#files
+# Developer Notes
+
+This section contains implementation notes, technical insights, and development considerations for conda-pypi.
+
+## PyPI Package Analysis
+
+Example: https://pypi.org/project/torch/#files
 
 2.5.1 e.g., torch has only wheels, no sdists. Is called pytorch in conda-land.
+
+## Conda Integration
 
 LibMambaSolver (used to have) LibMambaIndexHelper.reload_local_channels() used
 for conda-build, reloads all file:// indices.
@@ -26,7 +34,7 @@ to conda. One of them might have conflicted with the discovered solution.
 
 Hash of a regular Python package is something like py312hca03da5_0
 
-## Environment markers
+## Environment Markers
 
 Grab parameters from target Python; evaluate marker.
 
@@ -41,15 +49,19 @@ packaging.markers.Marker("python_full_version=='3.12.4'").evaluate(
 
 corpus of metadata from pypi can be used to test marker evaluation.
 
-## "arch" packages
+## Architecture Packages
 
-Should be allowed.
+"arch" packages should be allowed.
 
-## a little bit like conda-build
+## Build System Design
+
+A little bit like conda-build:
 
 Build packages from wheels or sdists or checkouts, then keep them in the local
 channel for later. (But what if we are in CI?)
 
-## 'editable' command
+## Editable Installation
+
+'editable' command:
 
 Modern replacement for conda-build develop; works like pip install -e . --no-build-isolation

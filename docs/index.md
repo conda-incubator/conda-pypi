@@ -33,6 +33,12 @@ Read about why `conda-pypi` exists and when you should use it
 Overview of what `conda-pypi` can do for you
 :::
 
+:::{grid-item-card} 🔧 Developer Notes
+:link: developer-notes
+:link-type: doc
+Implementation details and technical insights
+:::
+
 ::::
 
 ```{toctree}
@@ -42,5 +48,6 @@ quickstart
 why
 features
 modules
+developer-notes
 changelog
 ```

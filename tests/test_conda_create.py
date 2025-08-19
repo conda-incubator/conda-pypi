@@ -69,8 +69,11 @@ def test_path_type():
 def test_checksum(tmp_path):
     (tmp_path / "nowhere").symlink_to(tmp_path / "missing")
     assert sha256_checksum(tmp_path / "nowhere") == hashlib.sha256().hexdigest()
-    os.mkfifo(tmp_path / "fifo")
-    assert sha256_checksum(tmp_path / "fifo") is None
+
+    # Test FIFO/named pipe handling (Unix only)
+    if hasattr(os, "mkfifo"):
+        os.mkfifo(tmp_path / "fifo")
+        assert sha256_checksum(tmp_path / "fifo") is None
 
     paths = paths_json(tmp_path)
     assert len(paths["paths"])

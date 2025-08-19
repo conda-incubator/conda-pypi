@@ -1,9 +1,3 @@
-[tool.black]
-target-version = ["py310", "py311"]
-
-[tool.isort]
-profile = "black"
-
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
@@ -33,38 +27,16 @@ dependencies = [
   "packaging",
 ]
 dynamic = ["version"]
-requires-python = ">=3.7"
-dependencies = [
-  "build",                          # conda name is python-build
-  "conda-index",
-  "conda-libmamba-solver >=24.9",
-  "conda-package-streaming >=0.11",
-  "installer >=0.7",                # conda name is python-installer
-  "packaging >=24",
-  "unearth >=0.17.2",               # download packages from pypi
-]
-
-[project.optional-dependencies]
-test = [
-  "pytest >=7",
-  "pytest-cov",
-  "pytest-mock",
-  "pypi-simple",
-]
-docs = ["furo", "sphinx", "myst-parser", "mdit-py-plugins>=0.3.0"]
-
-[project.entry-points.conda]
-pupa = "conda_pupa.plugin"
 
 [project.urls]
 homepage = "https://github.com/conda-incubator/conda-pypi"
 
 [project.entry-points.conda]
 conda-pypi = "conda_pypi.plugin"
-pupa = "conda_pupa.plugin"
+conda-pupa = "conda_pupa.plugin"
 
 [tool.pixi.project]
-channels = ["conda-forge", "dholth"]
+channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [tool.pixi.dependencies]
