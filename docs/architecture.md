@@ -10,9 +10,9 @@ architecture. This design enables seamless integration with conda's existing
 workflows without requiring modifications to conda itself.
 
 The plugin registers several hooks with conda's plugin system. The
-subcommand hook adds the `conda pip` subcommand to conda through
-`conda_pypi.plugin.conda_subcommands()`, providing both `conda pip install`
-for installing PyPI packages with conversion and `conda pip convert` for
+subcommand hook adds the `conda pypi` subcommand to conda through
+`conda_pypi.plugin.conda_subcommands()`, providing both `conda pypi install`
+for installing PyPI packages with conversion and `conda pypi convert` for
 converting PyPI packages without installing them.
 
 The plugin also registers a post-command hook that extends conda's existing
@@ -31,16 +31,16 @@ responsibilities:
 #### `plugin.py` - Plugin Entry Point
 - **Role**: Conda plugin registration and hook implementations
 - **Key Functions**:
-  - Register `conda pip` subcommand
+  - Register `conda pypi` subcommand
   - Register post-command hook for EXTERNALLY-MANAGED deployment
   - Coordinate with conda's plugin system
 
 #### `cli.py` - Command Line Interface
-- **Role**: Argument parsing and command execution for `conda pip`
+- **Role**: Argument parsing and command execution for `conda pypi`
 - **Key Functions**:
   - `configure_parser()` - Set up CLI argument structure
-  - `execute_install()` - Handle `conda pip install` logic
-  - `execute_convert()` - Handle `conda pip convert` logic
+  - `execute_install()` - Handle `conda pypi install` logic
+  - `execute_convert()` - Handle `conda pypi convert` logic
 - **Architecture**: Clean separation between CLI concerns and core logic
 
 #### `core.py` - High-Level Operations
@@ -125,7 +125,7 @@ responsibilities:
 ### Installation Flow
 
 ```
-conda pip install package
+conda pypi install package
          ↓
 CLI Argument Parsing
          ↓
@@ -149,7 +149,7 @@ Deploy EXTERNALLY-MANAGED
 ### Conversion Flow
 
 ```
-conda pip convert package
+conda pypi convert package
          ↓
 Fetch from PyPI
          ↓

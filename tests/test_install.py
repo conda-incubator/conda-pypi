@@ -106,7 +106,7 @@ def test_conda_pypi_install(
     conda_spec = conda_spec or pypi_spec
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -138,7 +138,7 @@ def test_spec_normalization(
 ):
     with tmp_env("python=3.9", "pip", "pytest-cov") as prefix:
         for spec in ("pytest-cov", "pytest_cov", "PyTest-Cov"):
-            out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "install", "--dry-run", spec)
+            out, err, rc = conda_cli("pypi", "-p", prefix, "--yes", "install", "--dry-run", spec)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
@@ -165,7 +165,7 @@ def test_pyqt(
     installed_conda_specs: tuple[str],
 ):
     with tmp_env("python=3.9", "pip") as prefix:
-        out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
+        out, err, rc = conda_cli("pypi", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
@@ -198,7 +198,7 @@ def test_lockfile_roundtrip(
             print(p.stderr, file=sys.stderr)
             assert p.returncode == 0
         else:
-            out, err, rc = conda_cli("pip", "--prefix", prefix, "--yes", "install", *specs)
+            out, err, rc = conda_cli("pypi", "--prefix", prefix, "--yes", "install", *specs)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
@@ -284,7 +284,7 @@ def test_editable_installs(
     os.chdir(tmp_path)
     with tmp_env(f"python={python_version}", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -324,7 +324,7 @@ def test_install_package_with_extras(
     """Test installing a package with extras (e.g., package[extra])."""
     with tmp_env("python=3.10", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -349,7 +349,7 @@ def test_update_already_installed_package(
     """Test behavior when trying to install a package that's already installed."""
     with tmp_env("python=3.10", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -359,7 +359,7 @@ def test_update_already_installed_package(
         assert rc == 0, "Initial installation should succeed"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -384,7 +384,7 @@ def test_install_nonexistent_package(
     """Test installing a package that doesn't exist."""
     with tmp_env("python=3.10", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -416,7 +416,7 @@ def test_install_with_invalid_environment(
     """Test installing to a non-existent environment."""
     try:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             "/this/path/definitely/does/not/exist",
             "--yes",
@@ -444,7 +444,7 @@ def test_dry_run_functionality(
     with tmp_env("python=3.10", "pip") as prefix:
         # Test dry-run with a new package that isn't installed
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -482,7 +482,7 @@ def test_dry_run_with_already_installed_package(
     with tmp_env("python=3.10", "pip", "packaging") as prefix:
         # Test dry-run with an already installed package
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -518,7 +518,7 @@ def test_dry_run_with_mixed_packages(
     with tmp_env("python=3.10", "pip", "packaging") as prefix:
         # Test dry-run with mix of installed and new packages
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",

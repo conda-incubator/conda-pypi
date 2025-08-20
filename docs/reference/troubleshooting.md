@@ -41,7 +41,7 @@ conda env list
 conda create -n myenv python=3.10 pip
 
 # Use correct environment name or path
-conda pip install -n myenv package-name
+conda pypi install -n myenv package-name
 ```
 
 ### Permission errors
@@ -76,11 +76,11 @@ sudo chown -R $USER $(conda info --base)/envs/myenv
 pip search package-name  # or visit pypi.org
 
 # Try common name variations
-conda pip install python-package-name  # instead of package-name
-conda pip install package_name         # underscores instead of dashes
+conda pypi install python-package-name  # instead of package-name
+conda pypi install package_name         # underscores instead of dashes
 
 # Use exact PyPI name
-conda pip install "Package-Name"       # match exact case
+conda pypi install "Package-Name"       # match exact case
 ```
 
 ### Dependency resolution timeout
@@ -94,15 +94,15 @@ conda pip install "Package-Name"       # match exact case
 **Solutions**:
 ```bash
 # Use --override-channels to simplify resolution
-conda pip install --override-channels package-name
+conda pypi install --override-channels package-name
 
 # Install dependencies from conda first
 conda install numpy pandas scipy
-conda pip install your-package
+conda pypi install your-package
 
 # Try installing packages individually
-conda pip install package1
-conda pip install package2
+conda pypi install package1
+conda pypi install package2
 ```
 
 ### Conflicting dependencies
@@ -112,7 +112,7 @@ conda pip install package2
 **Solutions**:
 ```bash
 # Preview what would be installed
-conda pip install --dry-run package-name
+conda pypi install --dry-run package-name
 
 # Check existing packages
 conda list
@@ -120,7 +120,7 @@ conda list
 # Create a fresh environment for testing
 conda create -n test python=3.10 pip
 conda activate test
-conda pip install package-name
+conda pypi install package-name
 ```
 
 ## Network and Connectivity Issues
@@ -208,8 +208,8 @@ conda -v -v -v -v pip install package-name
 To see what would happen without making changes:
 
 ```bash
-conda pip install --dry-run package-name
-conda pip convert --dry-run package-name
+conda pypi install --dry-run package-name
+conda pypi convert --dry-run package-name
 ```
 
 ### JSON output for scripts
@@ -217,7 +217,7 @@ conda pip convert --dry-run package-name
 For programmatic error handling:
 
 ```bash
-conda pip install --json package-name
+conda pypi install --json package-name
 ```
 
 ## When to Seek Further Help

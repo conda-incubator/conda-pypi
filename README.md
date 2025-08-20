@@ -10,9 +10,9 @@ Better PyPI interoperability for the conda ecosystem.
 
 Includes:
 
-- `conda pip install`: Converts PyPI packages to `.conda` format for safer installation.
-- `conda pip convert`: Convert PyPI packages to `.conda` format without installing them.
-- `conda pip convert -d/--dest`: Save converted packages to a specific directory.
+- `conda pypi install`: Converts PyPI packages to `.conda` format for safer installation.
+- `conda pypi convert`: Convert PyPI packages to `.conda` format without installing them.
+- `conda pypi convert -d/--dest`: Save converted packages to a specific directory.
 - Adds `EXTERNALLY-MANAGED` to your environments to prevent an accidental `pip install`.
 
 ## Why?

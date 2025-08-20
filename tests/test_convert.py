@@ -17,7 +17,7 @@ def test_convert_basic_package(
         output_dir = tmp_path / "converted_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -56,7 +56,7 @@ def test_convert_with_dest_option(
         custom_dest = tmp_path / "my_custom_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -95,7 +95,7 @@ def test_convert_override_channels(
         output_dir = tmp_path / "override_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -132,7 +132,7 @@ def test_convert_multiple_packages(
         output_dir = tmp_path / "multi_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -172,7 +172,7 @@ def test_convert_no_packages_error(
 
         with pytest.raises(ArgumentError, match="No packages requested"):
             out, err, rc = conda_cli(
-                "pip",
+                "pypi",
                 "-p",
                 prefix,
                 "--yes",
@@ -192,7 +192,7 @@ def test_convert_nonexistent_package(
         output_dir = tmp_path / "nonexistent_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
@@ -248,7 +248,7 @@ def test_convert_default_destination(
             os.chdir(tmp_path)
 
             out, err, rc = conda_cli(
-                "pip",
+                "pypi",
                 "-p",
                 prefix,
                 "--yes",
@@ -285,7 +285,7 @@ def test_convert_quiet_mode(
         output_dir = tmp_path / "quiet_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--quiet",
@@ -325,7 +325,7 @@ def test_convert_with_version_spec(
         output_dir = tmp_path / "versioned_packages"
 
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",

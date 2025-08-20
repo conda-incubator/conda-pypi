@@ -7,8 +7,8 @@ It allows you to safely install PyPI packages in conda environments by
 converting them to conda format when possible, while falling back to
 traditional pip installation when needed.
 
-The tool offers two main commands: `conda pip install` for safer PyPI
-package installation with an intelligent hybrid approach, and `conda pip
+The tool offers two main commands: `conda pypi install` for safer PyPI
+package installation with an intelligent hybrid approach, and `conda pypi
 convert` for converting PyPI packages to `.conda` format without installing
 them. The smart installation strategy ensures that explicitly requested
 packages come from PyPI while dependencies are sourced from conda channels

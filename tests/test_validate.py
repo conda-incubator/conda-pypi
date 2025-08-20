@@ -18,7 +18,7 @@ def test_pip_required_in_target_env(
     monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false")
     reset_context()
     with tmp_env("xz") as prefix:
-        args = ("pip", "-p", prefix, "--yes", "install", "requests")
+        args = ("pypi", "-p", prefix, "--yes", "install", "requests")
 
         with pytest.raises(CondaError, match="requires python"):
             out, err, rc = conda_cli(*args)
@@ -53,16 +53,16 @@ def test_externally_managed(
     base_dir = get_env_stdlib(sys.prefix)
     text = (base_dir / "EXTERNALLY-MANAGED").read_text().strip()
     assert text.startswith("[externally-managed]")
-    assert "conda pip" in text
+    assert "conda pypi" in text
 
     with tmp_env("python", "pip") as prefix:
         # Install requests and certifi to ensure certifi is available for the test
-        conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "certifi")
+        conda_cli("pypi", "-p", prefix, "--yes", "install", "requests", "certifi")
         target_site_packages = get_env_stdlib(prefix)
         externally_managed_file = target_site_packages / "EXTERNALLY-MANAGED"
         text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
-        assert "conda pip" in text
+        assert "conda pypi" in text
         # With EXTERNALLY-MANAGED in place, regular pip installs will fail with a descriptive error
         p = run(
             [get_env_python(prefix), "-m", "pip", "install", "certifi"],
@@ -72,7 +72,7 @@ def test_externally_managed(
         assert p.returncode != 0
         all_text = p.stderr + p.stdout
         assert "externally-managed-environment" in all_text
-        assert "conda pip" in all_text
+        assert "conda pypi" in all_text
         assert "--break-system-packages" in all_text
         # Retrying with --break-system-packages should work and allow installation
         p = run(

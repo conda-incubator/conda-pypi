@@ -30,7 +30,7 @@ logger = getLogger(f"conda.{__name__}")
 
 
 def configure_parser(parser: argparse.ArgumentParser):
-    """Configure the argument parser for conda pip subcommand."""
+    """Configure the argument parser for conda pypi subcommand."""
     add_parser_help(parser)
     add_parser_prefix(parser)
     add_output_and_prompt_options(parser)
@@ -84,7 +84,7 @@ def configure_parser(parser: argparse.ArgumentParser):
 
 
 def execute(args: argparse.Namespace) -> int:
-    """Execute the conda pip subcommand."""
+    """Execute the conda pypi subcommand."""
     if args.subcmd == "install":
         return execute_install(args)
     elif args.subcmd == "convert":

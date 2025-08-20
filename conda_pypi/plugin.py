@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 @plugins.hookimpl
 def conda_subcommands():
     yield plugins.CondaSubcommand(
-        name="pip",
+        name="pypi",
         summary="Install PyPI packages by converting them to .conda format",
         action=cli.execute,
         configure_parser=cli.configure_parser,

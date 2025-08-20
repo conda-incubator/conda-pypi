@@ -32,7 +32,7 @@ def test_externally_managed_workflow(tmp_path):
 
     content = em_files[0].read_text()
     assert content.startswith("[externally-managed]")
-    assert "conda pip" in content  # Should contain the standard message
+    assert "conda pypi" in content  # Should contain the standard message
 
     # Test idempotency - calling again should not change the content
     ensure_externally_managed(tmp_path)

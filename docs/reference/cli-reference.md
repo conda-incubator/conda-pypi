@@ -1,21 +1,21 @@
 # CLI Reference
 
 This reference documents all available commands, options, and usage patterns
-for the `conda pip` command-line interface.
+for the `conda pypi` command-line interface.
 
 ## Overview
 
-`conda-pypi` adds the `conda pip` subcommand to conda, providing two main
+`conda-pypi` adds the `conda pypi` subcommand to conda, providing two main
 operations:
 
-- `conda pip install` - Install PyPI packages with conversion to conda
+- `conda pypi install` - Install PyPI packages with conversion to conda
   format
-- `conda pip convert` - Convert PyPI packages to `.conda` format without
+- `conda pypi convert` - Convert PyPI packages to `.conda` format without
   installing
 
 ## Global Options
 
-These options are inherited from conda and available for all `conda pip`
+These options are inherited from conda and available for all `conda pypi`
 commands:
 
 ### Target Environment Specification
@@ -78,16 +78,16 @@ asked to confirm any operations.
 ```
 Show help message and exit.
 
-## conda pip install
+## conda pypi install
 
 Install PyPI packages by converting them to conda format when possible.
 
 ### Synopsis
 
 ```bash
-conda pip install [options] package [package ...]
-conda pip install [options] -e path
-conda pip install [options] -e vcs+url
+conda pypi install [options] package [package ...]
+conda pypi install [options] -e path
+conda pypi install [options] -e vcs+url
 ```
 
 ### Description
@@ -140,47 +140,47 @@ Install packages in editable mode (development mode). Supports:
 
 Install a single package:
 ```bash
-conda pip install requests
+conda pypi install requests
 ```
 
 Install multiple packages:
 ```bash
-conda pip install requests numpy pandas
+conda pypi install requests numpy pandas
 ```
 
 Install with version constraints:
 ```bash
-conda pip install "requests>=2.25.0" "numpy<1.22"
+conda pypi install "requests>=2.25.0" "numpy<1.22"
 ```
 
 Preview installation without changes:
 ```bash
-conda pip install --dry-run tensorflow
+conda pypi install --dry-run tensorflow
 ```
 
 Force dependency resolution from PyPI only:
 ```bash
-conda pip install --override-channels some-package-with-many-deps
+conda pypi install --override-channels some-package-with-many-deps
 ```
 
 Install in editable mode from local directory:
 ```bash
-conda pip install -e ./my-project/
+conda pypi install -e ./my-project/
 ```
 
 Install in editable mode from git repository:
 ```bash
-conda pip install -e git+https://github.com/user/project.git
+conda pypi install -e git+https://github.com/user/project.git
 ```
 
 Install in specific environment:
 ```bash
-conda pip install -n myenv requests
+conda pypi install -n myenv requests
 ```
 
 Quiet installation for scripting:
 ```bash
-conda pip install --quiet --yes requests
+conda pypi install --quiet --yes requests
 ```
 
 ### Exit Codes
@@ -188,14 +188,14 @@ conda pip install --quiet --yes requests
 - `0`: Success - all packages installed successfully
 - `1`: Failure - one or more packages failed to install
 
-## conda pip convert
+## conda pypi convert
 
 Convert PyPI packages to `.conda` format without installing them.
 
 ### Synopsis
 
 ```bash
-conda pip convert [options] package [package ...]
+conda pypi convert [options] package [package ...]
 ```
 
 ### Description
@@ -235,27 +235,27 @@ current directory. The directory will be created if it doesn't exist.
 
 Convert packages to current directory:
 ```bash
-conda pip convert requests packaging
+conda pypi convert requests packaging
 ```
 
 Convert to specific directory:
 ```bash
-conda pip convert -d ./converted-packages requests numpy
+conda pypi convert -d ./converted-packages requests numpy
 ```
 
 Convert without checking for conda equivalents:
 ```bash
-conda pip convert --override-channels some-package
+conda pypi convert --override-channels some-package
 ```
 
 Convert from specific environment:
 ```bash
-conda pip convert -n myenv -d ./packages requests
+conda pypi convert -n myenv -d ./packages requests
 ```
 
 Quiet conversion:
 ```bash
-conda pip convert --quiet -d ./output requests
+conda pypi convert --quiet -d ./output requests
 ```
 
 ### Exit Codes
@@ -270,41 +270,41 @@ formats:
 
 ### Basic Package Names
 ```bash
-conda pip install requests
-conda pip install numpy pandas
+conda pypi install requests
+conda pypi install numpy pandas
 ```
 
 ### Version Constraints
 ```bash
-conda pip install "requests>=2.25.0"
-conda pip install "numpy>=1.20,<1.22"
-conda pip install "django~=4.0.0"
+conda pypi install "requests>=2.25.0"
+conda pypi install "numpy>=1.20,<1.22"
+conda pypi install "django~=4.0.0"
 ```
 
 ### Exact Versions
 ```bash
-conda pip install requests==2.28.1
-conda pip install numpy==1.21.6
+conda pypi install requests==2.28.1
+conda pypi install numpy==1.21.6
 ```
 
 ### URLs
 ```bash
-conda pip install https://files.pythonhosted.org/packages/.../requests-2.28.1-py3-none-any.whl
+conda pypi install https://files.pythonhosted.org/packages/.../requests-2.28.1-py3-none-any.whl
 ```
 
 ### Local Files
 ```bash
-conda pip install ./dist/mypackage-1.0.tar.gz
-conda pip install /path/to/package.whl
+conda pypi install ./dist/mypackage-1.0.tar.gz
+conda pypi install /path/to/package.whl
 ```
 
 ### VCS URLs (editable only)
 ```bash
-conda pip install -e git+https://github.com/user/repo.git
-conda pip install -e git+https://github.com/user/repo.git@branch
-conda pip install -e git+https://github.com/user/repo.git#subdirectory=sub
-conda pip install -e hg+https://bitbucket.org/user/repo
-conda pip install -e svn+https://svn.example.com/repo/trunk
+conda pypi install -e git+https://github.com/user/repo.git
+conda pypi install -e git+https://github.com/user/repo.git@branch
+conda pypi install -e git+https://github.com/user/repo.git#subdirectory=sub
+conda pypi install -e hg+https://bitbucket.org/user/repo
+conda pypi install -e svn+https://svn.example.com/repo/trunk
 ```
 
 ## Environment Variables
@@ -350,16 +350,16 @@ conda create -n dev python=3.10 pip
 conda activate dev
 
 # Install your project in editable mode
-conda pip install -e .
+conda pypi install -e .
 
 # Install additional development dependencies
-conda pip install -e git+https://github.com/user/dev-tool.git
+conda pypi install -e git+https://github.com/user/dev-tool.git
 ```
 
 ### Building Custom Packages
 ```bash
 # Convert packages for offline use
-conda pip convert -d ./offline-packages requests numpy pandas
+conda pypi convert -d ./offline-packages requests numpy pandas
 
 # Create custom channel
 conda index ./offline-packages
@@ -368,14 +368,14 @@ conda index ./offline-packages
 ### CI/CD Integration
 ```bash
 # Reproducible installation in CI
-conda pip install --quiet --yes -r requirements.txt
+conda pypi install --quiet --yes -r requirements.txt
 ```
 
 ### Mixed Environment Setup
 ```bash
 # Install scientific stack from conda-forge, other packages from PyPI
 conda install numpy scipy matplotlib
-conda pip install some-domain-specific-package
+conda pypi install some-domain-specific-package
 ```
 
 ## Troubleshooting
@@ -405,15 +405,15 @@ conda pip install some-domain-specific-package
 
 For verbose output and debugging:
 ```bash
-conda pip install --verbose package-name
+conda pypi install --verbose package-name
 ```
 
 For JSON output suitable for programmatic parsing:
 ```bash
-conda pip install --json package-name
+conda pypi install --json package-name
 ```
 
 To preview operations without making changes:
 ```bash
-conda pip install --dry-run package-name
+conda pypi install --dry-run package-name
 ```

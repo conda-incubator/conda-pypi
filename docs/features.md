@@ -3,13 +3,13 @@
 `conda-pypi` uses the `conda` plugin system to implement several features
 that make `conda` integrate better with the PyPI ecosystem:
 
-## The `conda pip` subcommand
+## The `conda pypi` subcommand
 
 This subcommand provides a safer way to install PyPI packages in conda
 environments by converting them to conda format when possible. It offers two
 main subcommands that handle different aspects of PyPI integration.
 
-### `conda pip install`
+### `conda pypi install`
 
 The install command takes PyPI packages and converts them to `.conda` format
 when possible, falling back to direct pip installation when needed. The
@@ -34,7 +34,7 @@ You can preview what would be installed without making changes using
 or `-e`, and force dependency resolution from PyPI without using conda
 channels using `--override-channels`.
 
-### `conda pip convert`
+### `conda pypi convert`
 
 The convert command transforms PyPI packages to `.conda` format without
 installing them, which is useful for creating conda packages from PyPI
@@ -48,13 +48,13 @@ Here are some common usage patterns:
 
 ```bash
 # Convert packages to current directory
-conda pip convert requests packaging
+conda pypi convert requests packaging
 
 # Convert to specific directory
-conda pip convert -d ./my_packages requests packaging
+conda pypi convert -d ./my_packages requests packaging
 
 # Convert without checking conda channels first
-conda pip convert --override-channels some-pypi-only-package
+conda pypi convert --override-channels some-pypi-only-package
 ```
 
 ## PyPI-to-Conda Conversion Engine
@@ -97,13 +97,13 @@ Here are some common usage patterns for editable installations:
 
 ```bash
 # Install from git repository in editable mode
-conda pip install -e git+https://github.com/user/project.git
+conda pypi install -e git+https://github.com/user/project.git
 
 # Install local project in editable mode
-conda pip install -e ./my-project/
+conda pypi install -e ./my-project/
 
 # Multiple editable packages
-conda pip install -e ./package1/ -e git+https://github.com/user/package2.git
+conda pypi install -e ./package1/ -e git+https://github.com/user/package2.git
 ```
 
 ## `conda env` integrations
@@ -114,7 +114,7 @@ conda pip install -e ./package1/ -e git+https://github.com/user/package2.git
 `environment.yml` files famously allow a `pip` subsection in their
 `dependencies`. This is handled internally by `conda env` via a `pip`
 subprocess. We are adding new plugin hooks so `conda-pypi` can handle these
-in the same way we do with the `conda pip` subcommand.
+in the same way we do with the `conda pypi` subcommand.
 :::
 
 (externally-managed)=
@@ -129,7 +129,7 @@ not to install or remove any packages in that environment, guiding users
 towards safer alternatives.
 
 When these marker files are present, they display a message letting users
-know that the `conda pip` subcommand is available as a safer alternative. The
+know that the `conda pypi` subcommand is available as a safer alternative. The
 primary goal is to avoid accidental overwrites that could break your conda
 environment. If you need to use `pip` directly, you can still do so by adding
 the `--break-system-packages` flag, though this is generally not recommended

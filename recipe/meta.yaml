@@ -47,7 +47,7 @@ test:
     - conda_pypi
     - conda_pypi.main
   commands:
-    - conda pip --help
+    - conda pypi --help
     - python -c "import sys; from conda_pypi.utils import get_env_stdlib; assert (get_env_stdlib(sys.prefix) / 'EXTERNALLY-MANAGED').exists()"
     - pip install --no-deps colorama==0.4.4 && exit 1 || exit 0
 

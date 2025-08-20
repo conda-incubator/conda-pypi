@@ -72,13 +72,38 @@ def _get_script_kind():
         return "posix"
 
 
-def install_wheel(wheel_path: Path, install_dir: Path):
+def get_python_version_from_executable(python_exe: Path) -> str:
+    """Get Python version string from a Python executable."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            [
+                str(python_exe),
+                "-c",
+                "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        # Fallback to current Python version
+        return f"{sys.version_info.major}.{sys.version_info.minor}"
+
+
+def install_wheel(wheel_path: Path, install_dir: Path, python_exe: Path):
     """Install a wheel using the installer library."""
+    # Get Python version for site-packages path from target environment
+    python_version = get_python_version_from_executable(python_exe)
+    site_packages = install_dir / "lib" / f"python{python_version}" / "site-packages"
+
     # Handler for installation directories and writing into them.
     destination = SchemeDictionaryDestination(
         {
-            "platlib": str(install_dir),
-            "purelib": str(install_dir),
+            "platlib": str(site_packages),
+            "purelib": str(site_packages),
             "headers": str(install_dir / "include"),
             "scripts": str(install_dir / "bin"),
             "data": str(install_dir),
@@ -443,12 +468,14 @@ def build_conda(
     info_dir.mkdir(parents=True, exist_ok=True)
 
     # Install wheel to get the files
-    install_wheel(wheel_path, install_dir)
+    install_wheel(wheel_path, install_dir, python_exe)
 
     # Get distribution metadata
     try:
-        # Try to find the installed distribution
-        dist_info_dirs = list(install_dir.glob("*.dist-info"))
+        # Try to find the installed distribution in site-packages
+        python_version = get_python_version_from_executable(python_exe)
+        site_packages = install_dir / "lib" / f"python{python_version}" / "site-packages"
+        dist_info_dirs = list(site_packages.glob("*.dist-info"))
         if dist_info_dirs:
             distribution = PathDistribution(dist_info_dirs[0])
         else:
@@ -494,7 +521,7 @@ def build_conda(
             # Add metadata files from info directory
             for info_file in info_dir.iterdir():
                 if info_file.is_file():
-                    print(f"DEBUG: Adding info file: info/{info_file.name}")
+                    log.debug(f"Adding info file: info/{info_file.name}")
                     builder.add(str(info_file), arcname=f"info/{info_file.name}")
 
             # Add package files (everything except info directory)
@@ -507,7 +534,7 @@ def build_conda(
                     file_path = Path(root) / file
                     rel_path = file_path.relative_to(install_dir)
                     arcname = rel_path.as_posix()
-                    print(f"DEBUG: Adding package file: {arcname}")
+                    log.debug(f"Adding package file: {arcname}")
                     builder.add(str(file_path), arcname=arcname)
 
         log.info(f"Created conda package: {conda_package_path}")

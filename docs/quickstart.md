@@ -9,22 +9,22 @@
 conda install -n base conda-pypi
 ```
 
-Once installed, the `conda pip` subcommand becomes available across all your
+Once installed, the `conda pypi` subcommand becomes available across all your
 conda environments.
 
 ## Basic usage
 
 `conda-pypi` provides several {doc}`features`. The main functionality is
-accessed through the `conda pip` command:
+accessed through the `conda pypi` command:
 
 ### Installing PyPI packages
 
 Assuming you have an activated conda environment named `my-python-env` that
 includes `python` and `pip` installed, and `conda-forge` in your configured
-channels, you can use `conda pip install` like this:
+channels, you can use `conda pypi install` like this:
 
 ```bash
-conda pip install requests
+conda pypi install requests
 ```
 
 This will download and convert `requests` from PyPI to `.conda` format
@@ -34,7 +34,7 @@ and `certifi`, and both are available on conda-forge, those dependencies will
 be installed from conda rather than PyPI.
 
 ```bash
-conda pip install build
+conda pypi install build
 ```
 
 This will download and convert the `build` package from PyPI to `.conda`
@@ -44,7 +44,7 @@ asked for. However, its dependencies will preferentially come from conda
 channels when available.
 
 ```bash
-conda pip install some-package-with-many-deps
+conda pypi install some-package-with-many-deps
 ```
 
 Here's where the hybrid approach really shines:
@@ -56,7 +56,7 @@ conda-pypi will analyze its dependency tree and:
   PyPI
 
 ```bash
-conda pip install --override-channels some-package
+conda pypi install --override-channels some-package
 ```
 
 This forces dependency resolution to use only PyPI, bypassing conda channel
@@ -70,10 +70,10 @@ them:
 
 ```bash
 # Convert to current directory
-conda pip convert requests packaging
+conda pypi convert requests packaging
 
 # Convert to specific directory
-conda pip convert -d ./my_packages requests packaging
+conda pypi convert -d ./my_packages requests packaging
 ```
 
 This is useful for creating conda packages from PyPI distributions or
@@ -85,13 +85,13 @@ preparing packages for offline installation.
 
 ```bash
 # Install local project in editable mode
-conda pip install -e ./my-project/
+conda pypi install -e ./my-project/
 
 # Install from version control in editable mode
-conda pip install -e git+https://github.com/user/project.git
+conda pypi install -e git+https://github.com/user/project.git
 
 # Preview what would be installed
-conda pip install --dry-run requests pandas
+conda pypi install --dry-run requests pandas
 ```
 
 
