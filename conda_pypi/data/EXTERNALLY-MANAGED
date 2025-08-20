@@ -2,7 +2,7 @@
 Error=You are trying to modify a conda environment!
   
   If you want to install PyPI packages into this conda environment,
-  please consider using 'conda pip install ...' instead. 
+  please consider using 'conda pypi install ...' instead. 
   This will make a few checks to ensure that the PyPI packages 
   you want to install will not disrupt your conda environment.
 

@@ -7,7 +7,8 @@ exclude: |
   (?x)^(
     tests/data/.* |
     conda_pypi/data/.* |
-    pixi.lock
+    pixi.lock |
+    conda_pypi/grayskull_pypi_mapping.json
   )$
 repos:
   # generic verification and formatting

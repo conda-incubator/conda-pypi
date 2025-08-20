@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["38", "39", "310", "311"]
+        python-version: ["39", "310", "311"]
         include:
           - os: macos-13
             python-version: "310"
@@ -52,7 +52,7 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
         run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
-  
+
   build-conda:
     name: Build conda package (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -74,4 +74,3 @@ jobs:
           pixi run --environment build dev
       - name: Build recipe
         run: pixi run --environment build build
-  

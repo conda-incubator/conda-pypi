@@ -1,65 +1,136 @@
 # Features
 
-`conda-pypi` uses the `conda` plugin system to implement several features that make `conda` integrate better with the PyPI ecosystem:
+`conda-pypi` uses the `conda` plugin system to implement several features
+that make `conda` integrate better with the PyPI ecosystem:
 
-## The `conda pip` subcommand
+## The `conda pypi` subcommand
 
-This new subcommand wraps `pip` (and/or other PyPI tools) so you can install PyPI packages (or their conda equivalents) in your conda environment in a safer way.
+This subcommand provides a safer way to install PyPI packages in conda
+environments by converting them to conda format when possible. It offers two
+main subcommands that handle different aspects of PyPI integration.
 
-The main logic currently works like this:
+### `conda pypi install`
 
-1. Collect the PyPI requirements and execute `pip install --dry-run` to obtain a JSON report of "what would have happened".
-2. The JSON report is parsed and the resolved dependencies are normalized and mapped to the configured conda channels via different sources (e.g. `cf-graph-countyfair`, `grayskull`, `parselmouth`).
-3. The packages that were found on the configured conda channels are installed with `conda`. Those _not_ on conda are installed individually with `pip install --no-deps`.
+The install command takes PyPI packages and converts them to `.conda` format
+when possible, falling back to direct pip installation when needed. The
+process begins with dependency resolution using pip's own dependency resolver
+to determine what packages need to be installed.
 
-:::{admonition} Coming soon
-:class: seealso
+Explicitly requested packages are always installed from PyPI and converted
+to `.conda` format to ensure you get exactly what you asked for. For
+dependencies, conda-pypi intelligently chooses the best source using a
+conda-first approach. If a dependency is available on conda channels, it will
+be installed with `conda` directly. If not available on conda channels, the
+dependency will be converted from PyPI to `.conda` format.
 
-Right now we are not disallowing compiled wheels, but we might add options in the future to only allow pure Python wheels via `whl2conda`.
-:::
+The system uses multiple sources for package name mapping, including
+automated mappings from the grayskull project, name normalization that
+handles dash and underscore variants, and direct searches of configured conda
+channels for equivalent packages. VCS and editable packages are handled as
+special cases and installed directly with `pip --no-deps`.
 
-(pypi-lines)=
+You can preview what would be installed without making changes using
+`--dry-run`, install packages in editable development mode with `--editable`
+or `-e`, and force dependency resolution from PyPI without using conda
+channels using `--override-channels`.
 
-## `conda list` integrations
+### `conda pypi convert`
 
-`conda` has native support for listing PyPI dependencies as part of `conda list`. However, this is not enabled in all output modes. `conda list --explicit`, used sometimes as a lockfile replacement, does not include any information about the PyPI dependencies.
+The convert command transforms PyPI packages to `.conda` format without
+installing them, which is useful for creating conda packages from PyPI
+distributions or preparing packages for offline installation. You can specify
+where to save the converted packages using `-d`, `--dest`, or `--output-dir`.
+The command supports converting multiple packages at once and can skip conda
+channel checks entirely with `--override-channels` to convert directly from
+PyPI.
 
-We have added a post-command plugin to list PyPI dependencies via `# pypi:` comments. This is currently an experimental, non-standard extension of the file format subject to change. The syntax is:
+Here are some common usage patterns:
 
+```bash
+# Convert packages to current directory
+conda pypi convert requests packaging
+
+# Convert to specific directory
+conda pypi convert -d ./my_packages requests packaging
+
+# Convert without checking conda channels first
+conda pypi convert --override-channels some-pypi-only-package
 ```
-# pypi: <name>[==<version>] [--python-version str] [--implementation str] [--abi str ...] [--platform str ...] [--record-checksum <algorithm>=<value>]
+
+## PyPI-to-Conda Conversion Engine
+
+`conda-pypi` includes a powerful conversion engine that enables direct
+conversion of Python wheels to `.conda` packages with proper translation of
+Python package metadata to conda format. The system includes intelligent
+mapping of PyPI dependencies to conda equivalents and provides cross-platform
+support for package conversion, ensuring that converted packages work
+seamlessly across different operating systems and architectures.
+
+## Package Management Integration
+
+When `conda-pypi` converts PyPI packages to conda format, they become
+first-class conda packages that appear in `conda list` output and can be
+managed with standard conda commands like `conda remove`. This seamless
+integration means that converted packages are indistinguishable from
+packages installed directly from conda channels, providing a unified package
+management experience.
+
+The conversion process preserves all essential package metadata, ensuring
+that dependency relationships and version constraints are properly maintained
+in the conda environment. This approach eliminates the complexity of managing
+two separate package ecosystems within a single environment.
+
+## Editable Package Support
+
+`conda-pypi` provides comprehensive support for editable (development)
+installations, making it ideal for development environments where code is
+frequently modified. The system supports both version control system packages
+and local packages.
+
+For VCS packages, you can install directly from git URLs with automatic
+cloning. The system caches VCS repositories locally for improved performance
+and manages temporary directories and repository clones automatically. Local
+package support allows you to install packages from local project directories
+in editable mode, which is perfect for active development workflows.
+
+Here are some common usage patterns for editable installations:
+
+```bash
+# Install from git repository in editable mode
+conda pypi install -e git+https://github.com/user/project.git
+
+# Install local project in editable mode
+conda pypi install -e ./my-project/
+
+# Multiple editable packages
+conda pypi install -e ./package1/ -e git+https://github.com/user/package2.git
 ```
-
-All fields above should be part of the same line. The CLI mimics what `pip` currently accepts (as
-of v24.0), with the exception of `--record-checksum`, which is a custom addition.
-`--record-checksum` is currently calculated like this:
-
-1. Given a `RECORD` file, we parse it as a list of 3-tuples: path, hash and size.
-2. We skip `*.dist-info` files other than `METADATA` and `WHEEL`.
-3. For non site-packages files, we only keep the path for those than fall in `bin`, `lib`
-   and `Scripts` because their hash and size might change with path relocation.
-4. The list of tuples `(path, hash, size)` is then sorted and written as a JSON string with no
-   spaces or indentation.
-5. This is written to a temporary file and then hashed with MD5 or SHA256.
-
-## `conda install` integrations
-
-Another post-command plugin is also available to process `@EXPLICIT` lockfiles and search for `# pypi:` lines as discussed above. Again, this is experimental and subject to change.
 
 ## `conda env` integrations
 
 :::{admonition} Coming soon
 :class: seealso
 
-`environment.yml` files famously allow a `pip` subsection in their `dependencies`. This is handled internally by `conda env` via a `pip` subprocess. We are adding new plugin hooks so `conda-pypi` can handle these in the same way we do with the `conda pip` subcommand.
+`environment.yml` files famously allow a `pip` subsection in their
+`dependencies`. This is handled internally by `conda env` via a `pip`
+subprocess. We are adding new plugin hooks so `conda-pypi` can handle these
+in the same way we do with the `conda pypi` subcommand.
 :::
 
 (externally-managed)=
 
 ## Environment marker files
 
-`conda-pypi` adds support for [PEP-668](https://peps.python.org/pep-0668/)'s [`EXTERNALLY-MANAGED`](https://packaging.python.org/en/latest/specifications/externally-managed-environments/) environment marker files.
+`conda-pypi` adds support for
+[PEP-668](https://peps.python.org/pep-0668/)'s
+[`EXTERNALLY-MANAGED`](https://packaging.python.org/en/latest/specifications/externally-managed-environments/)
+environment marker files. These files tell `pip` and other PyPI installers
+not to install or remove any packages in that environment, guiding users
+towards safer alternatives.
 
-This file will tell `pip` and other PyPI installers to not install or remove any packages in that environment, guiding the user towards a safer way of achieving the same result. In our case, the message will let you know that a `conda pip` subcommand is available (see above).
-
-With this file we mostly want to avoid accidental overwrites that could break your environment. You can still use `pip` directly if you want, but you'll need to add the `--break-system-packages` flag.
+When these marker files are present, they display a message letting users
+know that the `conda pypi` subcommand is available as a safer alternative. The
+primary goal is to avoid accidental overwrites that could break your conda
+environment. If you need to use `pip` directly, you can still do so by adding
+the `--break-system-packages` flag, though this is generally not recommended
+in conda environments.

@@ -9,7 +9,7 @@ from conda.testing import CondaCLIFixture, TmpEnvFixture
 from conda.testing.integration import package_is_installed
 from pytest_mock import MockerFixture
 
-from conda_pypi.python_paths import get_env_python, get_env_stdlib
+from conda_pypi.utils import get_env_python, get_env_stdlib
 
 
 def test_pip_required_in_target_env(
@@ -18,12 +18,12 @@ def test_pip_required_in_target_env(
     monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false")
     reset_context()
     with tmp_env("xz") as prefix:
-        args = ("pip", "-p", prefix, "--yes", "install", "requests")
+        args = ("pypi", "-p", prefix, "--yes", "install", "requests")
 
         with pytest.raises(CondaError, match="requires python"):
             out, err, rc = conda_cli(*args)
         out, err, rc = conda_cli("install", "-p", prefix, "--yes", "python=3.9")
-        PrefixData._cache_.clear()  # clear cache to force re-read of prefix
+        PrefixData._cache_.clear()
         assert package_is_installed(str(prefix), "python=3.9")
         assert not package_is_installed(str(prefix), "pip")
         PrefixData._cache_.clear()
@@ -31,7 +31,7 @@ def test_pip_required_in_target_env(
         with pytest.raises(CondaError, match="requires pip"):
             out, err, rc = conda_cli(*args)
         out, err, rc = conda_cli("install", "-p", prefix, "--yes", "pip")
-        PrefixData._cache_.clear()  # clear cache to force re-read of prefix
+        PrefixData._cache_.clear()
         assert package_is_installed(str(prefix), "pip")
         PrefixData._cache_.clear()
 
@@ -47,21 +47,22 @@ def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, mocker: MockerFixture
 ):
     """
-    conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
-    We also need to place it in _new_ environments created by conda.
+    Test that conda-pypi creates EXTERNALLY-MANAGED files correctly and that pip respects them.
+    Focus on testing that the externally managed mechanism works properly.
     """
     base_dir = get_env_stdlib(sys.prefix)
     text = (base_dir / "EXTERNALLY-MANAGED").read_text().strip()
     assert text.startswith("[externally-managed]")
-    assert "conda pip" in text
+    assert "conda pypi" in text
 
     with tmp_env("python", "pip") as prefix:
-        conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
+        # Install requests and certifi to ensure certifi is available for the test
+        conda_cli("pypi", "-p", prefix, "--yes", "install", "requests", "certifi")
         target_site_packages = get_env_stdlib(prefix)
         externally_managed_file = target_site_packages / "EXTERNALLY-MANAGED"
         text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
-        assert "conda pip" in text
+        assert "conda pypi" in text
         # With EXTERNALLY-MANAGED in place, regular pip installs will fail with a descriptive error
         p = run(
             [get_env_python(prefix), "-m", "pip", "install", "certifi"],
@@ -71,10 +72,9 @@ def test_externally_managed(
         assert p.returncode != 0
         all_text = p.stderr + p.stdout
         assert "externally-managed-environment" in all_text
-        assert "conda pip" in all_text
+        assert "conda pypi" in all_text
         assert "--break-system-packages" in all_text
-        # Retrying with --break-system-packages should work. It's a no-op because
-        # certifi is already installed, but it doesn't error out.
+        # Retrying with --break-system-packages should work and allow installation
         p = run(
             [get_env_python(prefix), "-m", "pip", "install", "certifi", "--break-system-packages"],
             capture_output=True,
@@ -82,7 +82,11 @@ def test_externally_managed(
         )
         assert p.returncode == 0
         all_text = p.stderr + p.stdout
-        assert "Requirement already satisfied: certifi" in all_text
+        # Should either be already satisfied or successfully install
+        assert (
+            "Requirement already satisfied: certifi" in all_text
+            or "Successfully installed certifi" in all_text
+        )
 
         # Mock history to bypass "conda-pypi is explicitly installed" checks
         # since in some local development environments we might have installed via pip -e

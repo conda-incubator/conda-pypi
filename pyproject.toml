@@ -14,8 +14,6 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: Implementation :: CPython",
@@ -23,11 +21,12 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  # "conda >=23.9.0",
+  "build",                          # conda name is python-build
+  "conda-index",
+  "installer >=0.7",                # conda name is python-installer
+  "packaging >=24",
+  "unearth >=0.17.2",               # download packages from pypi
   "pip",
-  "grayskull",
-  "importlib_resources; python_version < '3.9'",
-  "packaging",
 ]
 dynamic = ["version"]
 
@@ -42,10 +41,12 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [tool.pixi.dependencies]
-python = ">=3.8"
-conda = ">=23.9"
+python = ">=3.9"
+conda = ">=24.11.0"
 pip = "*"
 grayskull = "*"
+conda-libmamba-solver = ">=24.9"
+conda-package-streaming = ">=0.11"
 
 [tool.pixi.tasks]
 dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
@@ -82,9 +83,6 @@ pytest-mock = "3.12.0.*"
 conda-build = "*"
 pre-commit = "*"
 
-[tool.pixi.feature.py38.dependencies]
-python = "3.8.*"
-
 [tool.pixi.feature.py39.dependencies]
 python = "3.9.*"
 
@@ -97,7 +95,6 @@ python = "3.11.*"
 [tool.pixi.environments]
 build = ["build"]
 docs = ["docs"]
-test-py38 = ["test", "py38"]
 test-py39 = ["test", "py39"]
 test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]
