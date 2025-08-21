@@ -276,5 +276,12 @@ def test_editable_installs(
             f"Expected 1 editable .pth file for {name}, found: {editable_pth}"
         )
         pth_contents = editable_pth[0].read_text().strip()
-        src_path = str(tmp_path / "src")
-        assert src_path in pth_contents or pth_contents.startswith(f"import __editable___{name}")
+        src_path = tmp_path / "src"
+
+        if not pth_contents.startswith(f"import __editable___{name}"):
+            pth_path = Path(pth_contents)
+            assert (
+                src_path in pth_path.parents
+                or src_path == pth_path
+                or pth_path.is_relative_to(src_path)
+            ), f"Expected {src_path} to be a parent of or equal to {pth_path}"

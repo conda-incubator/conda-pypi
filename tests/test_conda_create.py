@@ -52,7 +52,7 @@ def test_indexable(tmp_path):
         "--prefix",
         str(tmp_path / "env"),
         "--channel",
-        f"file://{tmp_path}",
+        tmp_path.as_uri(),
         "--override-channels",
         "-y",
         "somepackage",
