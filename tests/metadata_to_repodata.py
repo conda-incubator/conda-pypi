@@ -8,7 +8,7 @@ import json
 import packaging.requirements
 from corpus import PyMetadata, create_session
 
-from conda_pupa.translate import (
+from conda_pypi.translate import (
     CondaMetadata,
     FileDistribution,
 )

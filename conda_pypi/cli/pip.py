@@ -21,7 +21,7 @@ logger = getLogger(f"conda.{__name__}")
 
 
 def configure_parser(parser: argparse.ArgumentParser):
-    from ..dependencies import BACKENDS
+    from conda_pypi.dependencies import BACKENDS
 
     add_parser_help(parser)
     add_parser_prefix(parser)
@@ -87,14 +87,14 @@ def execute(args: argparse.Namespace) -> int:
 
     from conda.common.io import Spinner
     from conda.models.match_spec import MatchSpec
-    from ..dependencies import analyze_dependencies
-    from ..main import (
+    from conda_pypi.dependencies import analyze_dependencies
+    from conda_pypi.main import (
         validate_target_env,
         ensure_externally_managed,
         run_conda_install,
         run_pip_install,
     )
-    from ..utils import get_prefix
+    from conda_pypi.utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)
     packages_not_installed = validate_target_env(prefix, args.packages)
