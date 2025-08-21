@@ -7,9 +7,9 @@ from conda.base.context import context
 from packaging.requirements import InvalidRequirement
 
 import build
-import conda_pupa.dependencies_subprocess
-from conda_pupa.build import filter, pypa_to_conda
-from conda_pupa.dependencies import ensure_requirements
+import conda_pypi.dependencies_subprocess
+from conda_pypi.build import filter, pypa_to_conda
+from conda_pypi.dependencies.pupa import ensure_requirements
 
 
 def test_editable(tmp_path):
@@ -55,10 +55,7 @@ def test_build_wheel(package, package_path, tmp_path):
         "test-no-requires",
         "test-optional-hooks",
     ]
-    if package == "test-flit":
-        pytest.skip(
-            reason="Required version of flit was not packaged for Python 3.12 in our channel"
-        )
+
     try:
         pypa_to_conda(
             package_path / package,
@@ -77,7 +74,7 @@ def test_build_wheel(package, package_path, tmp_path):
 
 
 def test_ensure_requirements(mocker):
-    mock = mocker.patch("conda_pupa.dependencies.main_subshell")
+    mock = mocker.patch("conda_pypi.dependencies.pupa.main_subshell")
     ensure_requirements(["flit_core"], prefix=Path())
     # normalizes/converts the underscore flit_core->flit-core
     assert mock.call_args.args == ("install", "--prefix", ".", "-y", "flit-core")
@@ -120,7 +117,7 @@ def test_dependencies_subprocess():
     Normally called in a way that doesn't measure coverage.
     """
     dependencies = ["xyzzy", "conda"]
-    missing_dependencies = conda_pupa.dependencies_subprocess.main(
+    missing_dependencies = conda_pypi.dependencies_subprocess.main(
         ["-", "-r", json.dumps(dependencies)]
     )
     # A list per checked dependency, if that dependency or its dependencies are

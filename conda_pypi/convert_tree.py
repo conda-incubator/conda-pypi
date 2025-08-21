@@ -23,9 +23,9 @@ from conda_libmamba_solver.solver import (
 )
 from unearth import PackageFinder
 
-from conda_pupa.build import build_conda
-from conda_pupa.downloader import find_and_fetch, get_package_finder
-from conda_pupa.index import update_index
+from conda_pypi.build import build_conda
+from conda_pypi.downloader import find_and_fetch, get_package_finder
+from conda_pypi.index import update_index
 
 log = logging.getLogger(__name__)
 

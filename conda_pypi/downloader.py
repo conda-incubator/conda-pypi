@@ -9,9 +9,9 @@ from conda.gateways.connection.download import download
 from conda.models.match_spec import MatchSpec
 from unearth import PackageFinder, TargetPython
 
-from conda_pupa.translate import conda_to_requires
+from conda_pypi.translate import conda_to_requires
 
-from .exceptions import PupaError
+from conda_pypi.exceptions import PupaError
 
 
 def get_package_finder(prefix: Path):

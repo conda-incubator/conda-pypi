@@ -6,7 +6,7 @@ import pytest
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import InvalidRequirement
 
-from conda_pupa.translate import CondaMetadata, FileDistribution, conda_to_requires
+from conda_pypi.translate import CondaMetadata, FileDistribution, conda_to_requires
 
 # XXX different pythonpath under pytest
 skip = False

@@ -20,9 +20,9 @@ from conda_package_streaming.create import conda_builder
 
 from build import ProjectBuilder
 
-from . import dependencies, installer, paths
-from .conda_build_utils import PathType, sha256_checksum
-from .translate import CondaMetadata
+from conda_pypi import dependencies, installer, paths
+from conda_pypi.conda_build_utils import PathType, sha256_checksum
+from conda_pypi.translate import CondaMetadata
 
 
 def filter(tarinfo):

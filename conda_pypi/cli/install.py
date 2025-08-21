@@ -7,8 +7,8 @@ from conda.base.context import context
 from conda.common.io import Spinner
 from conda.exceptions import CondaVerificationError, CondaFileIOError
 
-from ..main import run_pip_install, compute_record_sum, PyPIDistribution
-from ..python_paths import get_env_site_packages
+from conda_pypi.main import run_pip_install, compute_record_sum, PyPIDistribution
+from conda_pypi.python_paths import get_env_site_packages
 
 if TYPE_CHECKING:
     from typing import Iterable, Literal

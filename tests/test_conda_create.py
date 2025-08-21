@@ -6,10 +6,10 @@ from pathlib import Path
 from conda.cli.main import main_subshell
 from conda_package_streaming.create import conda_builder
 
-from conda_pupa.build import filter, paths_json
-from conda_pupa.conda_build_utils import PathType, sha256_checksum
-from conda_pupa.index import update_index
-from conda_pupa.translate import PackageRecord
+from conda_pypi.build import filter, paths_json
+from conda_pypi.conda_build_utils import PathType, sha256_checksum
+from conda_pypi.index import update_index
+from conda_pypi.translate import PackageRecord
 
 here = Path(__file__).parent
 
