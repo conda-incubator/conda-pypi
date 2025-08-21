@@ -27,13 +27,13 @@ from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
 
-from .python_paths import (
+from conda_pypi.python_paths import (
     ensure_externally_managed,
     get_env_python,
     get_env_site_packages,
     get_externally_managed_paths,
 )
-from .utils import pypi_spec_variants
+from conda_pypi.utils import pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()

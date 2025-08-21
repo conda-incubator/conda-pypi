@@ -1,8 +1,8 @@
 import sys
 from conda.base.context import context
 
-from .. import __version__
-from ..main import pypi_lines_for_explicit_lockfile
+from conda_pypi import __version__
+from conda_pypi.main import pypi_lines_for_explicit_lockfile
 
 
 def post_command(command: str):
