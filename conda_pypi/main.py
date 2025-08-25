@@ -14,15 +14,15 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
 from conda.base.context import context
-from conda.common.pkg_formats.python import PythonDistribution
+from conda.plugins.prefix_data_loaders.pypi.pkg_format import PythonDistribution
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.records import PackageRecord
 from conda.history import History
-from conda.cli.python_api import run_command
-from conda.exceptions import CondaError, CondaSystemExit
+import subprocess
+from conda.exceptions import CondaError
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
@@ -41,7 +41,7 @@ HERE = Path(__file__).parent.resolve()
 
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     context.validate_configuration()
-    pd = PrefixData(path, pip_interop_enabled=True)
+    pd = PrefixData(path, interoperability=True)
 
     if not list(pd.query("python>=3.2")):
         raise CondaError(f"Target environment at {path} requires python>=3.2")
@@ -93,11 +93,8 @@ def run_conda_install(
     command.extend(str(spec) for spec in specs)
 
     logger.info("conda install command: conda %s", command)
-    try:
-        *_, retcode = run_command(*command, stdout=None, stderr=None, use_exception_handler=True)
-    except CondaSystemExit:
-        return 0
-    return retcode
+    result = subprocess.run(["conda"] + command, capture_output=False, check=False)
+    return result.returncode
 
 
 def run_pip_install(
@@ -198,7 +195,7 @@ def pypi_lines_for_explicit_lockfile(
     See `PyPIDistribution.to_lockfile_line()` for more details.
     """
     PrefixData._cache_.clear()
-    pd = PrefixData(str(prefix), pip_interop_enabled=True)
+    pd = PrefixData(str(prefix), interoperability=True)
     pd.load()
     lines = []
     python_record = list(pd.query("python"))
