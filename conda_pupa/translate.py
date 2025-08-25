@@ -113,7 +113,7 @@ class CondaMetadata:
         python_version = metadata["requires-python"]
         requires_python = "python"
         if python_version:
-            requires_python = f"python { python_version }"
+            requires_python = f"python {python_version}"
 
         requirements, extras = requires_to_conda(distribution.requires)
 

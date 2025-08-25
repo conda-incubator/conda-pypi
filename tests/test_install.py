@@ -272,9 +272,9 @@ def test_editable_installs(
         if not editable_pth:
             editable_pth = list(sp.glob(f"{name}.pth"))  # Older format
 
-        assert (
-            len(editable_pth) == 1
-        ), f"Expected 1 editable .pth file for {name}, found: {editable_pth}"
+        assert len(editable_pth) == 1, (
+            f"Expected 1 editable .pth file for {name}, found: {editable_pth}"
+        )
         pth_contents = editable_pth[0].read_text().strip()
         src_path = str(tmp_path / "src")
         assert src_path in pth_contents or pth_contents.startswith(f"import __editable___{name}")
