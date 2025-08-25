@@ -143,7 +143,7 @@ def run_pip_install(
     if check and process.returncode:
         raise CondaError(
             f"Failed to run pip:\n"
-            f"  command: {shlex.join(map(str,command))}\n"
+            f"  command: {shlex.join(map(str, command))}\n"
             f"  exit code: {process.returncode}\n"
             f"  stderr:\n{process.stderr}\n"
             f"  stdout:\n{process.stdout}"

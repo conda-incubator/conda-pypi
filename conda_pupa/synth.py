@@ -73,7 +73,7 @@ def extract_version_of_project(
             python_version = package_data.metadata["requires-python"]
             requires_python = "python"
             if python_version:
-                requires_python = f"python { python_version }"
+                requires_python = f"python {python_version}"
             depends = [requires_python] + requirements
 
             build = package.filename.split("-", 2)[-1].removesuffix(".whl")
