@@ -85,7 +85,7 @@ def execute(args: argparse.Namespace) -> int:
             "--editable PKG and --backend=grayskull are not compatible. Please use --backend=pip."
         )
 
-    from conda.common.io import Spinner
+    from conda.reporters import get_spinner
     from conda.models.match_spec import MatchSpec
     from conda_pypi.dependencies import analyze_dependencies
     from conda_pypi.main import (
@@ -104,7 +104,7 @@ def execute(args: argparse.Namespace) -> int:
         print("All packages are already installed.", file=sys.stderr)
         return 0
 
-    with Spinner("Analyzing dependencies", enabled=not args.quiet, json=args.json):
+    with get_spinner("Analyzing dependencies"):
         conda_deps, pypi_deps, editable_deps = analyze_dependencies(
             *packages_to_process,
             editable=args.editable,
