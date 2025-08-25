@@ -69,9 +69,10 @@ def run_conda_install(
     yes: bool = False,
     json: bool = False,
     channels: Iterable[str] | None = None,
-) -> int:
+    capture_output: bool = False,
+) -> int | tuple[int, str, str]:
     if not specs:
-        return 0
+        return 0 if not capture_output else (0, "", "")
 
     command = ["install", "--prefix", str(prefix)]
     if channels:
@@ -93,8 +94,14 @@ def run_conda_install(
     command.extend(str(spec) for spec in specs)
 
     logger.info("conda install command: conda %s", command)
-    result = subprocess.run(["conda"] + command, capture_output=False, check=False)
-    return result.returncode
+    result = subprocess.run(
+        ["conda"] + command, capture_output=capture_output, text=capture_output, check=False
+    )
+
+    if capture_output:
+        return result.returncode, result.stdout, result.stderr
+    else:
+        return result.returncode
 
 
 def run_pip_install(

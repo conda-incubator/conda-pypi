@@ -156,7 +156,8 @@ def execute(args: argparse.Namespace) -> int:
     if conda_match_specs:
         if not args.quiet or not args.json:
             print("Running conda install...")
-        retcode = run_conda_install(
+
+        result = run_conda_install(
             prefix,
             conda_match_specs,
             dry_run=args.dry_run,
@@ -166,7 +167,16 @@ def execute(args: argparse.Namespace) -> int:
             yes=args.yes,
             json=args.json,
             channels=[args.conda_channel],
+            capture_output=args.dry_run,
         )
+
+        if args.dry_run:
+            retcode, stdout, stderr = result
+            print(stdout, end="")
+            print(stderr, end="", file=sys.stderr)
+        else:
+            retcode = result
+
         if retcode:
             return retcode
 
