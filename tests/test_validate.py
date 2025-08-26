@@ -50,7 +50,6 @@ def test_externally_managed(
     conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda.
     """
-    run([sys.executable, "-m", "pip", "config", "list"])
     monkeypatch.delenv("PIP_BREAK_SYSTEM_PACKAGES", raising=False)
     text = get_current_externally_managed_path(sys.prefix).read_text().strip()
     assert text.startswith("[externally-managed]")
@@ -66,11 +65,11 @@ def test_externally_managed(
         assert text.startswith("[externally-managed]")
         assert "conda pip" in text
         run(
-            [get_env_python(prefix), "-m", "pip", "uninstall", "certifi", "-y"],
+            [get_env_python(prefix), "-m", "pip", "uninstall", "--isolated", "certifi", "-y"],
             capture_output=True,
         )
         p = run(
-            [get_env_python(prefix), "-m", "pip", "install", "certifi"],
+            [get_env_python(prefix), "-m", "pip", "install", "--isolated", "certifi"],
             capture_output=True,
             text=True,
         )
@@ -82,7 +81,15 @@ def test_externally_managed(
         assert "conda pip" in all_text
         assert "--break-system-packages" in all_text
         p = run(
-            [get_env_python(prefix), "-m", "pip", "install", "certifi", "--break-system-packages"],
+            [
+                get_env_python(prefix),
+                "-m",
+                "pip",
+                "install",
+                "--isolated",
+                "certifi",
+                "--break-system-packages",
+            ],
             capture_output=True,
             text=True,
         )
