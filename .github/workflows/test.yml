@@ -45,6 +45,10 @@ jobs:
       - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
         with:
           environments: ${{ env.PIXI_ENV_NAME }}
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          rm /etc/pip.conf
       - name: Setup project
         run: |
           pixi reinstall --environment ${{ env.PIXI_ENV_NAME }} conda-pypi
@@ -70,6 +74,10 @@ jobs:
       - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
         with:
           environments: build
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          rm /etc/pip.conf
       - name: Setup project
         run: |
           pixi run --environment build dev
