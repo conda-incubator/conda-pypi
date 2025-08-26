@@ -42,7 +42,6 @@ def test_pip_required_in_target_env(
     monkeypatch.undo()
     reset_context()
 
-run([sys.executable, "-m", "pip", "config", "list"])
 
 def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch: MockerFixture
@@ -51,6 +50,7 @@ def test_externally_managed(
     conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda.
     """
+    run([sys.executable, "-m", "pip", "config", "list"])
     monkeypatch.delenv("PIP_BREAK_SYSTEM_PACKAGES", raising=False)
     text = get_current_externally_managed_path(sys.prefix).read_text().strip()
     assert text.startswith("[externally-managed]")
