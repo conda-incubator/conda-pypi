@@ -7,7 +7,7 @@ scenarios below:
 ## Only install Python & pip inside conda environments
 
 In this scenario, users only  install Python and `pip` inside of a clean
-conda environemnt. Here, we simply use conda as an environment manager and
+conda environment. Here, we simply use conda as an environment manager and
 let `pip` managed the project dependencies.
 
 This is what that typically looks like:
@@ -40,5 +40,4 @@ are released.
 
 For those that want to choose this approach, tools like [Grayskull](https://conda.github.io/grayskull/)
 exist to make it easier to transform a Python package into a conda package recipe.
-
 

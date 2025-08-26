@@ -11,12 +11,19 @@ and how each tool tracks what is currently installed.
   using these packaging formats together, it can lead to hard debug issues.
 - PyPI tools are aware of what is installed in a conda environment but when these
   tools make changes to the environment conda looses track of what is installed.
+- conda relies on all packaging metadata (available packages, their dependencies, etc)
+  being available upfront. PyPI only lists the available packages, but their dependencies
+  need to be fetched on a package-per-package basis. This means that the solvers are
+  designed to work differently; a conda solver won't easily take the PyPI metadata
+  because it is not designed to work iteratively.
+- PyPI names are not always the same in a conda channel. They might have a different name,
+  or use a different packaging approach altogether.
 
 ## Differences in binary distributions
 
 Conda and PyPI are separate packaging ecosystems with different packaging formats and philosophies. Conda
 distributes packages as `.conda` files, which can include Python libraries and pre-compiled
-binaries with dynamic links to other dependencies. In contrast, PyPI mostly uses `.wheel` files (colloquially
+binaries with dynamic links to other dependencies. In contrast, PyPI mostly uses `.whl` files (colloquially
 known as "wheels"), which typically bundle all required binaries or rely on system-level dependencies, as it
 lacks support for non-Python dependency declarations.
 
@@ -32,7 +39,7 @@ Some examples of these incompatibilities include symbol errors, segfaults and ot
 issues. Refer to the excellent [pypackaging-native key issues](https://pypackaging-native.github.io/#key-issues)
 for even more information on this topic and specific examples.
 
-## Differences in metadata storage
+## Differences in metadata concerning installed packages
 
 The second relevant difference regarding how these two packaging ecosystems interact with
 each other deals with how they track which packages are installed into an environment.
