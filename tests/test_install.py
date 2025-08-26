@@ -9,7 +9,7 @@ from typing import Iterable
 import pytest
 from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
-from conda.testing import CondaCLIFixture, TmpEnvFixture
+from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 
 from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
 from conda_pypi.python_paths import get_env_python, get_env_site_packages
@@ -91,10 +91,10 @@ def test_conda_pypi_install(
         )
         PrefixData._cache_.clear()
         if channel == "pypi":
-            pd = PrefixData(str(prefix), pip_interop_enabled=True)
+            pd = PrefixData(str(prefix), interoperability=True)
             records = list(pd.query(pypi_spec))
         else:
-            pd = PrefixData(str(prefix), pip_interop_enabled=False)
+            pd = PrefixData(str(prefix), interoperability=False)
             records = list(pd.query(conda_spec))
         assert len(records) == 1
         assert records[0].channel.name == channel
@@ -276,5 +276,12 @@ def test_editable_installs(
             f"Expected 1 editable .pth file for {name}, found: {editable_pth}"
         )
         pth_contents = editable_pth[0].read_text().strip()
-        src_path = str(tmp_path / "src")
-        assert src_path in pth_contents or pth_contents.startswith(f"import __editable___{name}")
+        src_path = tmp_path / "src"
+
+        if not pth_contents.startswith(f"import __editable___{name}"):
+            pth_path = Path(pth_contents)
+            assert (
+                src_path in pth_path.parents
+                or src_path == pth_path
+                or pth_path.is_relative_to(src_path)
+            ), f"Expected {src_path} to be a parent of or equal to {pth_path}"
