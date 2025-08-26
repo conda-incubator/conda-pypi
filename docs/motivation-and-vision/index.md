@@ -19,18 +19,18 @@ install pure Python packages in conda environments.
 To provide a thorough explanation of the problem and our proposed solutions, we have organized
 this section of the documentaiton into the following pages:
 
-- [Key Differences between conda and PyPI](key-differences-between-conda-and-pypi.md)
+- [Key Differences between conda and PyPI](conda-vs-pypi.md)
   gives you a firm understanding of the problems that occur when usig conda and PyPI together.
 - [Existing Strategies](existing-strategies.md) shows how users currently deal with
   limitations of using conda and PyPI together.
-- [Addressing these Issues with conda-pypi](addressing-these-issues-with-conda-pypi.md)
+- [Addressing these Issues with conda-pypi](potential-solutions.md)
   explains how this plugin can improve the user experience of mixing these two packaging
   ecosystems.
 
 ```{toctree}
 :hidden:
 
-key-differences-between-conda-and-pypi
+conda-vs-pypi
 existing-strategies
-addressing-these-issues-with-conda-pypi
+potential-solutions
 ```
