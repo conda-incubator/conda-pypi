@@ -42,6 +42,7 @@ def test_pip_required_in_target_env(
     monkeypatch.undo()
     reset_context()
 
+run([sys.executable, "-m", "pip", "config", "list"])
 
 def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch: MockerFixture
