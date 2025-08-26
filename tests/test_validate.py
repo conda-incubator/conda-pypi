@@ -55,7 +55,7 @@ def test_externally_managed(
     assert text.startswith("[externally-managed]")
     assert "conda pip" in text
 
-    with tmp_env("python", "pip") as prefix:
+    with tmp_env("python", "pip>=23.0.1") as prefix:
         conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
         target_site_packages = get_env_stdlib(prefix)
         externally_managed_file = target_site_packages / "EXTERNALLY-MANAGED"
@@ -67,6 +67,8 @@ def test_externally_managed(
             capture_output=True,
             text=True,
         )
+        print(p.stdout)
+        print(p.stderr, file=sys.stderr)
         assert p.returncode != 0
         all_text = p.stderr + p.stdout
         assert "externally-managed-environment" in all_text
