@@ -71,11 +71,31 @@ def test_externally_managed(
             [get_env_python(prefix), "-m", "pip", "uninstall", "certifi", "-y"],
             capture_output=True,
         )
+
+        # Debug: Check environment details before pip install test
+        pip_version = run(
+            [get_env_python(prefix), "-m", "pip", "--version"], capture_output=True, text=True
+        )
+        print(f"DEBUG: Temp env pip version: {pip_version.stdout.strip()}")
+        print(f"DEBUG: EXTERNALLY-MANAGED file exists: {externally_managed_file.exists()}")
+        print(
+            f"DEBUG: EXTERNALLY-MANAGED file size: {externally_managed_file.stat().st_size if externally_managed_file.exists() else 'N/A'}"
+        )
+        if externally_managed_file.exists():
+            print(
+                f"DEBUG: EXTERNALLY-MANAGED content preview: {externally_managed_file.read_text()[:100]}..."
+            )
+
         p = run(
             [get_env_python(prefix), "-m", "pip", "install", "certifi"],
             capture_output=True,
             text=True,
         )
+
+        # Debug: Show what pip actually returned
+        print(f"DEBUG: pip install return code: {p.returncode}")
+        print(f"DEBUG: pip stdout: {p.stdout}")
+        print(f"DEBUG: pip stderr: {p.stderr}")
         assert p.returncode != 0
         all_text = p.stderr + p.stdout
         assert "externally-managed-environment" in all_text
