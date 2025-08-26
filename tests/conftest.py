@@ -1,5 +1,5 @@
 import pytest
-from conda.testing import conda_cli, path_factory, tmp_env  # noqa: F401
+from conda.testing.fixtures import conda_cli, path_factory, tmp_env  # noqa: F401
 
 
 @pytest.fixture(autouse=True)

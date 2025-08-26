@@ -9,33 +9,33 @@ readme = "README.md"
 authors = [
   { name = "Jaime Rodríguez-Guerra", email = "jrodriguez@quansight.com" },
 ]
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = [
+  "LICENSE",
+]
 classifiers = [
-  "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   # "conda >=23.9.0",
   "pip",
   "grayskull",
-  "importlib_resources; python_version < '3.9'",
   "packaging",
 ]
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://github.com/jaimergp/conda-pypi"
+homepage = "https://github.com/conda-incubator/conda-pypi"
 
 [project.entry-points.conda]
 conda-pypi = "conda_pypi.plugin"
+conda-pupa = "conda_pypi.plugin"
 
 [tool.pixi.project]
 channels = ["conda-forge"]
@@ -55,7 +55,7 @@ dependencies = { conda-build = "*" }
 tasks = { build = "conda build recipe" }
 
 [tool.pixi.feature.docs.tasks]
-docs = { cmd = "sphinx-build -M dirhtml . _build", cwd = "docs" }
+docs = { cmd = "pip install -e .. --no-deps && sphinx-build -M dirhtml . _build", cwd = "docs" }
 serve = { cmd = "python -m http.server", cwd = "docs/_build/dirhtml" }
 clean = { cmd = "rm -rf _build", cwd = "docs" }
 
@@ -69,6 +69,19 @@ sphinx-copybutton = "*"
 sphinx-design = "*"
 sphinx-reredirects = "*"
 sphinx-sitemap = "*"
+# Dependencies for autodoc
+grayskull = "*"
+packaging = ">=24"
+typer = "*"
+conda-package-streaming = ">=0.11"
+python-build = "*"
+pydantic = "*"
+python-installer = ">=0.7"
+conda-index = "*"
+
+[tool.pixi.feature.docs.pypi-dependencies]
+unearth = ">=0.17.2"
+pypi-simple = "*"
 
 [tool.pixi.feature.test.tasks]
 dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
@@ -81,9 +94,26 @@ fmt = "!=10.2.0"
 pytest-mock = "3.12.0.*"
 conda-build = "*"
 pre-commit = "*"
+# Build system dependencies
+typer = "*"
+conda-package-streaming = ">=0.11"
+unearth = ">=0.17.2"
+python-build = "*"
+pydantic = "*"
+python-installer = ">=0.7"
+conda-index = "*"
+conda-libmamba-solver = ">=24.9"
+packaging = ">=24"
+# Dependencies for corpus tests
+sqlalchemy = "*"
+python-multipart = "*"
+pyyaml = "*"
+zstandard = "*"  # Will be in stdlib as compression.zstd in Python 3.14+
+# Build backend for flit tests
+flit = "*"
 
-[tool.pixi.feature.py38.dependencies]
-python = "3.8.*"
+[tool.pixi.feature.test.pypi-dependencies]
+pypi-simple = "*"
 
 [tool.pixi.feature.py39.dependencies]
 python = "3.9.*"
@@ -97,7 +127,6 @@ python = "3.11.*"
 [tool.pixi.environments]
 build = ["build"]
 docs = ["docs"]
-test-py38 = ["test", "py38"]
 test-py39 = ["test", "py39"]
 test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]

@@ -1,7 +1,16 @@
 from conda import plugins
 
-from . import cli
-from .main import ensure_target_env_has_externally_managed
+from conda_pypi import cli
+from conda_pypi.main import ensure_target_env_has_externally_managed
+
+
+def pupa_command(
+    args, standalone_mode=True
+):  # standalone_mode=False avoids click SystemExit(); for testing.
+    """Backward compatibility command for conda-pupa users."""
+    from conda_pypi import pupa_cli
+
+    return pupa_cli.cli(prog_name="conda pupa", args=args, standalone_mode=standalone_mode)
 
 
 @plugins.hookimpl
@@ -11,6 +20,12 @@ def conda_subcommands():
         summary="Run pip commands within conda environments in a safer way",
         action=cli.pip.execute,
         configure_parser=cli.pip.configure_parser,
+    )
+    # Backward compatibility subcommand
+    yield plugins.CondaSubcommand(
+        name="pupa",
+        action=pupa_command,
+        summary="Update package index metadata files (conda-pupa compatibility)",
     )
 
 

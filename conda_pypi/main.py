@@ -14,26 +14,26 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
 from conda.base.context import context
-from conda.common.pkg_formats.python import PythonDistribution
+from conda.plugins.prefix_data_loaders.pypi.pkg_format import PythonDistribution
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.records import PackageRecord
 from conda.history import History
-from conda.cli.python_api import run_command
-from conda.exceptions import CondaError, CondaSystemExit
+import subprocess
+from conda.exceptions import CondaError
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
 
-from .python_paths import (
+from conda_pypi.python_paths import (
     ensure_externally_managed,
     get_env_python,
     get_env_site_packages,
     get_externally_managed_paths,
 )
-from .utils import pypi_spec_variants
+from conda_pypi.utils import pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
@@ -41,7 +41,7 @@ HERE = Path(__file__).parent.resolve()
 
 def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
     context.validate_configuration()
-    pd = PrefixData(path, pip_interop_enabled=True)
+    pd = PrefixData(path, interoperability=True)
 
     if not list(pd.query("python>=3.2")):
         raise CondaError(f"Target environment at {path} requires python>=3.2")
@@ -68,11 +68,16 @@ def run_conda_install(
     force_reinstall: bool = False,
     yes: bool = False,
     json: bool = False,
-) -> int:
+    channels: Iterable[str] | None = None,
+    capture_output: bool = False,
+) -> int | tuple[int, str, str]:
     if not specs:
-        return 0
+        return 0 if not capture_output else (0, "", "")
 
     command = ["install", "--prefix", str(prefix)]
+    if channels:
+        for channel in channels:
+            command.extend(["--channel", channel])
     if dry_run:
         command.append("--dry-run")
     if quiet:
@@ -89,11 +94,14 @@ def run_conda_install(
     command.extend(str(spec) for spec in specs)
 
     logger.info("conda install command: conda %s", command)
-    try:
-        *_, retcode = run_command(*command, stdout=None, stderr=None, use_exception_handler=True)
-    except CondaSystemExit:
-        return 0
-    return retcode
+    result = subprocess.run(
+        ["conda"] + command, capture_output=capture_output, text=capture_output, check=False
+    )
+
+    if capture_output:
+        return result.returncode, result.stdout, result.stderr
+    else:
+        return result.returncode
 
 
 def run_pip_install(
@@ -139,7 +147,7 @@ def run_pip_install(
     if check and process.returncode:
         raise CondaError(
             f"Failed to run pip:\n"
-            f"  command: {shlex.join(map(str,command))}\n"
+            f"  command: {shlex.join(map(str, command))}\n"
             f"  exit code: {process.returncode}\n"
             f"  stderr:\n{process.stderr}\n"
             f"  stdout:\n{process.stdout}"
@@ -194,7 +202,7 @@ def pypi_lines_for_explicit_lockfile(
     See `PyPIDistribution.to_lockfile_line()` for more details.
     """
     PrefixData._cache_.clear()
-    pd = PrefixData(str(prefix), pip_interop_enabled=True)
+    pd = PrefixData(str(prefix), interoperability=True)
     pd.load()
     lines = []
     python_record = list(pd.query("python"))

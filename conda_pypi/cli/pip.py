@@ -21,7 +21,7 @@ logger = getLogger(f"conda.{__name__}")
 
 
 def configure_parser(parser: argparse.ArgumentParser):
-    from ..dependencies import BACKENDS
+    from conda_pypi.dependencies import BACKENDS
 
     add_parser_help(parser)
     add_parser_prefix(parser)
@@ -58,10 +58,11 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Where to look for conda dependencies.",
     )
     install.add_argument(
-        "-e", "--editable",
+        "-e",
+        "--editable",
         metavar="<path/url>",
         help="Install a project in editable mode (i.e. setuptools 'develop mode') "
-        "from a local project path or a VCS url."
+        "from a local project path or a VCS url.",
     )
     install.add_argument(
         "--backend",
@@ -84,16 +85,16 @@ def execute(args: argparse.Namespace) -> int:
             "--editable PKG and --backend=grayskull are not compatible. Please use --backend=pip."
         )
 
-    from conda.common.io import Spinner
+    from conda.reporters import get_spinner
     from conda.models.match_spec import MatchSpec
-    from ..dependencies import analyze_dependencies
-    from ..main import (
+    from conda_pypi.dependencies import analyze_dependencies
+    from conda_pypi.main import (
         validate_target_env,
         ensure_externally_managed,
         run_conda_install,
         run_pip_install,
     )
-    from ..utils import get_prefix
+    from conda_pypi.utils import get_prefix
 
     prefix = get_prefix(args.prefix, args.name)
     packages_not_installed = validate_target_env(prefix, args.packages)
@@ -103,7 +104,7 @@ def execute(args: argparse.Namespace) -> int:
         print("All packages are already installed.", file=sys.stderr)
         return 0
 
-    with Spinner("Analyzing dependencies", enabled=not args.quiet, json=args.json):
+    with get_spinner("Analyzing dependencies"):
         conda_deps, pypi_deps, editable_deps = analyze_dependencies(
             *packages_to_process,
             editable=args.editable,
@@ -155,7 +156,8 @@ def execute(args: argparse.Namespace) -> int:
     if conda_match_specs:
         if not args.quiet or not args.json:
             print("Running conda install...")
-        retcode = run_conda_install(
+
+        result = run_conda_install(
             prefix,
             conda_match_specs,
             dry_run=args.dry_run,
@@ -164,7 +166,17 @@ def execute(args: argparse.Namespace) -> int:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
             json=args.json,
+            channels=[args.conda_channel],
+            capture_output=args.dry_run,
         )
+
+        if args.dry_run:
+            retcode, stdout, stderr = result
+            print(stdout, end="")
+            print(stderr, end="", file=sys.stderr)
+        else:
+            retcode = result
+
         if retcode:
             return retcode
 

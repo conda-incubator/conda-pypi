@@ -12,10 +12,27 @@ from typing import Iterable, Literal
 
 import requests
 from conda.models.match_spec import MatchSpec
+from conda.models.channel import Channel
 from conda_libmamba_solver.index import LibMambaIndexHelper as Index
 from ruamel.yaml import YAML
 
-from ..utils import pypi_spec_variants
+from conda_pypi.utils import pypi_spec_variants
+
+# Import functions from pupa module for backward compatibility
+from conda_pypi.dependencies.pupa import (
+    check_dependencies,
+    ensure_requirements,
+    MissingDependencyError,
+)
+
+__all__ = [
+    "BACKENDS",
+    "NAME_MAPPINGS",
+    "analyze_dependencies",
+    "check_dependencies",
+    "ensure_requirements",
+    "MissingDependencyError",
+]
 
 yaml = YAML(typ="safe")
 logger = getLogger(f"conda.{__name__}")
@@ -66,26 +83,26 @@ def analyze_dependencies(
     if backend == "grayskull":
         if editable:
             logger.warning("Ignoring editable=%s with backend=grayskull", editable)
-        from .grayskull import _analyze_with_grayskull
+        from conda_pypi.dependencies.grayskull import _analyze_with_grayskull
 
         found_conda_deps, pypi_deps = _analyze_with_grayskull(
             *needs_analysis, prefer_on_conda=prefer_on_conda, channel=channel
         )
     elif backend == "pip":
-        from .pip import _analyze_with_pip
+        from conda_pypi.dependencies.pip import _analyze_with_pip
 
         python_deps, pypi_deps, editable_deps = _analyze_with_pip(
             *needs_analysis,
             prefix=prefix,
             force_reinstall=force_reinstall,
-        )      
+        )
 
         found_conda_deps, pypi_deps = _classify_dependencies(
             pypi_deps,
             prefer_on_conda=prefer_on_conda,
             channel=channel,
         )
-        
+
         found_conda_deps.update(python_deps)
     else:
         raise ValueError(f"Unknown backend {backend}")
@@ -125,7 +142,7 @@ def _is_pkg_on_conda(pypi_spec: str, channel: str = "conda-forge") -> tuple[bool
     """
     Given a PyPI spec (name, version), try to find it on conda-forge.
     """
-    index = Index(channels=[channel])
+    index = Index(channels=[Channel(channel)])
     for spec_variant in pypi_spec_variants(pypi_spec):
         conda_spec = _pypi_spec_to_conda_spec(spec_variant)
         records = index.search(conda_spec)
