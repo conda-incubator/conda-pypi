@@ -72,7 +72,7 @@ Common issues and how to resolve them
 :::
 
 :::{grid-item-card} 🔧 Developer Notes
-:link: developer-notes
+:link: reference/developer-notes
 :link-type: doc
 Implementation details and technical insights
 :::
@@ -89,6 +89,6 @@ modules
 architecture
 reference/cli-reference
 reference/troubleshooting
-developer-notes
+reference/developer-notes
 changelog
 ```
