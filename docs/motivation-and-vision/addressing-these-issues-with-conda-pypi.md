@@ -2,7 +2,7 @@
 
 So far, we have outlined why these packaging ecosystems do not always work together
 well and a couple strategies users have used in the past to overcome them. How exactly
-does the `conda-pypi` plugin plan on addressing them? Below are a couple of methods 
+does the `conda-pypi` plugin plan on addressing them? Below are a couple of methods
 we've discussed to address these issues.
 
 ## On-the-fly conversion of PyPI wheels to conda packages

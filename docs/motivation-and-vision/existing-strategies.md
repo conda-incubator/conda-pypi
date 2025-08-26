@@ -1,7 +1,7 @@
 # Existing Strategies
 
 There are currently only a handful of patterns that are considered safe
-when install PyPI packages inside a conda environment. We list these 
+when install PyPI packages inside a conda environment. We list these
 scenarios below:
 
 ## Only install Python & pip inside conda environments
@@ -40,4 +40,3 @@ are released.
 
 For those that want to choose this approach, tools like [Grayskull](https://conda.github.io/grayskull/)
 exist to make it easier to transform a Python package into a conda package recipe.
-

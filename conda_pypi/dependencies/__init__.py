@@ -78,14 +78,14 @@ def analyze_dependencies(
             *needs_analysis,
             prefix=prefix,
             force_reinstall=force_reinstall,
-        )      
+        )
 
         found_conda_deps, pypi_deps = _classify_dependencies(
             pypi_deps,
             prefer_on_conda=prefer_on_conda,
             channel=channel,
         )
-        
+
         found_conda_deps.update(python_deps)
     else:
         raise ValueError(f"Unknown backend {backend}")
