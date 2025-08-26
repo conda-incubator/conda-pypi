@@ -48,7 +48,7 @@ jobs:
       - name: Fix Ubuntu configuration
         if: startswith(matrix.os, 'ubuntu-')
         run:
-          rm /etc/pip.conf
+          sudo rm /etc/pip.conf
       - name: Setup project
         run: |
           pixi reinstall --environment ${{ env.PIXI_ENV_NAME }} conda-pypi
@@ -77,7 +77,7 @@ jobs:
       - name: Fix Ubuntu configuration
         if: startswith(matrix.os, 'ubuntu-')
         run:
-          rm /etc/pip.conf
+          sudo rm /etc/pip.conf
       - name: Setup project
         run: |
           pixi run --environment build dev
