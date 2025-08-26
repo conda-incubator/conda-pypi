@@ -50,7 +50,7 @@ def test_externally_managed(
     conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda.
     """
-    monkeypatch.delenv("PIP_BREAK_SYSTEM_PACKAGES", raising=False)
+    monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "0")
     text = get_current_externally_managed_path(sys.prefix).read_text().strip()
     assert text.startswith("[externally-managed]")
     assert "conda pip" in text
