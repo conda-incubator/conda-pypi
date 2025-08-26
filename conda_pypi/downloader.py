@@ -11,7 +11,7 @@ from unearth import PackageFinder, TargetPython
 
 from conda_pypi.translate import conda_to_requires
 
-from conda_pypi.exceptions import PupaError
+from conda_pypi.exceptions import CondaPypiError
 
 
 def get_package_finder(prefix: Path):
@@ -20,7 +20,7 @@ def get_package_finder(prefix: Path):
     """
     py_ver = get_python_version_for_prefix(prefix)
     if not py_ver:
-        raise PupaError(f"Python not found in {prefix}")
+        raise CondaPypiError(f"Python not found in {prefix}")
     py_ver = tuple(map(int, py_ver.split(".")))
     target_python = TargetPython(py_ver=py_ver)
     return PackageFinder(target_python=target_python, only_binary=":all:")
@@ -44,7 +44,7 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
     result = find_package(finder, package)
     link = result.best and result.best.link
     if not link:
-        raise PupaError(f"No PyPI link for {package}")
+        raise CondaPypiError(f"No PyPI link for {package}")
     filename = link.url_without_fragment.rsplit("/", 1)[-1]
     print(f"Fetch {package} as {filename}")
     download(link.url, target / filename)

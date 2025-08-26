@@ -127,7 +127,7 @@ class PyMetadata(Base):
 
 
 def create_engine():
-    return sqlalchemy.create_engine(f"sqlite:///{HERE}/pupa.db")
+    return sqlalchemy.create_engine(f"sqlite:///{HERE}/pypi.db")
 
 
 def default_channels(session):

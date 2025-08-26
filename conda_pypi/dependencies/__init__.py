@@ -18,8 +18,7 @@ from ruamel.yaml import YAML
 
 from conda_pypi.utils import pypi_spec_variants
 
-# Import functions from pupa module for backward compatibility
-from conda_pypi.dependencies.pupa import (
+from conda_pypi.dependencies.pypi import (
     check_dependencies,
     ensure_requirements,
     MissingDependencyError,
