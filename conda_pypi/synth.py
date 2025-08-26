@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from pypi_simple import ProjectPage, PyPISimple
 from typing import Optional, List, Dict
 
-from conda_pupa.translate import FileDistribution, requires_to_conda
+from conda_pypi.translate import FileDistribution, requires_to_conda
 
 app = typer.Typer()
 

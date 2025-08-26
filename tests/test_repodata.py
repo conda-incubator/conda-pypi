@@ -2,7 +2,7 @@
 Test functions for transforming repodata.
 """
 
-from conda_pupa.translate import FileDistribution, MatchSpec, conda_to_requires
+from conda_pypi.translate import FileDistribution, MatchSpec, conda_to_requires
 
 
 def test_file_distribution():

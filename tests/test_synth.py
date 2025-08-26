@@ -2,7 +2,7 @@ import pathlib
 
 import pytest
 
-import conda_pupa.synth
+import conda_pypi.synth
 
 
 def test_synth():
@@ -14,7 +14,7 @@ def test_synth():
         pytest.skip(f"Config file not found at {config_path}")
 
     try:
-        conda_pupa.synth.create_api(str(config_path), repo_path, True)
+        conda_pypi.synth.create_api(str(config_path), repo_path, True)
     except Exception as e:
         pytest.fail(f"create_api failed: {e}")
 
@@ -26,14 +26,14 @@ def test_extract_version_of_project():
     class project_page:
         packages = []
 
-    version, package, url = conda_pupa.synth.extract_version_of_project(
+    version, package, url = conda_pypi.synth.extract_version_of_project(
         project_page,  # type: ignore
         version="",
         download=False,
         download_dir="",
     )
     assert version == "0.0.0"
-    assert isinstance(package, conda_pupa.synth.Package)
+    assert isinstance(package, conda_pypi.synth.Package)
     assert isinstance(url, str)
 
 
@@ -45,4 +45,4 @@ def test_bad_config(tmp_path):
     config = tmp_path / "config.yaml"
     config.write_text("")
     with pytest.raises(AttributeError):
-        conda_pupa.synth.create_api(config, "synthetic_repo", True)
+        conda_pypi.synth.create_api(config, "synthetic_repo", True)

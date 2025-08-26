@@ -4,11 +4,11 @@ from logging import getLogger
 from typing import TYPE_CHECKING
 
 from conda.base.context import context
-from conda.common.io import Spinner
+from conda.reporters import get_spinner
 from conda.exceptions import CondaVerificationError, CondaFileIOError
 
-from ..main import run_pip_install, compute_record_sum, PyPIDistribution
-from ..python_paths import get_env_site_packages
+from conda_pypi.main import run_pip_install, compute_record_sum, PyPIDistribution
+from conda_pypi.python_paths import get_env_site_packages
 
 if TYPE_CHECKING:
     from typing import Iterable, Literal
@@ -83,10 +83,10 @@ def post_command(command: str) -> int:
     if not pypi_lines:
         return 0
 
-    with Spinner("\nPreparing PyPI transaction", enabled=not context.quiet, json=context.json):
+    with get_spinner("\nPreparing PyPI transaction"):
         pkgs = _prepare_pypi_transaction(pypi_lines)
 
-    with Spinner("Executing PyPI transaction", enabled=not context.quiet, json=context.json):
+    with get_spinner("Executing PyPI transaction"):
         run_pip_install(
             context.target_prefix,
             args=[pkg["url"] for pkg in pkgs.values()],
@@ -98,7 +98,7 @@ def post_command(command: str) -> int:
             check=True,
         )
 
-    with Spinner("Verifying PyPI transaction", enabled=not context.quiet, json=context.json):
+    with get_spinner("Verifying PyPI transaction"):
         on_error_dict = {"disabled": "ignore", "warn": "warn", "enabled": "error"}
         on_error = on_error_dict.get(context.safety_checks, "warn")
         _verify_pypi_transaction(context.target_prefix, pkgs, on_error=on_error)

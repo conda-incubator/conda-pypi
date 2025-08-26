@@ -15,7 +15,11 @@ from pathlib import Path
 import pypi_simple.errors
 import sqlalchemy
 import urllib3
-import zstandard
+
+try:
+    import compression.zstd as zstandard
+except ImportError:
+    import zstandard
 from pypi_simple import NoMetadataError, PyPISimple
 from sqlalchemy import (
     JSON,
@@ -33,7 +37,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session
 
-from conda_pupa.translate import (
+from conda_pypi.translate import (
     FileDistribution,
     pypi_to_conda_name,
     requires_to_conda,
