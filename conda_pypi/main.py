@@ -68,11 +68,15 @@ def run_conda_install(
     force_reinstall: bool = False,
     yes: bool = False,
     json: bool = False,
+    channels: Iterable[str] | None = None,
 ) -> int:
     if not specs:
         return 0
 
     command = ["install", "--prefix", str(prefix)]
+    if channels:
+        for channel in channels:
+            command.extend(["--channel", channel])
     if dry_run:
         command.append("--dry-run")
     if quiet:
@@ -139,7 +143,7 @@ def run_pip_install(
     if check and process.returncode:
         raise CondaError(
             f"Failed to run pip:\n"
-            f"  command: {shlex.join(map(str,command))}\n"
+            f"  command: {shlex.join(map(str, command))}\n"
             f"  exit code: {process.returncode}\n"
             f"  stderr:\n{process.stderr}\n"
             f"  stdout:\n{process.stdout}"

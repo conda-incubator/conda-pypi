@@ -165,6 +165,7 @@ def execute(args: argparse.Namespace) -> int:
             force_reinstall=args.force_reinstall,
             yes=args.yes,
             json=args.json,
+            channels=[args.conda_channel],
         )
         if retcode:
             return retcode

@@ -12,6 +12,7 @@ from typing import Iterable, Literal
 
 import requests
 from conda.models.match_spec import MatchSpec
+from conda.models.channel import Channel
 from conda_libmamba_solver.index import LibMambaIndexHelper as Index
 from ruamel.yaml import YAML
 
@@ -125,7 +126,7 @@ def _is_pkg_on_conda(pypi_spec: str, channel: str = "conda-forge") -> tuple[bool
     """
     Given a PyPI spec (name, version), try to find it on conda-forge.
     """
-    index = Index(channels=[channel])
+    index = Index(channels=[Channel(channel)])
     for spec_variant in pypi_spec_variants(pypi_spec):
         conda_spec = _pypi_spec_to_conda_spec(spec_variant)
         records = index.search(conda_spec)
