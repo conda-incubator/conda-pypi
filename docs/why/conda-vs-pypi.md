@@ -94,10 +94,21 @@ content negotiation.
 
 In a nutshell:
 
-- conda's metadata is available upfront, but there's no equivalent in PyPI.
-- The conda solvers have all the metadata they need to work, but in PyPI they need to fetch additional metadata as solutions are attempted.
+- Conda's metadata is aggregated upfront in `repodata.json` files, providing
+  solvers with comprehensive dependency information before package resolution
+  begins.
+- PyPI's approach has traditionally required per-package metadata fetching
+  during solving, though the JSON-based Simple API for Python Package Indexes
+  ([PEP 691](https://peps.python.org/pep-0691/)) now provides more structured
+  metadata access that reduces this need.
+- The conda solvers can work entirely from the aggregated metadata, while
+  PyPI-focused solvers have typically needed to fetch additional metadata as
+  solutions are explored, though this pattern is evolving with newer API
+  capabilities.
 
-So, if we wanted to integrate PyPI with conda, this would be one of the problems: how to present all the necessary PyPI metadata to the conda solvers.
+So, if we wanted to integrate PyPI with conda, this represents an architectural
+difference: how to adapt PyPI's per-package metadata model to conda's
+expectation of comprehensive upfront metadata aggregation.
 
 ```{note}
 Some solver backends (e.g. [`resolvo`](https://github.com/prefix-dev/resolvo)) do support iterative solving like in the PyPI model, but they have not been adapted for conda+PyPI interoperability.
