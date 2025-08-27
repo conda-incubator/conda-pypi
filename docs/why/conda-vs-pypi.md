@@ -25,7 +25,7 @@ Conda and PyPI are separate packaging ecosystems with different packaging format
 distributes packages as `.conda` files, which can include Python libraries and pre-compiled
 binaries with dynamic links to other dependencies. In contrast, PyPI mostly uses `.whl` files (colloquially
 known as "wheels"), which typically bundle all required binaries or rely on system-level dependencies, as it
-lacks support for non-Python dependency declarations.
+lacks support for non-Python dependency declarations [^1].
 
 With that in mind, what are some potential ways this could break when combining the two
 ecosystems together? Because wheels typically include all of their pre-compiled binaries inside
@@ -104,3 +104,5 @@ For an excellent overview of how Python packaging works:
 For an excellent overview of what a conda package actually is:
 
 - [What is a conda package? - prefix.dev](https://prefix.dev/blog/what-is-a-conda-package)
+
+[^1:] At least as of August 2025. Check [PEP 725](https://peps.python.org/pep-0725/) for a proposal external dependency metadata.
