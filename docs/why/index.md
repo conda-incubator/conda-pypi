@@ -26,6 +26,9 @@ this section of the documentaiton into the following pages:
 - [Addressing these Issues with conda-pypi](potential-solutions.md)
   explains how this plugin can improve the user experience of mixing these two packaging
   ecosystems.
+- [Conda Channels Naming Analysis](conda-channels-naming-analysis.md)
+  is a short study on the differences between conda package names between
+  main and conda-forge.
 
 ```{toctree}
 :hidden:
@@ -33,4 +36,5 @@ this section of the documentaiton into the following pages:
 conda-vs-pypi
 existing-strategies
 potential-solutions
+conda-channels-naming-analysis
 ```
