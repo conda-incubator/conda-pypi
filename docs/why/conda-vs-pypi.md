@@ -23,8 +23,8 @@ and how each tool tracks what is currently installed.
 
 Conda and PyPI are separate packaging ecosystems with different packaging formats and philosophies. Conda
 distributes packages as `.conda` files, which can include Python libraries and pre-compiled
-binaries with dynamic links to other dependencies. In contrast, PyPI mostly uses `.whl` files (colloquially
-known as "wheels"), which typically bundle all required binaries or rely on system-level dependencies, as it
+binaries with dynamic links to other dependencies. In contrast, PyPI provides `.whl` files (as defined
+in PEP 427), which typically bundle all required binaries or rely on system-level dependencies, as it
 lacks support for non-Python dependency declarations [^1].
 
 With that in mind, what are some potential ways this could break when combining the two
