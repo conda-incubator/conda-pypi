@@ -92,8 +92,7 @@ conda pypi install [options] -e vcs+url
 
 ### Description
 
-The install command takes PyPI packages and converts them to `.conda` format
-when possible, falling back to direct pip installation when needed.
+The install command takes PyPI packages and converts them to `.conda` format.
 Explicitly requested packages are always converted from PyPI, while
 dependencies are preferentially installed from conda channels when available.
 
@@ -103,8 +102,8 @@ dependencies are preferentially installed from conda channels when available.
 package
 ```
 Package specification(s) to install. Can be:
-- Package names: `requests`, `numpy`
-- Version specifications: `requests>=2.25.0`, `numpy==1.21.*`
+- Package names: `httpx`, `numpy`
+- Version specifications: `httpx>=0.28`, `numpy==1.21.*`
 - URLs to wheels or source distributions:
   `https://files.pythonhosted.org/packages/...`
 - Local file paths: `./my-package-1.0.tar.gz`
@@ -140,17 +139,17 @@ Install packages in editable mode (development mode). Supports:
 
 Install a single package:
 ```bash
-conda pypi install requests
+conda pypi install httpx
 ```
 
 Install multiple packages:
 ```bash
-conda pypi install requests numpy pandas
+conda pypi install httpx numpy pandas
 ```
 
 Install with version constraints:
 ```bash
-conda pypi install "requests>=2.25.0" "numpy<1.22"
+conda pypi install "httpx>=2.25.0" "numpy<1.22"
 ```
 
 Preview installation without changes:
@@ -175,12 +174,12 @@ conda pypi install -e git+https://github.com/user/project.git
 
 Install in specific environment:
 ```bash
-conda pypi install -n myenv requests
+conda pypi install -n myenv httpx
 ```
 
 Quiet installation for scripting:
 ```bash
-conda pypi install --quiet --yes requests
+conda pypi install --quiet --yes httpx
 ```
 
 ### Exit Codes
@@ -211,8 +210,8 @@ custom conda channels.
 package
 ```
 Package specification(s) to convert. Same format as install command:
-- Package names: `requests`, `numpy`
-- Version specifications: `requests>=2.25.0`, `numpy==1.21.*`
+- Package names: `httpx`, `numpy`
+- Version specifications: `httpx>=2.25.0`, `numpy==1.21.*`
 - URLs to wheels: `https://files.pythonhosted.org/packages/...`
 
 ### Options
@@ -235,12 +234,12 @@ current directory. The directory will be created if it doesn't exist.
 
 Convert packages to current directory:
 ```bash
-conda pypi convert requests packaging
+conda pypi convert httpx packaging
 ```
 
 Convert to specific directory:
 ```bash
-conda pypi convert -d ./converted-packages requests numpy
+conda pypi convert -d ./converted-packages httpx numpy
 ```
 
 Convert without checking for conda equivalents:
@@ -250,12 +249,12 @@ conda pypi convert --override-channels some-package
 
 Convert from specific environment:
 ```bash
-conda pypi convert -n myenv -d ./packages requests
+conda pypi convert -n myenv -d ./packages httpx
 ```
 
 Quiet conversion:
 ```bash
-conda pypi convert --quiet -d ./output requests
+conda pypi convert --quiet -d ./output httpx
 ```
 
 ### Exit Codes
@@ -270,26 +269,26 @@ formats:
 
 ### Basic Package Names
 ```bash
-conda pypi install requests
+conda pypi install httpx
 conda pypi install numpy pandas
 ```
 
 ### Version Constraints
 ```bash
-conda pypi install "requests>=2.25.0"
+conda pypi install "httpx>=2.25.0"
 conda pypi install "numpy>=1.20,<1.22"
 conda pypi install "django~=4.0.0"
 ```
 
 ### Exact Versions
 ```bash
-conda pypi install requests==2.28.1
+conda pypi install httpx==2.28.1
 conda pypi install numpy==1.21.6
 ```
 
 ### URLs
 ```bash
-conda pypi install https://files.pythonhosted.org/packages/.../requests-2.28.1-py3-none-any.whl
+conda pypi install https://files.pythonhosted.org/packages/.../httpx-2.28.1-py3-none-any.whl
 ```
 
 ### Local Files
@@ -303,8 +302,8 @@ conda pypi install /path/to/package.whl
 conda pypi install -e git+https://github.com/user/repo.git
 conda pypi install -e git+https://github.com/user/repo.git@branch
 conda pypi install -e git+https://github.com/user/repo.git#subdirectory=sub
-conda pip install -e hg+https://bitbucket.org/user/repo
-conda pip install -e svn+https://svn.example.com/repo/trunk
+conda pypi install -e hg+https://bitbucket.org/user/repo
+conda pypi install -e svn+https://svn.example.com/repo/trunk
 ```
 
 ## Environment Variables
@@ -337,32 +336,26 @@ conda create -n dev python=3.10 pip
 conda activate dev
 
 # Install your project in editable mode
-conda pip install -e .
+conda pypi install -e .
 
 # Install additional development dependencies
-conda pip install -e git+https://github.com/user/dev-tool.git
+conda pypi install -e git+https://github.com/user/dev-tool.git
 ```
 
 ### Building Custom Packages
 ```bash
 # Convert packages for offline use
-conda pip convert -d ./offline-packages requests numpy pandas
+conda pypi convert -d ./offline-packages httpx numpy pandas
 
 # Create custom channel
 conda index ./offline-packages
-```
-
-### CI/CD Integration
-```bash
-# Reproducible installation in CI
-conda pip install --quiet --yes -r requirements.txt
 ```
 
 ### Mixed Environment Setup
 ```bash
 # Install scientific stack from conda, other packages from PyPI
 conda install numpy scipy matplotlib
-conda pip install some-domain-specific-package
+conda pypi install some-domain-specific-package
 ```
 
 ## Troubleshooting
@@ -387,20 +380,3 @@ conda pip install some-domain-specific-package
 - Verify PyPI connectivity
 - Check proxy settings if behind corporate firewall
 - Use `PIP_TRUSTED_HOST` for internal PyPI mirrors
-
-### Getting Help
-
-For verbose output and debugging:
-```bash
-conda pip install --verbose package-name
-```
-
-For JSON output suitable for programmatic parsing:
-```bash
-conda pip install --json package-name
-```
-
-To preview operations without making changes:
-```bash
-conda pip install --dry-run package-name
-```

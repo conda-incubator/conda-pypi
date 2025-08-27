@@ -47,10 +47,10 @@ Here are some common usage patterns:
 
 ```bash
 # Convert packages to current directory
-conda pypi convert niquests rope
+conda pypi convert httpx cowsay
 
 # Convert to specific directory
-conda pypi convert -d ./my_packages niquests rope
+conda pypi convert -d ./my_packages httpx cowsay
 
 # Convert without checking conda channels first
 conda pypi convert --override-channels some-pypi-only-package
