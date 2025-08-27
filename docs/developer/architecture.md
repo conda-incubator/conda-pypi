@@ -31,105 +31,6 @@ Finally, the PyPI lines processing hook triggers after `conda install` and
 lockfiles during environment creation or installation. This is handled by
 `_post_command_process_pypi_lines()`.
 
-## Module Architecture
-
-The codebase is organized into focused modules, each with specific
-responsibilities:
-
-### Core Modules
-
-#### `plugin.py` - Plugin Entry Point
-- **Role**: Conda plugin registration and hook implementations
-- **Key Functions**:
-  - Register subcommands and post-command hooks
-  - Handle lockfile PyPI line processing
-  - Coordinate with conda's plugin system
-
-#### `cli.py` - Command Line Interface
-- **Role**: Argument parsing and command execution for `conda pypi`
-- **Key Functions**:
-  - `configure_parser()` - Set up CLI argument structure
-  - `execute_install()` - Handle `conda pypi install` logic
-  - `execute_convert()` - Handle `conda pypi convert` logic
-- **Architecture**: Clean separation between CLI concerns and core logic
-
-#### `core.py` - High-Level Operations
-- **Role**: Main orchestration layer for package conversion and installation
-- **Key Functions**:
-  - `convert_packages()` - Convert packages without dependencies
-  - `convert_packages_with_dependencies()` - Full dependency resolution and conversion
-  - `prepare_packages_for_installation()` - Prepare packages for conda installation
-  - `install_packages()` - Execute conda installation
-- **Dependencies**: Coordinates between solver, builder, utils, and VCS
-  modules
-
-### Specialized Modules
-
-#### `solver.py` - Dependency Resolution
-- **Role**: Intelligent dependency resolution using conda's solver
-- **Key Components**:
-  - `PyPIDependencySolver` - Iterative dependency resolution
-  - `ReloadingLibMambaSolver` - Enhanced conda solver wrapper
-- **Algorithm**:
-  1. Attempt conda solve with current packages
-  2. Parse solver errors to identify missing packages
-  3. Fetch missing packages from PyPI
-  4. Convert to conda format
-  5. Repeat until all dependencies resolved
-
-#### `builder.py` - Package Conversion Engine
-- **Role**: Convert Python wheels to conda packages using integrated
-  conversion functionality
-- **Key Components**:
-  - `build_conda()` - Main wheel-to-conda conversion
-  - `build_pypa()` - Build conda packages from Python projects
-  - `CondaMetadata` - Metadata translation utilities
-- **Capabilities**:
-  - Python metadata to conda format translation
-  - Cross-platform package building
-  - Dependency mapping and normalization
-
-#### `utils.py` - Utilities and Helpers
-- **Role**: Common utilities used across the codebase
-- **Key Areas**:
-  - PyPI package fetching and downloading
-  - Python executable detection
-  - Environment path management
-  - Package name normalization
-  - `EXTERNALLY-MANAGED` file management
-- **Design**: Consolidated utility functions to avoid code duplication
-
-#### `mapping.py` - Package Name Mapping
-- **Role**: Map PyPI package names to conda equivalents
-- **Key Functions**:
-  - `pypi_to_conda_name()` - Convert PyPI names to conda names
-  - `conda_to_pypi_name()` - Reverse mapping
-  - `get_grayskull_mapping()` - Load automated mapping data
-- **Data Sources**: Uses grayskull project mappings for automated name
-  translation
-
-#### `vcs.py` - Version Control Integration
-- **Role**: Handle VCS URLs for editable installations
-- **Key Components**:
-  - `VCSHandler` - Support for git, hg, svn, bzr
-  - `VCSInfo` - VCS URL parsing and metadata
-- **Capabilities**:
-  - Parse VCS URLs with branches, refs, subdirectories
-  - Clone repositories for editable installs
-  - Support multiple VCS systems
-
-#### `main.py` - Environment Management
-- **Role**: Environment validation and lockfile functionality
-- **Key Functions**:
-  - `validate_target_env()` - Check environment requirements
-  - `pypi_lines_for_explicit_lockfile()` - Generate PyPI lockfile lines
-  - Environment compatibility checking
-
-#### `exceptions.py` - Error Handling
-- **Role**: Define conda-pypi specific exceptions
-- **Components**: Custom exception classes that integrate with conda's error
-  system
-
 ## Data Flow Architecture
 
 ### Installation Flow
@@ -209,8 +110,6 @@ This hybrid approach ensures that explicit packages always come
 from PyPI to respect user intent, while dependencies prefer conda channels
 for ecosystem compatibility. The system falls back to PyPI conversion only
 when needed.
-
-
 
 This architecture enables conda-pypi to provide a seamless bridge between
 the conda and PyPI ecosystems while maintaining the integrity and benefits of

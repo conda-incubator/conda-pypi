@@ -23,11 +23,10 @@ conda-first approach. If a dependency is available on conda channels, it will
 be installed with `conda` directly. If not available on conda channels, the
 dependency will be converted from PyPI to `.conda` format.
 
-The system uses multiple sources for package name mapping, including
-automated mappings from the grayskull project, name normalization that
-handles dash and underscore variants, and direct searches of configured conda
-channels for equivalent packages. VCS and editable packages are handled as
-special cases and installed directly with `pip --no-deps`.
+The system uses multiple sources for package name mapping which are
+currently hardcoded.  In the future, it will use other means to have
+a more active way to get current name mappings. VCS and editable packages
+are handled as special cases and installed directly with `pip --no-deps`.
 
 You can preview what would be installed without making changes using
 `--dry-run`, install packages in editable development mode with `--editable`
@@ -48,10 +47,10 @@ Here are some common usage patterns:
 
 ```bash
 # Convert packages to current directory
-conda pypi convert requests packaging
+conda pypi convert niquests rope
 
 # Convert to specific directory
-conda pypi convert -d ./my_packages requests packaging
+conda pypi convert -d ./my_packages niquests rope
 
 # Convert without checking conda channels first
 conda pypi convert --override-channels some-pypi-only-package

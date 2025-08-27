@@ -50,7 +50,7 @@ Overview of what `conda-pypi` can do for you
 :::
 
 :::{grid-item-card} 🏗️ Architecture
-:link: architecture
+:link: developer/architecture
 :link-type: doc
 Technical architecture and plugin system design
 :::
@@ -72,7 +72,7 @@ Common issues and how to resolve them
 :::
 
 :::{grid-item-card} 🔧 Developer Notes
-:link: reference/developer-notes
+:link: developer/developer-notes
 :link-type: doc
 Implementation details and technical insights
 :::
@@ -86,9 +86,9 @@ quickstart
 why
 features
 modules
-architecture
+changelog
+developer/architecture
+developer/developer-notes
 reference/cli-reference
 reference/troubleshooting
-reference/developer-notes
-changelog
 ```

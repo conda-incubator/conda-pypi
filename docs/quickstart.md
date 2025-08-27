@@ -24,12 +24,12 @@ includes `python` and `pip` installed, and a configured conda channel, you can
 use `conda pypi install` like this:
 
 ```bash
-conda pypi install requests
+conda pypi install niquests
 ```
 
-This will download and convert `requests` from PyPI to `.conda` format
+This will download and convert `niquests` from PyPI to `.conda` format
 (since it was explicitly requested), but install its dependencies from
-the conda channel when available. For example, if `requests` depends on
+the conda channel when available. For example, if `niquests` depends on
 `urllib3` and `certifi`, and both are available on the conda channel, those
 dependencies will be installed from conda rather than PyPI.
 
@@ -70,10 +70,10 @@ them:
 
 ```bash
 # Convert to current directory
-conda pypi convert requests packaging
+conda pypi convert niquests rope
 
 # Convert to specific directory
-conda pypi convert -d ./my_packages requests packaging
+conda pypi convert -d ./my_packages niquests rope
 ```
 
 This is useful for creating conda packages from PyPI distributions or
@@ -91,7 +91,7 @@ conda pypi install -e ./my-project/
 conda pypi install -e git+https://github.com/user/project.git
 
 # Preview what would be installed
-conda pypi install --dry-run requests pandas
+conda pypi install --dry-run niquests pandas
 ```
 
 ### Lockfiles support
