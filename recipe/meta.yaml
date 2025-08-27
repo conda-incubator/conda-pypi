@@ -43,10 +43,11 @@ test:
     - python -c "from conda_pypi.python_paths import get_env_stdlib; assert (get_env_stdlib() / 'EXTERNALLY-MANAGED').exists()"
     - python -c "from conda_pypi.python_paths import get_env_stdlib; content = (get_env_stdlib() / 'EXTERNALLY-MANAGED').read_text(); assert '[externally-managed]' in content"
     - python -c "from conda_pypi.python_paths import get_env_stdlib; content = (get_env_stdlib() / 'EXTERNALLY-MANAGED').read_text(); assert 'conda pip' in content"
+    - python -m pip install requests && exit 1 || exit 0
 
 about:
-  home: https://github.com/jaimergp/conda-pypi
+  home: https://github.com/conda-incubator/conda-pypi
   license: MIT
   license_file: LICENSE
   summary: Better PyPI interoperability for the conda ecosystem
-  dev_url: https://github.com/jaimergp/conda-pypi
+  dev_url: https://github.com/conda-incubator/conda-pypi

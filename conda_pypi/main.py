@@ -122,6 +122,7 @@ def run_pip_install(
         get_env_python(prefix),
         "-mpip",
         "install",
+        "--isolated",
         "--no-deps",
     ]
     if any(
@@ -247,9 +248,11 @@ def dry_run_pip_json(
     try:
         cmd = [
             sys.executable,
-            "-mpip",
+            "-m",
+            "pip",
             "install",
             "--dry-run",
+            "--isolated",
             "--report",
             json_output.name,
             "--target",
