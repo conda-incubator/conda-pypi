@@ -21,11 +21,14 @@ and how each tool tracks what is currently installed.
 
 ## Differences in binary distributions
 
-Conda and PyPI are separate packaging ecosystems with different packaging formats and philosophies. Conda
-distributes packages as `.conda` files, which can include Python libraries and pre-compiled
-binaries with dynamic links to other dependencies. In contrast, PyPI provides `.whl` files (as defined
-in PEP 427), which typically bundle all required binaries or rely on system-level dependencies, as it
-lacks support for non-Python dependency declarations [^1].
+Conda and PyPI are separate packaging ecosystems with different packaging
+formats and philosophies. Conda distributes packages as .conda and .tar.bz2
+files, which can include Python libraries and pre-compiled binaries with dynamic
+links to other dependencies. In contrast, PyPI provides .whl files (as defined
+in [PEP 427](https://peps.python.org/pep-0427/)), which typically bundle all
+required binaries or rely on system-level dependencies, as it lacks support for
+non-Python dependency declarations [^1]. PyPI also supports source distributions,
+though these require building during installation.
 
 With that in mind, what are some potential ways this could break when combining the two
 ecosystems together? Because wheels typically include all of their pre-compiled binaries inside
@@ -47,10 +50,13 @@ Inside conda environments, package metadata is saved in JSON files in a folder c
 `conda-meta`. This serves as a way to easily identify everything that is currently installed
 because each JSON file represents a package installed in that environment.
 
-Tools using PyPI (e.g. `pip`) do not store metadata about the installed packages in single
-location like `conda-meta`. Instead, they rely on the presence of `.dist-info` folders often
-found directly next to the Python source code in the `lib/<python-version>/site-packages/`
-directory.
+Tools such as `pip` that follow the Database of Installed Python Distributions
+standard ([PEP 376](https://peps.python.org/pep-0376/)) do not store metadata
+about installed packages in a single central database like `conda-meta`.
+Instead, each installed distribution has its own `.dist-info` directory located
+in `lib/<python-version>/site-packages/`, containing metadata files like
+METADATA, RECORD, and INSTALLER that track the distribution's files and
+installation details.
 
 The good thing is that conda Python packages will normally install this directory
 when the package is installed. This means that `pip` installations on top of an existing
@@ -70,9 +76,21 @@ and prone to errors this environment becomes.
 PyPI and conda expose their packaging metadata in different ways, which results in their
 solvers working differently too:
 
-In the conda ecosystem, packages are published to a *channel*. The metadata in each package is extracted and aggregated into a per-platform JSON file (`repodata.json`) upon package publication. `repodata.json` contains all the packaging metadata needed for the solver to operate, and it's typically fetched and updated every time the user tries to install something.
+In the conda ecosystem, packages are published to a *channel*. The metadata in
+each package is extracted and aggregated into a per-platform JSON file
+(`repodata.json`) upon package publication. `repodata.json` contains all the
+packaging metadata needed for the solver to operate, and it's typically fetched
+and updated every time the user tries to install something.
 
-In PyPI, packages are published to an *index*. The index provides a list of all the available wheel files, with their filenames encoding *some* packaging metadata (like Python version and platform compatibility). Other metadata like the dependencies for that package need to be fetched on a per-wheel basis. As a result, the solver fetches metadata as it goes.
+In PyPI, packages are published to an *index* following the Simple Repository
+API standard ([PEP 503](https://peps.python.org/pep-0503/)). The index provides
+a list of all the available wheel files, with their filenames encoding some
+packaging metadata (like Python version and platform compatibility). Other
+metadata like the dependencies for that package need to be fetched on a
+per-wheel basis. As a result, the solver fetches metadata as it goes. Modern
+PyPI implementations can serve this index data in either HTML (the original PEP
+503 format) or JSON ([PEP 691](https://peps.python.org/pep-0691/)) using HTTP
+content negotiation.
 
 In a nutshell:
 
