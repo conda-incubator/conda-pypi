@@ -35,7 +35,7 @@ New to `conda-pypi`? Start here to learn the essentials
 :::
 
 :::{grid-item-card} 💡 Motivation and vision
-:link: why
+:link: why/index
 :link-type: doc
 Read about why `conda-pypi` exists and when you should use it
 :::
@@ -83,7 +83,7 @@ Implementation details and technical insights
 :hidden:
 
 quickstart
-why
+why/index
 features
 modules
 changelog

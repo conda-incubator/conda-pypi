@@ -9,9 +9,11 @@ readme = "README.md"
 authors = [
   { name = "Jaime Rodríguez-Guerra", email = "jrodriguez@quansight.com" },
 ]
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = [
+  "LICENSE",
+]
 classifiers = [
-  "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.9",
@@ -33,27 +35,32 @@ homepage = "https://github.com/conda-incubator/conda-pypi"
 
 [project.entry-points.conda]
 conda-pypi = "conda_pypi.plugin"
-conda-pupa = "conda_pupa.plugin"
+conda-pupa = "conda_pypi.plugin"
 
 [tool.pixi.project]
 channels = ["conda-forge"]
-platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64", "linux-aarch64"]
 
 [tool.pixi.dependencies]
+# must match project.dependencies (sans python and conda)
 python = ">=3.8"
 conda = ">=23.9"
 pip = "*"
 grayskull = "*"
+packaging = "*"
+
+[tool.pixi.pypi-dependencies]
+"conda-pypi" = { path  = ".", editable = true }
 
 [tool.pixi.tasks]
-dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
+dev = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()"'
 
 [tool.pixi.feature.build]
 dependencies = { conda-build = "*" }
 tasks = { build = "conda build recipe" }
 
 [tool.pixi.feature.docs.tasks]
-docs = { cmd = "pip install -e .. --no-deps && sphinx-build -M dirhtml . _build", cwd = "docs" }
+docs = { cmd = "sphinx-build -M dirhtml . _build", cwd = "docs" }
 serve = { cmd = "python -m http.server", cwd = "docs/_build/dirhtml" }
 clean = { cmd = "rm -rf _build", cwd = "docs" }
 
@@ -67,7 +74,7 @@ sphinx-copybutton = "*"
 sphinx-design = "*"
 sphinx-reredirects = "*"
 sphinx-sitemap = "*"
-# conda_pupa dependencies needed for autodoc
+# Dependencies for autodoc
 grayskull = "*"
 packaging = ">=24"
 typer = "*"
@@ -82,8 +89,7 @@ unearth = ">=0.17.2"
 pypi-simple = "*"
 
 [tool.pixi.feature.test.tasks]
-dev = 'python -mpip install --break-system-packages -e. --no-deps && cp conda_pypi/data/EXTERNALLY-MANAGED $(python -c "import sysconfig; print(sysconfig.get_paths()[\"stdlib\"])")'
-test = 'python -mpytest -vvv'
+test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest'
 pre-commit = 'pre-commit'
 
 [tool.pixi.feature.test.dependencies]
@@ -92,7 +98,7 @@ fmt = "!=10.2.0"
 pytest-mock = "3.12.0.*"
 conda-build = "*"
 pre-commit = "*"
-# conda_pupa dependencies
+# Build system dependencies
 typer = "*"
 conda-package-streaming = ">=0.11"
 unearth = ">=0.17.2"
@@ -102,6 +108,13 @@ python-installer = ">=0.7"
 conda-index = "*"
 conda-libmamba-solver = ">=24.9"
 packaging = ">=24"
+# Dependencies for corpus tests
+sqlalchemy = "*"
+python-multipart = "*"
+pyyaml = "*"
+zstandard = "*"  # Will be in stdlib as compression.zstd in Python 3.14+
+# Build backend for flit tests
+flit = "*"
 
 [tool.pixi.feature.test.pypi-dependencies]
 pypi-simple = "*"

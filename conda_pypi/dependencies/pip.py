@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from logging import getLogger
 from collections import defaultdict
-from ..main import dry_run_pip_json
+from conda_pypi.main import dry_run_pip_json
 
 logger = getLogger(f"conda.{__name__}")
 
