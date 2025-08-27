@@ -67,7 +67,7 @@ and prone to errors this environment becomes.
 
 ## Package metadata differences
 
-PyPI and conda expose their packaging metadata in radically different ways, which results in their
+PyPI and conda expose their packaging metadata in different ways, which results in their
 solvers working differently too:
 
 In the conda ecosystem, packages are published to a *channel*. The metadata in each package is extracted and aggregated into a per-platform JSON file (`repodata.json`) upon package publication. `repodata.json` contains all the packaging metadata needed for the solver to operate, and it's typically fetched and updated every time the user tries to install something.
