@@ -21,16 +21,6 @@ existing commands. The environment protection hook triggers after `install`,
 `EXTERNALLY-MANAGED` files that prevent accidental `pip` (or any other Python install tool) usage. This is
 implemented through `ensure_target_env_has_externally_managed()`.
 
-The explicit lockfile hook activates after `conda list --explicit` commands
-to add PyPI package information as comments to explicit lockfiles. The
-implementation in `_post_command_list_explicit()` appends `# pypi:` comment
-lines to lockfile output.
-
-Finally, the PyPI lines processing hook triggers after `conda install` and
-`conda create` commands to automatically process PyPI lines found in
-lockfiles during environment creation or installation. This is handled by
-`_post_command_process_pypi_lines()`.
-
 ## Data Flow Architecture
 
 ### Installation Flow

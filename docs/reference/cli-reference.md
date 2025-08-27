@@ -328,21 +328,6 @@ When `conda-pypi` converts and installs packages, they appear in `conda
 list` output and are tracked by conda's package management system. Converted
 packages can be removed with `conda remove`.
 
-### Lockfile Integration
-
-`conda-pypi` integrates with `conda list --explicit`:
-
-```bash
-# Generate lockfile with PyPI packages
-conda list --explicit --md5 > environment.lock
-
-# Generate lockfile without PyPI packages
-conda list --explicit --no-pip > environment.lock
-
-# Create environment from lockfile (automatically processes PyPI lines)
-conda create --name newenv --file environment.lock
-```
-
 ## Common Usage Patterns
 
 ### Development Workflow
