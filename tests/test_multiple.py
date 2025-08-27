@@ -9,7 +9,7 @@ import subprocess
 
 from conda.models.match_spec import MatchSpec
 
-from conda_pupa.convert_tree import ConvertTree
+from conda_pypi.convert_tree import ConvertTree
 
 REPO = pathlib.Path(__file__).parents[1] / "synthetic_repo"
 

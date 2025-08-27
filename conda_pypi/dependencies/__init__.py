@@ -16,7 +16,23 @@ from conda.models.channel import Channel
 from conda_libmamba_solver.index import LibMambaIndexHelper as Index
 from ruamel.yaml import YAML
 
-from ..utils import pypi_spec_variants
+from conda_pypi.utils import pypi_spec_variants
+
+# Import functions from pupa module for backward compatibility
+from conda_pypi.dependencies.pupa import (
+    check_dependencies,
+    ensure_requirements,
+    MissingDependencyError,
+)
+
+__all__ = [
+    "BACKENDS",
+    "NAME_MAPPINGS",
+    "analyze_dependencies",
+    "check_dependencies",
+    "ensure_requirements",
+    "MissingDependencyError",
+]
 
 yaml = YAML(typ="safe")
 logger = getLogger(f"conda.{__name__}")
@@ -67,13 +83,13 @@ def analyze_dependencies(
     if backend == "grayskull":
         if editable:
             logger.warning("Ignoring editable=%s with backend=grayskull", editable)
-        from .grayskull import _analyze_with_grayskull
+        from conda_pypi.dependencies.grayskull import _analyze_with_grayskull
 
         found_conda_deps, pypi_deps = _analyze_with_grayskull(
             *needs_analysis, prefer_on_conda=prefer_on_conda, channel=channel
         )
     elif backend == "pip":
-        from .pip import _analyze_with_pip
+        from conda_pypi.dependencies.pip import _analyze_with_pip
 
         python_deps, pypi_deps, editable_deps = _analyze_with_pip(
             *needs_analysis,

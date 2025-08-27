@@ -45,13 +45,20 @@ jobs:
       - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
         with:
           environments: ${{ env.PIXI_ENV_NAME }}
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          # Remove global pip config that interferes with isolated testing
+          # See: https://github.com/actions/runner-images/blob/6d025759810a/images/ubuntu/scripts/build/install-python.sh#L15-L21
+          sudo rm /etc/pip.conf
       - name: Setup project
         run: |
+          pixi reinstall --environment ${{ env.PIXI_ENV_NAME }} conda-pypi
           pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
-        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} -vv
 
   build-conda:
     name: Build conda package (${{ matrix.os }})
@@ -69,6 +76,12 @@ jobs:
       - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
         with:
           environments: build
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          # Remove global pip config that interferes with isolated testing
+          # See: https://github.com/actions/runner-images/blob/6d025759810a/images/ubuntu/scripts/build/install-python.sh#L15-L21
+          sudo rm /etc/pip.conf
       - name: Setup project
         run: |
           pixi run --environment build dev

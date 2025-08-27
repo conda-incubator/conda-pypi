@@ -11,8 +11,8 @@ from typing import Iterable, List
 
 from conda.cli.main import main_subshell
 
-from . import paths
-from .translate import requires_to_conda
+from conda_pypi import paths
+from conda_pypi.translate import requires_to_conda
 
 
 class MissingDependencyError(Exception):
@@ -26,7 +26,9 @@ class MissingDependencyError(Exception):
 
 def check_dependencies(requirements: Iterable[str], prefix: Path):
     python_executable = str(paths.get_python_executable(prefix))
-    dependency_getter = importlib.resources.read_text("conda_pupa", "dependencies_subprocess.py")
+    dependency_getter = (
+        importlib.resources.files("conda_pypi").joinpath("dependencies_subprocess.py").read_text()
+    )
     try:
         result = subprocess.run(
             [
