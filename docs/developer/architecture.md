@@ -101,11 +101,6 @@ system and leveraging `conda`'s existing infrastructure including solvers,
 channels, and metadata systems. This approach maintains full compatibility
 with existing conda workflows.
 
-The system emphasizes modularity and separation of concerns with clear
-separation between CLI, core logic, and specialized functionality. Each module
-has a focused responsibility with minimal coupling between modules, making the
-codebase easier to maintain and extend.
-
 This hybrid approach ensures that explicit packages always come
 from PyPI to respect user intent, while dependencies prefer conda channels
 for ecosystem compatibility. The system falls back to PyPI conversion only
