@@ -91,7 +91,7 @@ Even if we had all the necessary metadata available upfront, we would face one m
 
 - A package being published with different names: [`pypa/build`](https://github.com/pypa/build) is published to PyPI as `build` but it's `python-build` in conda-forge.
 - A package with names encoding versions: `PyQt` v5 is published in PyPI as `pyqt5`, but in conda-forge is simply `pyqt` with version `5` (`pyqt=5`).
-- Different packages with the same name: `art` is a [popular ASCII art package](https://github.com/sepandhaghighi/art/) in PyPI but a [genomics project](https://www.niehs.nih.gov/research/resources/software/biostatistics/art) in `bioconda`. 
+- Different packages with the same name: `art` is a [popular ASCII art package](https://github.com/sepandhaghighi/art/) in PyPI but a [genomics project](https://www.niehs.nih.gov/research/resources/software/biostatistics/art) in `bioconda`.
 
 Additionally there are other challenges like name normalization: in PyPI dashes and underscores are treated in the same way, but conda packaging considers them separate. This leads to efforts like publishing two conda packages for a given PyPI project if it contains any of this separators: PyPI's `typing-extensions` is available as both `typing-extensions` and `typing_extensions`. However these alias packages are not always published, and the separator flavor you get on the conda side is not always consistent.
 
