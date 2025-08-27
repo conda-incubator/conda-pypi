@@ -6,7 +6,7 @@ that make `conda` integrate better with the PyPI ecosystem:
 ## The `conda pypi` subcommand
 
 This subcommand provides a safer way to install PyPI packages in conda
-environments by converting them to conda format when possible. It offers two
+environments by converting them to `.conda` format when possible. It offers two
 main subcommands that handle different aspects of PyPI integration.
 
 ### `conda pypi install`

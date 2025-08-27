@@ -12,7 +12,6 @@ Includes:
 
 - `conda pypi install`: Converts PyPI packages to `.conda` format for safer installation.
 - `conda pypi convert`: Convert PyPI packages to `.conda` format without installing them.
-- `conda pypi convert -d/--dest`: Save converted packages to a specific directory.
 - Adds `EXTERNALLY-MANAGED` to your environments.
 
 ## Why?

@@ -5,11 +5,11 @@ how it integrates with conda and the internal organization of its components.
 
 ## Plugin System Integration
 
-`conda-pypi` is implemented as a conda plugin using conda's official plugin
+`conda-pypi` is implemented as a conda plugin using `conda`'s official plugin
 architecture. This design enables seamless integration with conda's existing
 workflows without requiring modifications to conda itself.
 
-The plugin registers several hooks with conda's plugin system. The
+The plugin registers several hooks with `conda`'s plugin system. The
 subcommand hook adds the `conda pypi` subcommand to conda through
 `conda_pypi.plugin.conda_subcommands()`, providing both `conda pypi install`
 for installing PyPI packages with conversion and `conda pypi convert` for
@@ -18,7 +18,7 @@ converting PyPI packages without installing them.
 The plugin also registers three post-command hooks that extend conda's
 existing commands. The environment protection hook triggers after `install`,
 `create`, `update`, and `remove` commands to automatically deploy
-`EXTERNALLY-MANAGED` files that prevent accidental pip usage. This is
+`EXTERNALLY-MANAGED` files that prevent accidental `pip` (or any other Python install tool) usage. This is
 implemented through `ensure_target_env_has_externally_managed()`.
 
 The explicit lockfile hook activates after `conda list --explicit` commands
@@ -195,8 +195,8 @@ The architecture of `conda-pypi` is built around several key design
 principles that ensure effective integration between conda and PyPI
 ecosystems.
 
-Conda-native integration is achieved by using conda's official plugin
-system and leveraging conda's existing infrastructure including solvers,
+Conda-native integration is achieved by using `conda`'s official plugin
+system and leveraging `conda`'s existing infrastructure including solvers,
 channels, and metadata systems. This approach maintains full compatibility
 with existing conda workflows.
 
@@ -205,19 +205,12 @@ separation between CLI, core logic, and specialized functionality. Each module
 has a focused responsibility with minimal coupling between modules, making the
 codebase easier to maintain and extend.
 
-The intelligent hybrid approach ensures that explicit packages always come
+This hybrid approach ensures that explicit packages always come
 from PyPI to respect user intent, while dependencies prefer conda channels
 for ecosystem compatibility. The system falls back to PyPI conversion only
 when needed.
 
-Extensibility is built into the design through the plugin architecture that
-allows easy extension, modular design that supports new conversion engines,
-and VCS system support that can be easily extended to new version control
-systems.
 
-Error resilience is maintained through graceful handling of conversion
-failures, continuing to process other packages when one fails, and providing
-clear error reporting and debugging information.
 
 This architecture enables conda-pypi to provide a seamless bridge between
 the conda and PyPI ecosystems while maintaining the integrity and benefits of
