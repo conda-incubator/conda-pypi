@@ -65,6 +65,27 @@ Not only that, `pip` and `conda` can begin to overwrite what each has placed in 
 the more likely it is that this will happen, and the more this happens, the more unstable
 and prone to errors this environment becomes.
 
+## Package metadata differences
+
+PyPI and conda expose their packaging metadata in radically different ways, which results in their
+solvers working differently too:
+
+In the conda ecosystem, packages are published to a *channel*. The metadata in each package is extracted and aggregated into a per-platform JSON file (`repodata.json`) upon package publication. `repodata.json` contains all the packaging metadata needed for the solver to operate, and it's typically fetched and updated every time the user tries to install something.
+
+In PyPI, packages are published to an *index*. The index provides a list of all the available wheel files, with their filenames encoding *some* packaging metadata (like Python version and platform compatibility). Other metadata like the dependencies for that package need to be fetched on a per-wheel basis. As a result, the solver fetches metadata as it goes.
+
+In a nutshell:
+
+- conda's metadata is available upfront, but there's no equivalent in PyPI.
+- The conda solvers have all the metadata they need to work, but in PyPI they need to fetch additional metadata as solutions are attempted.
+
+So, if we wanted to integrate PyPI with conda, this would be one of the problems: how to present all the necessary PyPI metadata to the conda solvers.
+
+```{note}
+Some solver backends (e.g. [`resolvo`](https://github.com/prefix-dev/resolvo)) do support iterative solving like in the PyPI model, but they have not been adapted for conda+PyPI interoperability.
+```
+
+
 ## More on this topic
 
 For an excellent overview of how Python packaging works:
