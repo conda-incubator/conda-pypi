@@ -1,4 +1,4 @@
-# Addressing these Issues with conda-pypi
+# Potential solutions
 
 So far, we have outlined why these packaging ecosystems do not always work together
 well and a couple strategies users have used in the past to overcome them. How exactly

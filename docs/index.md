@@ -19,7 +19,7 @@ New to `conda-pypi`? Start here to learn the essentials
 :::
 
 :::{grid-item-card} 💡 Motivation and vision
-:link: motivation-and-vision/index
+:link: why/index
 :link-type: doc
 Read about why `conda-pypi` exists and when you should use it
 :::
@@ -45,9 +45,9 @@ Implementation details and technical insights
 :hidden:
 
 quickstart
-motivation-and-vision/index
+why/index
 features
-modules
 developer-notes
 changelog
+modules
 ```
