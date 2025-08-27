@@ -134,4 +134,4 @@ For an excellent overview of what a conda package actually is:
 
 - [What is a conda package? - prefix.dev](https://prefix.dev/blog/what-is-a-conda-package)
 
-[^1:] At least as of August 2025. Check [PEP 725](https://peps.python.org/pep-0725/) for a proposal external dependency metadata.
+[^1]: At least as of August 2025. Check [PEP 725](https://peps.python.org/pep-0725/) for a proposal external dependency metadata.
