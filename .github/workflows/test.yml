@@ -39,19 +39,26 @@ jobs:
     env:
       PIXI_ENV_NAME: test-py${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
-      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+      - uses: prefix-dev/setup-pixi@fef5c9568ca6c4ff7707bf840ab0692ba3f08293 # v0.9.0
         with:
           environments: ${{ env.PIXI_ENV_NAME }}
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          # Remove global pip config that interferes with isolated testing
+          # See: https://github.com/actions/runner-images/blob/6d025759810a/images/ubuntu/scripts/build/install-python.sh#L15-L21
+          sudo rm /etc/pip.conf
       - name: Setup project
         run: |
+          pixi reinstall --environment ${{ env.PIXI_ENV_NAME }} conda-pypi
           pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
-        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }}
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} -vv
 
   build-conda:
     name: Build conda package (${{ matrix.os }})
@@ -63,12 +70,18 @@ jobs:
     env:
       PYTHONUNBUFFERED: "1"
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
-      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+      - uses: prefix-dev/setup-pixi@fef5c9568ca6c4ff7707bf840ab0692ba3f08293 # v0.9.0
         with:
           environments: build
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          # Remove global pip config that interferes with isolated testing
+          # See: https://github.com/actions/runner-images/blob/6d025759810a/images/ubuntu/scripts/build/install-python.sh#L15-L21
+          sudo rm /etc/pip.conf
       - name: Setup project
         run: |
           pixi run --environment build dev

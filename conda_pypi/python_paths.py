@@ -85,9 +85,8 @@ def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
     some extra plugin hooks.
     """
     target_path = get_current_externally_managed_path(prefix)
-    if target_path.exists():
-        return target_path
-    logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
-    resource = importlib_files("conda_pypi") / "data" / "EXTERNALLY-MANAGED"
-    target_path.write_text(resource.read_text())
+    if not target_path.exists():
+        logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
+        resource = importlib_files("conda_pypi") / "data" / "EXTERNALLY-MANAGED"
+        target_path.write_text(resource.read_text())
     return target_path

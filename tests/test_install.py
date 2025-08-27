@@ -151,7 +151,14 @@ def test_lockfile_roundtrip(
     with tmp_env("python=3.9", "pip") as prefix:
         if pure_pip:
             p = run(
-                [get_env_python(prefix), "-mpip", "install", "--break-system-packages", *specs],
+                [
+                    get_env_python(prefix),
+                    "-mpip",
+                    "install",
+                    "--isolated",
+                    "--break-system-packages",
+                    *specs,
+                ],
                 capture_output=True,
                 text=True,
                 check=False,
