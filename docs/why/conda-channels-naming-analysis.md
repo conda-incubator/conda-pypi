@@ -2,20 +2,24 @@
 
 ## Executive Summary
 
-This report analyzes naming differences between the main conda channel and conda-forge channel for Python packages.
+This report analyzes naming differences between the main conda channel and conda-forge channel for Python packages.  The analysis was done by comparing the PyPI mappings between main and conda-forge channel packages
+and then identifying when they, the conda package names, are different.
 
 ## Data Overview
 
-**72 packages** were found with discrepancies between main conda channel and conda-forge channel names.  This
-was done by collecting information main's packages (from an internal to Anaconda data store) and comparing
-this against conda-forge's cf-graph-countyfair.
+**72 packages** were found with discrepancies between main conda channel and conda-forge channel conda
+package names.  This was done by collecting information main's packages (from an internal to Anaconda
+data store) and comparing this against conda-forge's cf-graph-countyfair.  The cf-graph-county-fair
+is the data repository for conda-forge's automation.  This repository stores the dependency graph
+and its introspection. Prefix's parselmouth repository (which is used to store similar mapping data)
+was not used in this comparison.
 
 A few of these were not listed below as the data mapping was incorrect.
 
 ## Key Findings
 
-Discrepancies fall in several categories.  There are cases where the name of the package was changed (This, of course, has it's own
-challenges by having to select the 'correct' conda package).
+Discrepancies fall in several categories.  There are cases where the name of the package was changed
+(This, of course, has it's own challenges by having to select the 'correct' conda package).
 
 ###  Naming Pattern Categories
 
