@@ -9,7 +9,7 @@ from packaging.requirements import InvalidRequirement
 import build
 import conda_pypi.dependencies_subprocess
 from conda_pypi.build import filter, pypa_to_conda
-from conda_pypi.dependencies.pupa import ensure_requirements
+from conda_pypi.dependencies.pypi import ensure_requirements
 
 
 def test_editable(tmp_path):
@@ -74,7 +74,7 @@ def test_build_wheel(package, package_path, tmp_path):
 
 
 def test_ensure_requirements(mocker):
-    mock = mocker.patch("conda_pypi.dependencies.pupa.main_subshell")
+    mock = mocker.patch("conda_pypi.dependencies.pypi.main_subshell")
     ensure_requirements(["flit_core"], prefix=Path())
     # normalizes/converts the underscore flit_core->flit-core
     assert mock.call_args.args == ("install", "--prefix", ".", "-y", "flit-core")
@@ -93,22 +93,19 @@ def test_create_build_dir(tmp_path):
         pypa_to_conda(tmp_path, prefix=Path(context.default_prefix))
 
 
-## Test pupa installed in different environment than editable package / activated environment...
-
-
 @pytest.mark.skip(
-    reason="conda-pupa requires conda to be available in the same environment, but this test creates an isolated Python-only environment"
+    reason="conda-pypi requires conda to be available in the same environment, but this test creates an isolated Python-only environment"
 )
 def test_build_in_env(tmp_path):
     """
-    Test conda-pupa installed in different environment than editable package.
+    Test conda-pypi installed in different environment than editable package.
 
-    This test is skipped because conda-pupa requires conda APIs to be available,
+    This test is skipped because conda-pypi requires conda APIs to be available,
     but the test creates an isolated Python-only environment without conda.
     This is not a supported use case.
     """
     pytest.skip(
-        "Test requires architectural changes to conda-pupa to work with isolated environments"
+        "Test requires architectural changes to conda-pypi to work with isolated environments"
     )
 
 
