@@ -4,7 +4,7 @@ Fetch matching wheels from pypi.
 
 from pathlib import Path
 
-from conda.core.prefix_data import get_python_version_for_prefix
+from conda.core.prefix_data import PrefixData
 from conda.gateways.connection.download import download
 from conda.models.match_spec import MatchSpec
 from unearth import PackageFinder, TargetPython
@@ -18,9 +18,11 @@ def get_package_finder(prefix: Path):
     """
     Finder with prefix's Python, not our Python.
     """
-    py_ver = get_python_version_for_prefix(prefix)
-    if not py_ver:
+    prefix_data = PrefixData(prefix)
+    python_records = list(prefix_data.query("python"))
+    if not python_records:
         raise CondaPypiError(f"Python not found in {prefix}")
+    py_ver = python_records[0].version
     py_ver = tuple(map(int, py_ver.split(".")))
     target_python = TargetPython(py_ver=py_ver)
     return PackageFinder(target_python=target_python, only_binary=":all:")
