@@ -57,7 +57,7 @@ class PackageRecord:
     depends: List[str]
     extras: Dict[str, List[str]]
     build_number: int = 0
-    build_text: str = "pupa"  # e.g. hash
+    build_text: str = "pypi"  # e.g. hash
     license_family: str = ""
     license: str = ""
     noarch: str = ""
@@ -178,7 +178,7 @@ class CondaMetadata:
 
 
 # The keys are pypi names
-# conda_pupa.dist_repodata.grayskull_pypi_mapping['zope-hookable']
+# conda_pypi.dist_repodata.grayskull_pypi_mapping['zope-hookable']
 # {
 #     "pypi_name": "zope-hookable",
 #     "conda_name": "zope.hookable",
@@ -186,7 +186,7 @@ class CondaMetadata:
 #     "mapping_source": "regro-bot",
 # }
 grayskull_pypi_mapping = json.loads(
-    pkgutil.get_data("conda_pupa", "grayskull_pypi_mapping.json") or "{}"
+    pkgutil.get_data("conda_pypi", "grayskull_pypi_mapping.json") or "{}"
 )
 
 

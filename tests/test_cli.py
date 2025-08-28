@@ -7,7 +7,7 @@ import click
 from click.testing import CliRunner
 
 import conda_pypi.plugin
-from conda_pypi.pupa_cli import cli
+from conda_pypi.pypi_cli import cli
 
 
 def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -59,6 +59,5 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
 
 def test_cli_plugin(monkeypatch):
-    # Test the conda pupa command (backward compatibility)
     with pytest.raises(click.exceptions.BadOptionUsage):
-        conda_pypi.plugin.pupa_command(["-e=.", "-b=."], standalone_mode=False)
+        conda_pypi.plugin.pypi_command(["-e=.", "-b=."], standalone_mode=False)
