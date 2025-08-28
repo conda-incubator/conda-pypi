@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import conda_pypi.plugin
-from conda_pypi.cli.pypi import configure_parser, execute
+from conda_pypi.cli.pypi import configure_parser
 import argparse
 
 

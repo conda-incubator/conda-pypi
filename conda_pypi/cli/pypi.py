@@ -5,8 +5,6 @@ conda pypi subcommand for CLI
 from __future__ import annotations
 
 import argparse
-import contextlib
-import tempfile
 from pathlib import Path
 from logging import getLogger
 
@@ -101,10 +99,7 @@ def execute_install(args: argparse.Namespace) -> int:
     else:
         prefix_path = Path(context.target_prefix)
 
-    converter = convert_tree.ConvertTree(
-        prefix_path,
-        override_channels=args.override_channels
-    )
+    converter = convert_tree.ConvertTree(prefix_path, override_channels=args.override_channels)
     # Convert package strings to MatchSpec objects
     match_specs = [MatchSpec(pkg) for pkg in args.packages]
     converter.convert_tree(match_specs)
@@ -121,13 +116,13 @@ def execute_convert(args: argparse.Namespace) -> int:
         prefix_path = Path(context.target_prefix)
 
     package_path = convert_tree.build.pypa_to_conda(
-        args.project_path,
-        distribution="wheel",
-        output_path=args.output_folder,
-        prefix=prefix_path
+        args.project_path, distribution="wheel", output_path=args.output_folder, prefix=prefix_path
     )
-    print(f"Conda package at {package_path} built and converted successfully.  Output folder: {args.output_folder}")
+    print(
+        f"Conda package at {package_path} built and converted successfully.  Output folder: {args.output_folder}"
+    )
     return 0
+
 
 """
 def execute_develop(args: argparse.Namespace) -> int:
