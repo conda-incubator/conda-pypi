@@ -20,7 +20,6 @@ from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.records import PackageRecord
-from conda.history import History
 import subprocess
 from conda.exceptions import CondaError
 from conda.models.match_spec import MatchSpec
@@ -45,8 +44,8 @@ def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
 
     if not list(pd.query("python>=3.2")):
         raise CondaError(f"Target environment at {path} requires python>=3.2")
-    if not list(pd.query("pip>=23.0.1")):
-        raise CondaError(f"Target environment at {path} requires pip>=23.0.1")
+    if not list(pd.query("pip")):
+        raise CondaError(f"Target environment at {path} requires pip")
 
     packages_to_process = []
     for pkg in packages:
@@ -122,7 +121,6 @@ def run_pip_install(
         get_env_python(prefix),
         "-mpip",
         "install",
-        "--isolated",
         "--no-deps",
     ]
     if any(
@@ -169,9 +167,14 @@ def ensure_target_env_has_externally_managed(command: str):
     target_prefix = Path(context.target_prefix)
     if base_prefix == target_prefix or base_prefix.resolve() == target_prefix.resolve():
         return
-    # ensure conda-pypi was explicitly installed in base env (and not as a dependency)
-    requested_specs_map = History(base_prefix).get_requested_specs_map()
-    if requested_specs_map and "conda-pypi" not in requested_specs_map:
+    # Check if conda-pypi is available in the base environment
+    # This is more lenient than checking if it was explicitly installed
+    try:
+        base_prefix_data = PrefixData(base_prefix)
+        if not list(base_prefix_data.query("conda-pypi")):
+            return
+    except Exception:
+        # If we can't determine conda-pypi availability, be conservative and return
         return
     prefix_data = PrefixData(target_prefix)
     if command in {"create", "install", "update"}:
@@ -248,11 +251,9 @@ def dry_run_pip_json(
     try:
         cmd = [
             sys.executable,
-            "-m",
-            "pip",
+            "-mpip",
             "install",
             "--dry-run",
-            "--isolated",
             "--report",
             json_output.name,
             "--target",
@@ -263,7 +264,7 @@ def dry_run_pip_json(
         if force_reinstall:
             cmd.append("--force-reinstall")
         if python_version:
-            cmd += ["--python-version", python_version]
+            cmd += ["--python-version", python_version, "--no-deps"]
         if implementation:
             cmd += ["--implementation", implementation]
         for tag in abi:

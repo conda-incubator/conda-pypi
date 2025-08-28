@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from logging import getLogger
 from collections import defaultdict
+from conda.core.prefix_data import PrefixData
 from conda_pypi.main import dry_run_pip_json
 
 logger = getLogger(f"conda.{__name__}")
@@ -13,7 +14,20 @@ def _analyze_with_pip(
     prefix: str | None = None,
     force_reinstall: bool = False,
 ) -> tuple[dict[str, list[str]], dict[str, list[str]], dict[str, list[str]]]:
-    report = dry_run_pip_json(("--prefix", prefix, *packages), force_reinstall)
+    python_version = ""
+    if prefix:
+        prefix_data = PrefixData(prefix)
+        python_records = list(prefix_data.query("python"))
+        if python_records:
+            py_ver = python_records[0].version
+            # Convert "3.9.18" to "3.9" format expected by pip
+            python_version = ".".join(py_ver.split(".")[:2])
+
+    report = dry_run_pip_json(
+        ("--prefix", prefix, *packages),
+        force_reinstall=force_reinstall,
+        python_version=python_version,
+    )
     deps_from_pip = defaultdict(list)
     editable_deps = defaultdict(list)
     conda_deps = defaultdict(list)
