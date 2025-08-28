@@ -109,7 +109,7 @@ challenges by having to select the 'correct' conda package).
 
 ## Recommendations
 
-- Because of the few discrepancies, conda pypi could get away with using conda-forge mapping with little impact.
+- Because of the few discrepancies, conda-pypi could get away with using conda-forge mapping with little impact.
 - As we move forward to a sustainable solution (a continually updated ecosystem mapping), they should be on a channel by channel basis.
 - For the short term MVP, conda-pypi should hard code as a long-term sustainable solution is decided on and implemented.
 
