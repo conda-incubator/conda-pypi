@@ -41,7 +41,7 @@ def test_multiple(tmp_path, monkeypatch):
     """
     Install multiple only-available-from-pypi dependencies into an environment.
     """
-    TARGET_ENV_PATH = tmp_path / "pupa-target"
+    TARGET_ENV_PATH = tmp_path / "pypi-target"
     TARGET_ENV_PATH.mkdir()
 
     CONDA_PKGS_DIRS = tmp_path / "conda-pkgs"

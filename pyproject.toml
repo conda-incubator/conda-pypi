@@ -35,7 +35,6 @@ homepage = "https://github.com/conda-incubator/conda-pypi"
 
 [project.entry-points.conda]
 conda-pypi = "conda_pypi.plugin"
-conda-pupa = "conda_pypi.plugin"
 
 [tool.pixi.project]
 channels = ["conda-forge"]
