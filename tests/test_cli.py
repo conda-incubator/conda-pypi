@@ -10,7 +10,7 @@ import argparse
 
 def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """
-    Coverage testing for the new argparse-based CLI.
+    Coverage testing for the argparse-based CLI.
     """
 
     # Test argument parsing
@@ -27,7 +27,6 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     # Test that help can be parsed without conflicts (this was the original issue)
     try:
         parser.parse_args(["--help"])
-        assert True
     except SystemExit:
         pass
 
@@ -37,13 +36,11 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     try:
         install_parser.parse_args(["--help"])
-        assert True
     except SystemExit:
         pass
 
     try:
         convert_parser.parse_args(["--help"])
-        assert True
     except SystemExit:
         pass
 

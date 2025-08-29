@@ -16,7 +16,7 @@ from conda.cli.conda_argparse import (
 from conda.exceptions import ArgumentError
 from conda.base.context import context
 
-logger = getLogger(f"conda.{__name__}")
+logger = getLogger(__name__)
 
 
 def configure_parser(parser: argparse.ArgumentParser):
@@ -40,14 +40,13 @@ def configure_parser(parser: argparse.ArgumentParser):
         help="Target prefix for installation",
     )
     install.add_argument(
-        "-O",
         "--override-channels",
         action="store_true",
         help="Do not search default or .condarc channels. Will search pypi.",
     )
     install.add_argument(
         "packages",
-        metavar="package",
+        metavar="PACKAGE",
         nargs="*",
         help="PyPI packages to install",
     )
@@ -73,7 +72,7 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
     convert.add_argument(
         "project_path",
-        metavar="<path/url>",
+        metavar="PROJECT",
         help="Convert named path/url as wheel converted to conda.",
     )
 

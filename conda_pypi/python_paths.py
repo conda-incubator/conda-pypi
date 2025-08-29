@@ -15,7 +15,7 @@ from subprocess import check_output
 from typing import Iterator
 
 
-logger = getLogger(f"conda.{__name__}")
+logger = getLogger(__name__)
 
 
 def get_env_python(prefix: os.PathLike = None) -> Path:
