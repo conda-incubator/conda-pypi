@@ -20,8 +20,8 @@ logger = getLogger(__name__)
 
 
 def configure_parser(parser: argparse.ArgumentParser):
-    # Note: parser is provided by conda and already has help configured
     add_parser_help(parser)
+    # This adds --prefix/--name mutually exclusive options
     add_parser_prefix(parser)
     add_output_and_prompt_options(parser)
 
@@ -31,13 +31,6 @@ def configure_parser(parser: argparse.ArgumentParser):
     install = subparser.add_parser(
         "install",
         help="Install PyPI packages as conda packages",
-    )
-    # TODO: add --name option with mutually exclusive with --prefix
-    install.add_argument(
-        "-p",
-        "--prefix",
-        metavar="<path>",
-        help="Target prefix for installation",
     )
     install.add_argument(
         "--override-channels",
