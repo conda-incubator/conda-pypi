@@ -3,7 +3,7 @@
 ## Executive Summary
 
 This report analyzes naming differences between the main conda channel and conda-forge channel for Python packages.  The analysis was done by comparing the PyPI mappings between main and conda-forge channel packages
-and then identifying when they, the conda package names, are different.
+and then identifying when they, the conda package names, are different.  This analysis was done mid August 2025.
 
 ## Data Overview
 
