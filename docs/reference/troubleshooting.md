@@ -193,14 +193,6 @@ conda pypi install --dry-run package-name
 conda pypi convert --dry-run package-name
 ```
 
-### JSON output for scripts
-
-For programmatic error handling:
-
-```bash
-conda pypi install --json package-name
-```
-
 ## When to Seek Further Help
 
 If you encounter issues not covered here:
