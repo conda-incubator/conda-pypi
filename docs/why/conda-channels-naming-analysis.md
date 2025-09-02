@@ -5,6 +5,38 @@
 This report analyzes naming differences between the main conda channel and conda-forge channel for Python packages.  The analysis was done by comparing the PyPI mappings between main and conda-forge channel packages
 and then identifying when they, the conda package names, are different.  This analysis was done mid August 2025.
 
+## Study Overview
+
+Channel data was downloaded from cf-graph-countyfair (grayskull_pypi_mapping.json) for conda-forge
+channel and an internal Anaconda metadata source for the main channel. With both sources, containing
+the conda package name and the pypi name, the following analysis was done:
+
+```python
+# main_df: Pandas Dataframe from main channel
+# cf_df: Pandas Dataframe from conda-forge channel
+
+# Merging data by PyPi Name
+# main_df stores the package name as name and cf_df as conda_name so there is no collision
+mdf = pd.merge(main_df, cf_df, left_on="pypi_name", right_on="pypi_name")
+
+not_found_df = mdf[mdf.name != mdf.conda_name].sort_values(by="name")
+
+# Because there could be other names (aliases or older names) we should check
+# if each of the discrepancies also exists.
+
+# This was run in a notebook so the ! is running a subprocess.
+conda_search_results = {}
+for x in not_found_df.conda_name:
+    if x in conda_search_results:
+        continue
+    print(f"Looking up {x} on main...")
+    query = !conda search {x}
+    conda_search_results[x] = query
+
+# Find any than are also found in main (these were noted belov)
+found_on_main = [k for k, v in conda_search_results.items() if not any("PackagesNotFoundError" in l for l in v)]
+```
+
 ## Data Overview
 
 **72 packages** were found with discrepancies between main conda channel and conda-forge channel conda
