@@ -64,10 +64,6 @@ pip search package-name  # or visit pypi.org
 conda pypi install python-package-name  # instead of package-name
 conda pypi install package_name         # underscores instead of dashes
 
-# Use exact PyPI name
-conda pypi install "Package-Name"       # match exact case
-```
-
 ### Dependency resolution timeout
 
 **Problem**: Complex dependency trees exceed the solver's retry limit.
