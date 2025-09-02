@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 
 def test_cli(conda_cli):
     """
