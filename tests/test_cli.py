@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-
 def test_cli(conda_cli):
     """
     Test that pypi subcommands exist by checking their help output.
