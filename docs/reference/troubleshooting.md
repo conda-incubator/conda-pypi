@@ -62,7 +62,6 @@ pip search package-name  # or visit pypi.org
 
 # Try common name variations
 conda pypi install python-package-name  # instead of package-name
-conda pypi install package_name         # underscores instead of dashes
 
 ### Dependency resolution timeout
 
