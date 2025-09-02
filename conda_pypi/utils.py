@@ -476,11 +476,28 @@ def parse_libmamba_error(message: str):
     """
     Parse missing packages out of LibMambaUnsatisfiableError message.
     """
-    # Extract package names from error messages
-    # This is a simplified parser - may need enhancement for complex cases
     packages = []
     lines = message.split("\n")
     for line in lines:
+        line = line.strip()
+
+        # Pattern 1: "nothing provides package-name >=version needed by..."
+        nothing_provides_match = re.search(r"nothing provides\s+([a-zA-Z0-9_.-]+)", line)
+        if nothing_provides_match:
+            package_name = nothing_provides_match.group(1)
+            packages.append(package_name)
+            continue
+
+        # Pattern 2: "package-name >=version *, which does not exist"
+        does_not_exist_match = re.search(
+            r"([a-zA-Z0-9_.-]+)\s+[>=<][^,]*,\s+which does not exist", line
+        )
+        if does_not_exist_match:
+            package_name = does_not_exist_match.group(1)
+            packages.append(package_name)
+            continue
+
+        # Pattern 3: Original pattern for backward compatibility
         if "package" in line.lower() and (
             "not found" in line.lower() or "missing" in line.lower()
         ):
