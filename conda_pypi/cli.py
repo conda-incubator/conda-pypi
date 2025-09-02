@@ -23,7 +23,7 @@ from conda.reporters import get_spinner
 from .core import convert_packages, install_packages, prepare_packages_for_installation
 from .main import validate_target_env
 from .utils import ensure_externally_managed
-from .utils import get_prefix
+from .utils import get_prefix, get_package_finder
 
 
 logger = getLogger(f"conda.{__name__}")
@@ -64,6 +64,12 @@ def configure_parser(parser: argparse.ArgumentParser):
         action="store_true",
         help="Install packages in editable mode (development mode).",
     )
+    install.add_argument(
+        "--index",
+        dest="index_url",
+        help="Use this PyPI index URL instead of the default (https://pypi.org/simple/). "
+        "No authentication is supported.",
+    )
     install.add_argument("packages", metavar="package", nargs="*")
 
     convert.add_argument(
@@ -79,6 +85,12 @@ def configure_parser(parser: argparse.ArgumentParser):
         dest="output_dir",
         type=Path,
         help="Directory to save converted .conda packages (default: current directory)",
+    )
+    convert.add_argument(
+        "--index",
+        dest="index_url",
+        help="Use this PyPI index URL instead of the default (https://pypi.org/simple/). "
+        "No authentication is supported.",
     )
     convert.add_argument("packages", metavar="package", nargs="*")
 
@@ -125,6 +137,12 @@ def execute_install(args: argparse.Namespace) -> int:
             action = "Installing" if args.editable else "Converting and installing"
             logger.info(f"{action} packages: {', '.join(args.packages)}")
 
+        finder = None
+        if args.index_url:
+            if not args.quiet:
+                logger.info(f"Using custom PyPI index: {args.index_url}")
+            finder = get_package_finder(prefix, args.index_url)
+
         if not args.quiet:
             spinner_message = (
                 "Installing packages"
@@ -137,6 +155,7 @@ def execute_install(args: argparse.Namespace) -> int:
                     prefix,
                     override_channels=args.override_channels,
                     editable=args.editable,
+                    finder=finder,
                 )
         else:
             cached_package_names = prepare_packages_for_installation(
@@ -144,6 +163,7 @@ def execute_install(args: argparse.Namespace) -> int:
                 prefix,
                 override_channels=args.override_channels,
                 editable=args.editable,
+                finder=finder,
             )
 
         # Install conda packages (if any were converted)
@@ -185,14 +205,28 @@ def execute_convert(args: argparse.Namespace) -> int:
     if not args.quiet:
         logger.info(f"Converting packages: {', '.join(args.packages)}")
 
+    finder = None
+    if args.index_url:
+        if not args.quiet:
+            print(f"Using custom PyPI index: {args.index_url}")
+        finder = get_package_finder(prefix, args.index_url)
+
     if not args.quiet:
         with get_spinner("Converting PyPI packages to .conda format"):
             converted_packages = convert_packages(
-                args.packages, prefix, output_dir, override_channels=args.override_channels
+                args.packages,
+                prefix,
+                output_dir,
+                override_channels=args.override_channels,
+                finder=finder,
             )
     else:
         converted_packages = convert_packages(
-            args.packages, prefix, output_dir, override_channels=args.override_channels
+            args.packages,
+            prefix,
+            output_dir,
+            override_channels=args.override_channels,
+            finder=finder,
         )
 
     if not args.quiet:
