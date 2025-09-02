@@ -1,48 +1,22 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
-from conda_pypi.cli.pypi import configure_parser
-import argparse
 
-
-def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_cli(conda_cli):
     """
-    Coverage testing for the argparse-based CLI.
+    Test that pypi subcommands exist by checking their help output.
     """
+    # Test that install subcommand exists and help works
+    # Help commands raise SystemExit, so we need to handle that
+    out, err, rc = conda_cli("pypi", "install", "--help", raises=SystemExit)
+    assert rc.value.code == 0  # SystemExit(0) means success
+    assert "PyPI packages to install" in out
 
-    # Test argument parsing
-    parser = argparse.ArgumentParser(add_help=False)
-    # configure parser adds subparser commands and help
-    # let's test that they are added correctly
-    configure_parser(parser)
-
-    # Test that install and convert subcommands exist
-    subparsers = parser._subparsers._group_actions[0]
-    assert "install" in subparsers.choices
-    assert "convert" in subparsers.choices
-
-    # Test that help can be parsed without conflicts (this was the original issue)
-    try:
-        parser.parse_args(["--help"])
-    except SystemExit:
-        pass
-
-    # Test that subcommand help can be parsed without conflicts
-    install_parser = subparsers.choices["install"]
-    convert_parser = subparsers.choices["convert"]
-
-    try:
-        install_parser.parse_args(["--help"])
-    except SystemExit:
-        pass
-
-    try:
-        convert_parser.parse_args(["--help"])
-    except SystemExit:
-        pass
+    # Test that convert subcommand exists and help works
+    out, err, rc = conda_cli("pypi", "convert", "--help", raises=SystemExit)
+    assert rc.value.code == 0
+    assert "Convert named path/url as wheel converted to conda" in out
 
 
 def test_cli_plugin(monkeypatch):
