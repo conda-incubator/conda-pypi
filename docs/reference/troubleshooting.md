@@ -44,21 +44,6 @@ conda create -n myenv python=3.10 pip
 conda pypi install -n myenv package-name
 ```
 
-### Permission errors
-
-**Problem**: Cannot write to environment directory.
-
-**Solutions**:
-```bash
-# Check environment permissions
-ls -la $(conda info --base)/envs/
-
-# Fix ownership if needed (Linux/macOS)
-sudo chown -R $USER $(conda info --base)/envs/myenv
-
-# On Windows, run conda prompt as administrator
-```
-
 ## Package Resolution Issues
 
 ### Package not found on PyPI
