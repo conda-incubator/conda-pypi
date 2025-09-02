@@ -24,13 +24,14 @@ not_found_df = mdf[mdf.name != mdf.conda_name].sort_values(by="name")
 # Because there could be other names (aliases or older names) we should check
 # if each of the discrepancies also exists.
 
-# This was run in a notebook so the ! is running a subprocess.
 conda_search_results = {}
 for x in not_found_df.conda_name:
     if x in conda_search_results:
         continue
     print(f"Looking up {x} on main...")
-    query = !conda search {x}
+    # Note: In the original jupyter notebook of the analysis
+    # this is what was run: query = !conda search {x}
+    query = subprocess.run(['conda', 'search', x], capture_output=True, text=True)
     conda_search_results[x] = query
 
 # Find any than are also found in main (these were noted belov)
