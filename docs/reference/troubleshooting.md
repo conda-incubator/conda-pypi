@@ -184,15 +184,6 @@ conda -v -v -v pip install package-name
 conda -v -v -v -v pip install package-name
 ```
 
-### Preview operations
-
-To see what would happen without making changes:
-
-```bash
-conda pypi install --dry-run package-name
-conda pypi convert --dry-run package-name
-```
-
 ## When to Seek Further Help
 
 If you encounter issues not covered here:
