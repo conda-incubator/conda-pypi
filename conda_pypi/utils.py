@@ -292,13 +292,13 @@ def extract_package_name_from_spec(package_spec) -> str:
 # =============================================================================
 
 
-def get_package_finder(prefix: Path, index_url: str = None) -> PackageFinder:
+def get_package_finder(prefix: Path, index_urls: list[str] = None) -> PackageFinder:
     """
     Create a PackageFinder with the prefix's Python version, not our Python.
 
     Args:
         prefix: Path to the conda environment prefix
-        index_url: Custom PyPI index URL to use instead of the default
+        index_urls: List of custom PyPI index URLs to use instead of the default
     """
 
     py_ver = get_python_version_for_prefix(prefix)
@@ -309,12 +309,12 @@ def get_package_finder(prefix: Path, index_url: str = None) -> PackageFinder:
 
     # Create a session and link collector
     session = PipSession()
-    # Use custom index URL if provided, otherwise default to PyPI
-    if index_url:
-        index_urls = [index_url]
+    # Use custom index URLs if provided, otherwise default to PyPI
+    if index_urls:
+        urls = index_urls
     else:
-        index_urls = ["https://pypi.org/simple/"]
-    search_scope = SearchScope.create(find_links=[], index_urls=index_urls, no_index=False)
+        urls = ["https://pypi.org/simple/"]
+    search_scope = SearchScope.create(find_links=[], index_urls=urls, no_index=False)
     link_collector = LinkCollector(session=session, search_scope=search_scope)
 
     # Create selection preferences

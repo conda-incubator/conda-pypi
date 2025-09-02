@@ -66,8 +66,9 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
     install.add_argument(
         "--index",
-        dest="index_url",
-        help="Use this PyPI index URL instead of the default (https://pypi.org/simple/). "
+        dest="index_urls",
+        action="append",
+        help="Add a PyPI index URL (can be used multiple times). "
         "No authentication is supported.",
     )
     install.add_argument("packages", metavar="package", nargs="*")
@@ -88,8 +89,9 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
     convert.add_argument(
         "--index",
-        dest="index_url",
-        help="Use this PyPI index URL instead of the default (https://pypi.org/simple/). "
+        dest="index_urls",
+        action="append",
+        help="Add a PyPI index URL (can be used multiple times). "
         "No authentication is supported.",
     )
     convert.add_argument("packages", metavar="package", nargs="*")
@@ -138,10 +140,13 @@ def execute_install(args: argparse.Namespace) -> int:
             logger.info(f"{action} packages: {', '.join(args.packages)}")
 
         finder = None
-        if args.index_url:
+        if args.index_urls:
             if not args.quiet:
-                logger.info(f"Using custom PyPI index: {args.index_url}")
-            finder = get_package_finder(prefix, args.index_url)
+                if len(args.index_urls) == 1:
+                    print(f"Using custom PyPI index: {args.index_urls[0]}")
+                else:
+                    print(f"Using custom PyPI indexes: {', '.join(args.index_urls)}")
+            finder = get_package_finder(prefix, args.index_urls)
 
         if not args.quiet:
             spinner_message = (
@@ -206,10 +211,13 @@ def execute_convert(args: argparse.Namespace) -> int:
         logger.info(f"Converting packages: {', '.join(args.packages)}")
 
     finder = None
-    if args.index_url:
+    if args.index_urls:
         if not args.quiet:
-            print(f"Using custom PyPI index: {args.index_url}")
-        finder = get_package_finder(prefix, args.index_url)
+            if len(args.index_urls) == 1:
+                print(f"Using custom PyPI index: {args.index_urls[0]}")
+            else:
+                print(f"Using custom PyPI indexes: {', '.join(args.index_urls)}")
+        finder = get_package_finder(prefix, args.index_urls)
 
     if not args.quiet:
         with get_spinner("Converting PyPI packages to .conda format"):
