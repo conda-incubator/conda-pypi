@@ -31,11 +31,15 @@ for x in not_found_df.conda_name:
     print(f"Looking up {x} on main...")
     # Note: In the original jupyter notebook of the analysis
     # this is what was run: query = !conda search {x}
-    query = subprocess.run(['conda', 'search', x], capture_output=True, text=True)
+    query = subprocess.run(["conda", "search", x], capture_output=True, text=True)
     conda_search_results[x] = query
 
 # Find any than are also found in main (these were noted belov)
-found_on_main = [k for k, v in conda_search_results.items() if not any("PackagesNotFoundError" in l for l in v)]
+found_on_main = [
+    k
+    for k, v in conda_search_results.items()
+    if not any("PackagesNotFoundError" in l for l in v)
+]
 ```
 
 ## Data Overview
