@@ -174,14 +174,13 @@ For detailed debugging information:
 conda -v pip install package-name
 
 # INFO level logging (repeat -v twice)
-conda -v -v pip install package-name
+conda -vv pip install package-name
 
 # DEBUG level logging (repeat -v three times) - most useful for troubleshooting
-conda -v -v -v pip install package-name
+conda -vvv pip install package-name
 
 # TRACE level logging (repeat -v four times) - maximum detail
-conda -v -v -v -v pip install package-name
-```
+conda -vvvv pip install package-name
 
 ## When to Seek Further Help
 
