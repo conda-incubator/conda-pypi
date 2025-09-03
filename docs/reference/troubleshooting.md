@@ -126,43 +126,6 @@ conda -v pip install package-name
 conda config --show channels
 ```
 
-### Corporate firewall/proxy issues
-
-**Problem**: Behind corporate firewall with proxy requirements.
-
-**Solutions**:
-```bash
-# Configure pip proxy settings
-export HTTP_PROXY=http://proxy.company.com:8080
-export HTTPS_PROXY=http://proxy.company.com:8080
-
-# For authenticated proxies
-export HTTP_PROXY=http://username:password@proxy.company.com:8080
-
-# Trust internal certificates
-export PIP_TRUSTED_HOST=pypi.org,pypi.python.org,files.pythonhosted.org
-```
-
-### SSL/TLS certificate issues
-
-**Problem**: Certificate verification failures.
-
-**Error messages**:
-- `SSL certificate verification failed`
-- `Certificate verify failed`
-
-**Solutions**:
-```bash
-# Temporarily disable SSL verification (not recommended for production)
-export PIP_TRUSTED_HOST=pypi.org,pypi.python.org,files.pythonhosted.org
-
-# Update certificates (macOS)
-/Applications/Python\ 3.x/Install\ Certificates.command
-
-# Update certificates (Linux)
-sudo apt-get update && sudo apt-get install ca-certificates
-```
-
 ## Getting Help
 
 ### Enable verbose output
@@ -188,10 +151,6 @@ If you encounter issues not covered here:
 
 1. **Check the version**: Ensure you're using the latest version of `conda-pypi`
 2. **Search existing issues**: Check the [GitHub repository](https://github.com/conda-incubator/conda-pypi) for similar problems
-3. **Provide details**: When reporting issues, include:
-   - `conda-pypi` version (`conda list conda-pypi`)
-   - Operating system and Python version
-   - Complete error message with `-v` output
-   - Minimal reproduction steps
+3. **Report issues**: When reporting issues please to include all the relevant details
 
 Remember that `conda-pypi` is still in early development, so feedback about unexpected behavior is valuable for improving the tool.
