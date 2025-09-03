@@ -8,13 +8,19 @@ import argparse
 from pathlib import Path
 from logging import getLogger
 
+from conda.auxlib.ish import dals
 from conda.cli.conda_argparse import (
     add_output_and_prompt_options,
     add_parser_help,
     add_parser_prefix,
+    _GreedySubParsersAction,
 )
 from conda.exceptions import ArgumentError
 from conda.base.context import context
+from conda.models.match_spec import MatchSpec
+
+from conda_pypi import convert_tree
+
 
 logger = getLogger(__name__)
 
@@ -35,9 +41,40 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
 
     # install subcommand
-    install = subparser.add_parser(
+    summary = "Install PyPI packages as conda packages"
+    description = summary
+    epilog = dals(
+        """
+
+        Install PyPI packages as conda packages.  Any dependencies that are
+        available on the configured conda channels will be installed with `conda`,
+        while the rest will be converted to conda packages from PyPI.
+
+        Examples:
+
+        Install a single PyPI package into the current conda environment::
+
+            conda pypi install requests
+
+        Install multiple PyPI packages with specific versions::
+
+            conda pypi install "numpy>=1.20" "pandas==1.5.0"
+
+        Install packages into a specific conda environment::
+
+            conda pypi install -n myenv flask django
+
+        Install packages using only PyPI (skip configured conda channels)::
+
+            conda pypi install --override-channels fastapi
+
+        """
+    )
+    install = sub_parsers.add_parser(
         "install",
-        help="Install PyPI packages as conda packages",
+        help=summary,
+        description=description,
+        epilog=epilog,
     )
     install.add_argument(
         "--override-channels",
@@ -52,17 +89,38 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
 
     # convert subcommand
-    convert = subparser.add_parser(
+    summary = "Build/convert Python packages to conda packages without installation"
+    description = summary
+    epilog = dals(
+        """
+        Examples:
+
+        Convert a PyPI package to conda format without installing::
+
+            conda pypi convert requests
+
+        Convert a local Python project to conda package::
+
+            conda pypi convert ./my-python-project
+
+        Convert a package and save to a specific output folder::
+
+            conda pypi convert --output-folder ./conda-packages numpy
+
+        Convert a package from a Git repository::
+
+            conda pypi convert https://github.com/user/repo.git
+
+        """
+    )
+
+    convert = sub_parsers.add_parser(
         "convert",
-        help="Build/convert Python packages to conda packages without installation",
+        help=summary,
+        description=description,
+        epilog=epilog,
     )
-    # TODO: add --name option with mutually exclusive with --prefix
-    convert.add_argument(
-        "-p",
-        "--prefix",
-        metavar="<path>",
-        help="Target prefix for installation",
-    )
+
     convert.add_argument(
         "--output-folder",
         help="Folder to write output package(s)",
@@ -78,9 +136,9 @@ def configure_parser(parser: argparse.ArgumentParser):
 
 
 def execute(args: argparse.Namespace) -> int:
-    if args.subcmd == "install":
+    if args.cmd == "install":
         return execute_install(args)
-    elif args.subcmd == "convert":
+    elif args.cmd == "convert":
         return execute_convert(args)
     else:
         raise ArgumentError(f"Unknown subcommand: {args.subcmd}")
@@ -88,11 +146,6 @@ def execute(args: argparse.Namespace) -> int:
 
 def execute_install(args: argparse.Namespace) -> int:
     """Execute the install subcommand."""
-    from conda_pypi import convert_tree
-
-    # Handle package installation from PyPI
-    from conda.models.match_spec import MatchSpec
-
     if args.prefix:
         prefix_path = Path(args.prefix).expanduser()
     else:
@@ -107,8 +160,6 @@ def execute_install(args: argparse.Namespace) -> int:
 
 def execute_convert(args: argparse.Namespace) -> int:
     """Execute the convert subcommand."""
-    from conda_pypi import convert_tree
-
     if args.prefix:
         prefix_path = Path(args.prefix).expanduser()
     else:
