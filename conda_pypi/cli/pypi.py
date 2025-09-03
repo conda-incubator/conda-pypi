@@ -89,7 +89,7 @@ def configure_parser(parser: argparse.ArgumentParser):
     )
 
     # convert subcommand
-    summary = "Build/convert Python packages to conda packages without installation"
+    summary = "Build and convert PyPI package or local Python project from wheel to conda package"
     description = summary
     epilog = dals(
         """
