@@ -374,7 +374,7 @@ conda pypi install some-domain-specific-package
 
 **Permission errors**
 - Ensure you have write access to the target environment
-- Check that `EXTERNALLY-MANAGED` file isn't preventing operations
+- Check that the target environment is not marked as protected (check if `conda-meta/frozen` exists).
 
 **Network issues**
 - Verify PyPI connectivity
