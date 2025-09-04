@@ -18,7 +18,7 @@ to determine what packages need to be installed.
 
 Explicitly requested packages are always installed from PyPI and converted
 to `.conda` format to ensure you get exactly what you asked for. For
-dependencies, conda-pypi intelligently chooses the best source using a
+dependencies, conda-pypi chooses the best source using a
 conda-first approach. If a dependency is available on conda channels, it will
 be installed with `conda` directly. If not available on conda channels, the
 dependency will be converted from PyPI to `.conda` format.
