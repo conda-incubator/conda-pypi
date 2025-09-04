@@ -91,4 +91,5 @@ developer/architecture
 developer/developer-notes
 reference/cli-reference
 reference/troubleshooting
+reference/conda-channels-naming-analysis
 ```
