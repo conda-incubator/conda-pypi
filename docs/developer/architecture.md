@@ -34,7 +34,7 @@ Environment Validation
          ↓
 Package Classification
          ↓
-    VCS/Editable? ----Yes---→ Direct pip install
+    VCS/Editable? ----Yes---→ Direct pip install --> Deploy EXTERNALLY-MANAGED
          ↓ No
 Dependency Resolution
          ↓
