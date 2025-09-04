@@ -18,7 +18,7 @@ def test_pip_required_in_target_env(
     monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false")
     reset_context()
     with tmp_env("xz") as prefix:
-        args = ("pip", "-p", prefix, "--yes", "install", "requests")
+        args = ("pypi", "-p", prefix, "--yes", "install", "requests")
 
         with pytest.raises(CondaError, match="requires python"):
             out, err, rc = conda_cli(*args)
@@ -53,9 +53,9 @@ def test_externally_managed(
     monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "0")
     text = get_current_externally_managed_path(sys.prefix).read_text().strip()
     assert text.startswith("[externally-managed]")
-    assert "conda pip" in text
+    assert "conda pypi" in text
     with tmp_env("python", "pip>=23.0.1") as prefix:
-        conda_cli("pip", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
+        conda_cli("pypi", "-p", prefix, "--yes", "install", "requests", "--force-with-pip")
         externally_managed_file = get_current_externally_managed_path(prefix)
 
         # Check if EXTERNALLY-MANAGED file was created by conda-pip
@@ -63,7 +63,7 @@ def test_externally_managed(
 
         text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
-        assert "conda pip" in text
+        assert "conda pypi" in text
         run(
             [get_env_python(prefix), "-m", "pip", "uninstall", "--isolated", "certifi", "-y"],
             capture_output=True,
@@ -78,7 +78,7 @@ def test_externally_managed(
         assert p.returncode != 0
         all_text = p.stderr + p.stdout
         assert "externally-managed-environment" in all_text
-        assert "conda pip" in all_text
+        assert "conda pypi" in all_text
         assert "--break-system-packages" in all_text
         p = run(
             [

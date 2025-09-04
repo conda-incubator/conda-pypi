@@ -7,12 +7,6 @@ from conda_pypi.main import ensure_target_env_has_externally_managed
 @plugins.hookimpl
 def conda_subcommands():
     yield plugins.CondaSubcommand(
-        name="pip",
-        summary="Run pip commands within conda environments in a safer way",
-        action=cli.pip.execute,
-        configure_parser=cli.pip.configure_parser,
-    )
-    yield plugins.CondaSubcommand(
         name="pypi",
         action=cli.pypi.execute,
         configure_parser=cli.pypi.configure_parser,
