@@ -26,7 +26,9 @@ def get_package_finder(prefix: Path):
     py_ver = tuple(map(int, py_ver.split(".")))
     target_python = TargetPython(py_ver=py_ver)
     return PackageFinder(
-        target_python=target_python, only_binary=":all:", index_urls=["https://pypi.org/simple/"]
+        target_python=target_python,
+        only_binary=":all:",
+        index_urls=["https://pypi.org/simple/"],
     )
 
 

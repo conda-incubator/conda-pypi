@@ -36,7 +36,6 @@ def configure_parser(parser: argparse.ArgumentParser):
         title="commands",
         description="The following subcommands are available.",
         dest="cmd",
-        action=_GreedySubParsersAction,
         required=True,
     )
 
@@ -166,7 +165,10 @@ def execute_convert(args: argparse.Namespace) -> int:
         prefix_path = Path(context.target_prefix)
 
     package_path = convert_tree.build.pypa_to_conda(
-        args.project_path, distribution="wheel", output_path=args.output_folder, prefix=prefix_path
+        args.project_path,
+        distribution="wheel",
+        output_path=args.output_folder,
+        prefix=prefix_path,
     )
     print(
         f"Conda package at {package_path} built and converted successfully.  Output folder: {args.output_folder}"
