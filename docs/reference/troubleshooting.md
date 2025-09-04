@@ -62,6 +62,7 @@ pip search package-name  # or visit pypi.org
 
 # Try common name variations
 conda pypi install python-package-name  # instead of package-name
+```
 
 ### Dependency resolution timeout
 
@@ -144,6 +145,7 @@ conda -vvv pip install package-name
 
 # TRACE level logging (repeat -v four times) - maximum detail
 conda -vvvv pip install package-name
+```
 
 ## When to Seek Further Help
 
