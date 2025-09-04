@@ -26,7 +26,6 @@ logger = getLogger(__name__)
 
 
 def configure_parser(parser: argparse.ArgumentParser):
-    add_parser_help(parser)
     # This adds --prefix/--name mutually exclusive options
     add_parser_prefix(parser)
     add_output_and_prompt_options(parser)
