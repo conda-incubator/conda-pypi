@@ -71,7 +71,7 @@ seamlessly across different operating systems and architectures.
 ## `conda install` integrations
 
 The system provides clear error messages if PyPI package installation fails
-and uses the same smart conversion logic as `conda pypi install` for
+and uses the same conversion logic as `conda pypi install` for
 dependency resolution. This enables full environment reproducibility that
 includes both conda and converted PyPI packages, ensuring that environments
 can be recreated exactly as they were originally configured.
