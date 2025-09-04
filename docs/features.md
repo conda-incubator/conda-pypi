@@ -11,11 +11,7 @@ main subcommands that handle different aspects of PyPI integration.
 
 ### `conda pypi install`
 
-The install command takes PyPI packages and converts them to `.conda` format
-when possible, falling back to direct pip installation when needed. The
-process begins with dependency resolution using pip's own dependency resolver
-to determine what packages need to be installed.
-
+The install command takes PyPI packages and converts them to the `.conda` format.
 Explicitly requested packages are always installed from PyPI and converted
 to `.conda` format to ensure you get exactly what you asked for. For
 dependencies, conda-pypi chooses the best source using a
