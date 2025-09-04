@@ -26,7 +26,7 @@ dependency will be converted from PyPI to `.conda` format.
 The system uses multiple sources for package name mapping which are
 currently hardcoded.  In the future, it will use other means to have
 a more active way to get current name mappings. VCS and editable packages
-are handled as special cases and installed directly with `pip --no-deps`.
+are handled as special cases and installed directly with `pip install --no-deps`.
 
 You can preview what would be installed without making changes using
 `--dry-run`, install packages in editable development mode with `--editable`
