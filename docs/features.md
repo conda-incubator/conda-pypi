@@ -60,7 +60,7 @@ conda pypi convert --override-channels some-pypi-only-package
 
 `conda-pypi` includes a powerful conversion engine that enables direct
 conversion of pure Python wheels to `.conda` packages with proper translation of
-Python package metadata to conda format. The system includes intelligent
+Python package metadata to conda format. The system includes name
 mapping of PyPI dependencies to conda equivalents and provides cross-platform
 support for package conversion, ensuring that converted packages work
 across different operating systems and architectures.
