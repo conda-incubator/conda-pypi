@@ -82,7 +82,7 @@ def configure_parser(parser: argparse.ArgumentParser):
     install.add_argument(
         "packages",
         metavar="PACKAGE",
-        nargs="*",
+        nargs="+",
         help="PyPI packages to install",
     )
 
