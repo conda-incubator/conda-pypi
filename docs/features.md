@@ -63,7 +63,7 @@ conversion of pure Python wheels to `.conda` packages with proper translation of
 Python package metadata to conda format. The system includes intelligent
 mapping of PyPI dependencies to conda equivalents and provides cross-platform
 support for package conversion, ensuring that converted packages work
-seamlessly across different operating systems and architectures.
+across different operating systems and architectures.
 
 (pypi-lines)=
 
