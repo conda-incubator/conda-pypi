@@ -144,10 +144,7 @@ def execute(args: argparse.Namespace) -> int:
 
 def execute_install(args: argparse.Namespace) -> int:
     """Execute the install subcommand."""
-    if args.prefix:
-        prefix_path = Path(args.prefix).expanduser()
-    else:
-        prefix_path = Path(context.target_prefix)
+    prefix_path = Path(context.target_prefix)
 
     converter = convert_tree.ConvertTree(prefix_path, override_channels=args.override_channels)
     # Convert package strings to MatchSpec objects
