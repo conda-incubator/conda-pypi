@@ -137,7 +137,7 @@ def execute(args: argparse.Namespace) -> int:
     elif args.cmd == "convert":
         return execute_convert(args)
     else:
-        raise ArgumentError(f"Unknown subcommand: {args.subcmd}")
+        raise ArgumentError(f"Unknown subcommand: {args.cmd}")
 
 
 def execute_install(args: argparse.Namespace) -> int:
