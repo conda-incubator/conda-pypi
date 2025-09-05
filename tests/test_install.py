@@ -68,13 +68,11 @@ def test_conda_pypi_install(
     conda_spec = conda_spec or pypi_spec
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
             "install",
-            "--backend",
-            backend,
             pypi_spec,
         )
         print(out)
@@ -106,7 +104,7 @@ def test_spec_normalization(
 ):
     with tmp_env("python=3.9", "pip", "pytest-cov") as prefix:
         for spec in ("pytest-cov", "pytest_cov", "PyTest-Cov"):
-            out, err, rc = conda_cli("pip", "--dry-run", "-p", prefix, "--yes", "install", spec)
+            out, err, rc = conda_cli("pypi", "--dry-run", "-p", prefix, "--yes", "install", spec)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
@@ -127,7 +125,7 @@ def test_pyqt(
     installed_conda_specs: tuple[str],
 ):
     with tmp_env("python=3.9", "pip") as prefix:
-        out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
+        out, err, rc = conda_cli("pypi", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
@@ -167,7 +165,7 @@ def test_lockfile_roundtrip(
             print(p.stderr, file=sys.stderr)
             assert p.returncode == 0
         else:
-            out, err, rc = conda_cli("pip", "--prefix", prefix, "--yes", "install", *specs)
+            out, err, rc = conda_cli("pypi", "--prefix", prefix, "--yes", "install", *specs)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
@@ -263,7 +261,7 @@ def test_editable_installs(
     os.chdir(tmp_path)
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
