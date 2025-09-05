@@ -8,18 +8,14 @@ this module MUST only use the Python stdlib. No 3rd party allowed (except for im
 import os
 import sys
 import sysconfig
+from importlib.resources import files as importlib_files
 from logging import getLogger
 from pathlib import Path
 from subprocess import check_output
 from typing import Iterator
 
-try:
-    from importlib.resources import files as importlib_files
-except ImportError:  # python <3.9
-    from importlib_resources import files as importlib_files
 
-
-logger = getLogger(f"conda.{__name__}")
+logger = getLogger(__name__)
 
 
 def get_env_python(prefix: os.PathLike = None) -> Path:

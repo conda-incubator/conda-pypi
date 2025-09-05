@@ -4,15 +4,6 @@ from conda_pypi import cli
 from conda_pypi.main import ensure_target_env_has_externally_managed
 
 
-def pypi_command(
-    args, standalone_mode=True
-):  # standalone_mode=False avoids click SystemExit(); for testing.
-    """Main pypi subcommand for conda-pypi."""
-    from conda_pypi import pypi_cli
-
-    return pypi_cli.cli(prog_name="conda pypi", args=args, standalone_mode=standalone_mode)
-
-
 @plugins.hookimpl
 def conda_subcommands():
     yield plugins.CondaSubcommand(
@@ -23,7 +14,8 @@ def conda_subcommands():
     )
     yield plugins.CondaSubcommand(
         name="pypi",
-        action=pypi_command,
+        action=cli.pypi.execute,
+        configure_parser=cli.pypi.configure_parser,
         summary="Install PyPI packages as conda packages",
     )
 

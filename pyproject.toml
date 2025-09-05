@@ -27,6 +27,15 @@ dependencies = [
   "pip",
   "grayskull",
   "packaging",
+  "unearth",
+  "pydantic",
+  "build",
+  "installer",
+  "requests",
+  "ruamel.yaml",
+  "typer",
+  "pypi-simple",
+  "platformdirs",
 ]
 dynamic = ["version"]
 

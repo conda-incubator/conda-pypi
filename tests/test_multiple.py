@@ -31,7 +31,7 @@ def create_test_env(prefix):
     """
     conda_exe = os.environ.get("CONDA_EXE", "conda")
     subprocess.run(
-        [conda_exe, "create", "-p", prefix, "-y", "python 3.12"],
+        [conda_exe, "create", "-p", prefix, "-y", "python=3.12", "pip"],
         check=True,
         encoding="utf-8",
     )
