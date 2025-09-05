@@ -153,10 +153,7 @@ def execute_install(args: argparse.Namespace) -> int:
 
 def execute_convert(args: argparse.Namespace) -> int:
     """Execute the convert subcommand."""
-    if args.prefix:
-        prefix_path = Path(args.prefix).expanduser()
-    else:
-        prefix_path = Path(context.target_prefix)
+    prefix_path = Path(context.target_prefix)
 
     package_path = convert_tree.build.pypa_to_conda(
         args.project_path,
