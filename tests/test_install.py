@@ -1,18 +1,10 @@
 from __future__ import annotations
 
-import os
-import sys
-from pathlib import Path
-from subprocess import run
-from typing import Iterable
 
 import pytest
-from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
-from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 
-from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
-from conda_pypi.python_paths import get_env_python, get_env_site_packages
+from conda_pypi.dependencies import NAME_MAPPINGS, _pypi_spec_to_conda_spec
 
 
 @pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
@@ -32,6 +24,7 @@ def test_mappings_one_by_one(source: str):
 )
 def test_mappings_fallback(pypi_spec: str, conda_spec: str):
     assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
+
 
 """
 @pytest.mark.parametrize("backend", BACKENDS)

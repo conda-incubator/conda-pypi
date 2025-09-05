@@ -1,12 +1,7 @@
 import sys
 from subprocess import run
 
-import pytest
-from conda.base.context import reset_context
-from conda.core.prefix_data import PrefixData
-from conda.exceptions import CondaError
 from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
-from conda.testing.integration import package_is_installed
 from pytest_mock import MockerFixture
 
 from conda_pypi.python_paths import get_env_python, get_current_externally_managed_path

@@ -20,9 +20,7 @@ from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.records import PackageRecord
-import subprocess
 from conda.exceptions import CondaError
-from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
 
@@ -32,7 +30,6 @@ from conda_pypi.python_paths import (
     get_env_site_packages,
     get_externally_managed_paths,
 )
-from conda_pypi.utils import pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
