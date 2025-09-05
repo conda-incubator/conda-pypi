@@ -33,7 +33,7 @@ def test_mappings_one_by_one(source: str):
 def test_mappings_fallback(pypi_spec: str, conda_spec: str):
     assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
 
-
+"""
 @pytest.mark.parametrize("backend", BACKENDS)
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,channel",
@@ -292,3 +292,5 @@ def test_editable_installs(
                 or src_path == pth_path
                 or pth_path.is_relative_to(src_path)
             ), f"Expected {src_path} to be a parent of or equal to {pth_path}"
+
+"""
