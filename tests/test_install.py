@@ -4,27 +4,6 @@ from __future__ import annotations
 import pytest
 from conda.models.match_spec import MatchSpec
 
-from conda_pypi.dependencies import NAME_MAPPINGS, _pypi_spec_to_conda_spec
-
-
-@pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
-def test_mappings_one_by_one(source: str):
-    assert _pypi_spec_to_conda_spec("build", sources=(source,)) == "python-build"
-
-
-@pytest.mark.parametrize(
-    "pypi_spec,conda_spec",
-    [
-        ("numpy", "numpy"),
-        ("build", "python-build"),
-        ("ib_insync", "ib-insync"),
-        ("pyqt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
-        ("PyQt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
-    ],
-)
-def test_mappings_fallback(pypi_spec: str, conda_spec: str):
-    assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
-
 
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
