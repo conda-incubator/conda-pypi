@@ -26,8 +26,7 @@ def test_mappings_fallback(pypi_spec: str, conda_spec: str):
     assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
 
 
-"""
-@pytest.mark.parametrize("backend", BACKENDS)
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,channel",
     [
@@ -90,7 +89,7 @@ def test_conda_pypi_install(
         assert len(records) == 1
         assert records[0].channel.name == channel
 
-
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 def test_spec_normalization(
     tmp_env: TmpEnvFixture,
     conda_cli: CondaCLIFixture,
@@ -104,6 +103,7 @@ def test_spec_normalization(
             assert "All packages are already installed." in out + err
 
 
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "pypi_spec,requested_conda_spec,installed_conda_specs",
     [
@@ -126,7 +126,7 @@ def test_pyqt(
         for conda_spec in installed_conda_specs:
             assert conda_spec in out
 
-
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize("specs", (("requests",),))
 @pytest.mark.parametrize("pure_pip", (True, False))
 @pytest.mark.parametrize("with_md5", (True, False))
@@ -225,7 +225,7 @@ def test_lockfile_roundtrip(
     )
     assert pypi_pkgs1 == pypi_pkgs2
 
-
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "requirement,name",
     [
@@ -283,5 +283,3 @@ def test_editable_installs(
                 or src_path == pth_path
                 or pth_path.is_relative_to(src_path)
             ), f"Expected {src_path} to be a parent of or equal to {pth_path}"
-
-"""

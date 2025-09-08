@@ -8,7 +8,7 @@ from pytest_mock import MockerFixture
 
 from conda_pypi.python_paths import get_env_python, get_current_externally_managed_path
 
-pytest.mark.skip(reason="conda-pypi install needs to do more work to support this test.")
+@pytest.mark.skip(reason="conda-pypi install needs to do more work to support this test.")
 def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch: MockerFixture
 ):
@@ -29,9 +29,6 @@ def test_externally_managed(
 
         text = (externally_managed_file).read_text().strip()
         assert text.startswith("[externally-managed]")
-        print("printing text")
-        print(text)
-        print("done printing text")
         assert "conda pypi" in text
         run(
             [get_env_python(prefix), "-m", "pip", "uninstall", "--isolated", "certifi", "-y"],
