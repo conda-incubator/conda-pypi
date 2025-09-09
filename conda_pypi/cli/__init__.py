@@ -1,3 +1,3 @@
-from conda_pypi.cli import install, list, pypi
+from conda_pypi.cli import main
 
-__all__ = ["install", "list", "pypi"]
+__all__ = ["main"]
