@@ -1,6 +1,7 @@
 from conda import plugins
 
 from conda_pypi import cli
+from conda_pypi import post_command
 from conda_pypi.main import ensure_target_env_has_externally_managed
 
 
@@ -8,8 +9,8 @@ from conda_pypi.main import ensure_target_env_has_externally_managed
 def conda_subcommands():
     yield plugins.CondaSubcommand(
         name="pypi",
-        action=cli.pypi.execute,
-        configure_parser=cli.pypi.configure_parser,
+        action=cli.main.execute,
+        configure_parser=cli.main.configure_parser,
         summary="Install PyPI packages as conda packages",
     )
 
@@ -23,11 +24,11 @@ def conda_post_commands():
     )
     yield plugins.CondaPostCommand(
         name="conda-pypi-post-list",
-        action=cli.list.post_command,
+        action=post_command.list.post_command,
         run_for={"list"},
     )
     yield plugins.CondaPostCommand(
         name="conda-pypi-post-install-create",
-        action=cli.install.post_command,
+        action=post_command.install.post_command,
         run_for={"install", "create"},
     )
