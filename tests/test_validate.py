@@ -8,6 +8,7 @@ from pytest_mock import MockerFixture
 
 from conda_pypi.python_paths import get_env_python, get_current_externally_managed_path
 
+
 @pytest.mark.skip(reason="conda-pypi install needs to do more work to support this test.")
 def test_externally_managed(
     tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture, monkeypatch: MockerFixture

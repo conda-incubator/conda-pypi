@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+from collections.abc import Iterable
+from subprocess import run
 
 import pytest
+from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
+from conda.testing.fixtures import TmpEnvFixture, CondaCLIFixture
+
+from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
@@ -68,6 +77,7 @@ def test_conda_pypi_install(
         assert len(records) == 1
         assert records[0].channel.name == channel
 
+
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 def test_spec_normalization(
     tmp_env: TmpEnvFixture,
@@ -104,6 +114,7 @@ def test_pyqt(
         assert requested_conda_spec in out
         for conda_spec in installed_conda_specs:
             assert conda_spec in out
+
 
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize("specs", (("requests",),))
@@ -203,6 +214,7 @@ def test_lockfile_roundtrip(
         [extract_pypi_pkg_version(line) for line in lines2 if line.startswith("# pypi:")]
     )
     assert pypi_pkgs1 == pypi_pkgs2
+
 
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
