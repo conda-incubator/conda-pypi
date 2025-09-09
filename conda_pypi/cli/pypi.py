@@ -165,25 +165,3 @@ def execute_convert(args: argparse.Namespace) -> int:
         f"Conda package at {package_path} built and converted successfully.  Output folder: {args.output_folder}"
     )
     return 0
-
-
-"""
-def execute_develop(args: argparse.Namespace) -> int:
-    # Handle editable installation
-    if args.output_folder:
-        print("--output-folder specified; saving editable .conda instead of install.")
-        output_path_manager = contextlib.nullcontext(args.output_folder)
-    else:
-        output_path_manager = tempfile.TemporaryDirectory("conda-pypi")
-
-    with output_path_manager as output_path:
-        package = convert_tree.build.pypa_to_conda(
-            args.editable,
-            distribution="editable",
-            output_path=Path(output_path),
-            prefix=get_prefix(args.prefix, args.name),
-        )
-        if not args.output_folder:
-            installer.install_ephemeral_conda(get_prefix(args.prefix, args.name), package)
-    return 0
-"""

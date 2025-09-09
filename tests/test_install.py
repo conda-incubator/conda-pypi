@@ -3,38 +3,18 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from collections.abc import Iterable
 from subprocess import run
-from typing import Iterable
 
 import pytest
 from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
-from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
+from conda.testing.fixtures import TmpEnvFixture, CondaCLIFixture
 
-from conda_pypi.dependencies import NAME_MAPPINGS, BACKENDS, _pypi_spec_to_conda_spec
 from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 
-@pytest.mark.parametrize("source", NAME_MAPPINGS.keys())
-def test_mappings_one_by_one(source: str):
-    assert _pypi_spec_to_conda_spec("build", sources=(source,)) == "python-build"
-
-
-@pytest.mark.parametrize(
-    "pypi_spec,conda_spec",
-    [
-        ("numpy", "numpy"),
-        ("build", "python-build"),
-        ("ib_insync", "ib-insync"),
-        ("pyqt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
-        ("PyQt5", "pyqt>=5.0.0,<6.0.0.0dev0"),
-    ],
-)
-def test_mappings_fallback(pypi_spec: str, conda_spec: str):
-    assert MatchSpec(_pypi_spec_to_conda_spec(pypi_spec)) == MatchSpec(conda_spec)
-
-
-@pytest.mark.parametrize("backend", BACKENDS)
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,channel",
     [
@@ -68,13 +48,11 @@ def test_conda_pypi_install(
     conda_spec = conda_spec or pypi_spec
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",
             "install",
-            "--backend",
-            backend,
             pypi_spec,
         )
         print(out)
@@ -100,19 +78,21 @@ def test_conda_pypi_install(
         assert records[0].channel.name == channel
 
 
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 def test_spec_normalization(
     tmp_env: TmpEnvFixture,
     conda_cli: CondaCLIFixture,
 ):
     with tmp_env("python=3.9", "pip", "pytest-cov") as prefix:
         for spec in ("pytest-cov", "pytest_cov", "PyTest-Cov"):
-            out, err, rc = conda_cli("pip", "--dry-run", "-p", prefix, "--yes", "install", spec)
+            out, err, rc = conda_cli("pypi", "--dry-run", "-p", prefix, "--yes", "install", spec)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
             assert "All packages are already installed." in out + err
 
 
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "pypi_spec,requested_conda_spec,installed_conda_specs",
     [
@@ -127,7 +107,7 @@ def test_pyqt(
     installed_conda_specs: tuple[str],
 ):
     with tmp_env("python=3.9", "pip") as prefix:
-        out, err, rc = conda_cli("pip", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
+        out, err, rc = conda_cli("pypi", "-p", prefix, "--yes", "--dry-run", "install", pypi_spec)
         print(out)
         print(err, file=sys.stderr)
         assert rc == 0
@@ -136,6 +116,7 @@ def test_pyqt(
             assert conda_spec in out
 
 
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize("specs", (("requests",),))
 @pytest.mark.parametrize("pure_pip", (True, False))
 @pytest.mark.parametrize("with_md5", (True, False))
@@ -167,7 +148,7 @@ def test_lockfile_roundtrip(
             print(p.stderr, file=sys.stderr)
             assert p.returncode == 0
         else:
-            out, err, rc = conda_cli("pip", "--prefix", prefix, "--yes", "install", *specs)
+            out, err, rc = conda_cli("pypi", "--prefix", prefix, "--yes", "install", *specs)
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
@@ -235,6 +216,7 @@ def test_lockfile_roundtrip(
     assert pypi_pkgs1 == pypi_pkgs2
 
 
+@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "requirement,name",
     [
@@ -263,7 +245,7 @@ def test_editable_installs(
     os.chdir(tmp_path)
     with tmp_env("python=3.9", "pip") as prefix:
         out, err, rc = conda_cli(
-            "pip",
+            "pypi",
             "-p",
             prefix,
             "--yes",

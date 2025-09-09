@@ -20,9 +20,7 @@ from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.records import PackageRecord
-import subprocess
 from conda.exceptions import CondaError
-from conda.models.match_spec import MatchSpec
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
 
@@ -32,75 +30,9 @@ from conda_pypi.python_paths import (
     get_env_site_packages,
     get_externally_managed_paths,
 )
-from conda_pypi.utils import pypi_spec_variants
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
-
-
-def validate_target_env(path: Path, packages: Iterable[str]) -> Iterable[str]:
-    context.validate_configuration()
-    pd = PrefixData(path, interoperability=True)
-
-    if not list(pd.query("python>=3.2")):
-        raise CondaError(f"Target environment at {path} requires python>=3.2")
-    if not list(pd.query("pip")):
-        raise CondaError(f"Target environment at {path} requires pip")
-
-    packages_to_process = []
-    for pkg in packages:
-        for spec_variant in pypi_spec_variants(pkg):
-            if list(pd.query(spec_variant)):
-                logger.warning("package %s is already installed; ignoring", pkg)
-                break
-        else:
-            packages_to_process.append(pkg)
-    return packages_to_process
-
-
-def run_conda_install(
-    prefix: Path,
-    specs: Iterable[MatchSpec],
-    dry_run: bool = False,
-    quiet: bool = False,
-    verbosity: int = 0,
-    force_reinstall: bool = False,
-    yes: bool = False,
-    json: bool = False,
-    channels: Iterable[str] | None = None,
-    capture_output: bool = False,
-) -> int | tuple[int, str, str]:
-    if not specs:
-        return 0 if not capture_output else (0, "", "")
-
-    command = ["install", "--prefix", str(prefix)]
-    if channels:
-        for channel in channels:
-            command.extend(["--channel", channel])
-    if dry_run:
-        command.append("--dry-run")
-    if quiet:
-        command.append("--quiet")
-    if verbosity:
-        command.append("-" + ("v" * verbosity))
-    if force_reinstall:
-        command.append("--force-reinstall")
-    if yes:
-        command.append("--yes")
-    if json:
-        command.append("--json")
-
-    command.extend(str(spec) for spec in specs)
-
-    logger.info("conda install command: conda %s", command)
-    result = subprocess.run(
-        ["conda"] + command, capture_output=capture_output, text=capture_output, check=False
-    )
-
-    if capture_output:
-        return result.returncode, result.stdout, result.stderr
-    else:
-        return result.returncode
 
 
 def run_pip_install(
