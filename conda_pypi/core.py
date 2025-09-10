@@ -103,6 +103,203 @@ def _install_vcs_editable_packages(vcs_packages: list[str], prefix: Union[Path, 
     return installed_packages
 
 
+def _create_editable_conda_package(package_path: Path, output_dir: Path, prefix: Path) -> Path:
+    """
+    Create a conda package that contains .pth files pointing to the source directory.
+
+    Args:
+        package_path: Path to the local package source directory
+        output_dir: Directory where the conda package will be saved
+        prefix: Conda environment prefix (for Python version detection)
+
+    Returns:
+        Path to the created conda package
+    """
+    from .builder import get_python_version_from_executable
+    from .utils import get_python_executable
+    import tempfile
+    import json
+    import os
+
+    python_exe = get_python_executable(prefix)
+    python_version = get_python_version_from_executable(python_exe)
+
+    # Extract package metadata from source
+    package_name = _extract_package_name_from_source(package_path)
+    if not package_name:
+        raise ValueError(f"Could not determine package name from {package_path}")
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_dir = Path(tmp_dir)
+        install_dir = tmp_dir / "install"
+        info_dir = install_dir / "info"
+        site_packages = install_dir / "lib" / f"python{python_version}" / "site-packages"
+
+        install_dir.mkdir(parents=True)
+        info_dir.mkdir(parents=True)
+        site_packages.mkdir(parents=True)
+
+        pth_file = site_packages / f"__{package_name.replace('-', '_')}__path__.pth"
+        pth_file.write_text(str(package_path.resolve()))
+        log.info(f"Created .pth file pointing to: {package_path.resolve()}")
+
+        dist_info = site_packages / f"{package_name}-0.0.0+editable.dist-info"
+        dist_info.mkdir()
+        metadata_content = f"""Name: {package_name}
+Version: 0.0.0+editable
+Summary: Editable install of {package_name} (live development mode)
+Home-page:
+Author:
+License:
+Platform: UNKNOWN
+"""
+        (dist_info / "METADATA").write_text(metadata_content)
+        (dist_info / "INSTALLER").write_text("conda-pypi")
+        try:
+            python_packages = []
+            for item in package_path.iterdir():
+                if item.is_dir() and (item / "__init__.py").exists():
+                    python_packages.append(item.name)
+                elif item.suffix == ".py" and item.stem != "setup":
+                    python_packages.append(item.stem)
+
+            if python_packages:
+                (dist_info / "top_level.txt").write_text("\n".join(python_packages))
+            else:
+                (dist_info / "top_level.txt").write_text(package_name.replace("-", "_"))
+        except Exception:
+            (dist_info / "top_level.txt").write_text(package_name.replace("-", "_"))
+
+        conda_metadata = _create_minimal_conda_metadata(package_name, package_path)
+        with open(info_dir / "index.json", "w") as f:
+            f.write(json.dumps(conda_metadata.to_index_json(), indent=2, sort_keys=True))
+
+        about = {
+            "summary": f"Editable install of {package_name} (live development mode)",
+            "home": str(package_path),
+            "license": "Unknown",
+            "description": f"Live development install pointing to {package_path}",
+        }
+        with open(info_dir / "about.json", "w") as f:
+            f.write(json.dumps(about, indent=2, sort_keys=True))
+
+        from .builder import paths_json, json_dumps
+
+        with open(info_dir / "paths.json", "w") as f:
+            f.write(json_dumps(paths_json(install_dir)))
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        package_stem = f"{package_name}-0.0.0+editable-pypi_0"
+        conda_package_path = output_dir / f"{package_stem}.conda"
+        if conda_package_path.exists():
+            conda_package_path.unlink()
+
+        from conda_package_streaming.create import conda_builder
+
+        with conda_builder(package_stem, output_dir) as builder:
+            for info_file in info_dir.iterdir():
+                if info_file.is_file():
+                    log.debug(f"Adding info file: info/{info_file.name}")
+                    builder.add(str(info_file), arcname=f"info/{info_file.name}")
+
+            for root, dirs, files in os.walk(install_dir):
+                if Path(root).name == "info":
+                    continue
+
+                for file in files:
+                    file_path = Path(root) / file
+                    rel_path = file_path.relative_to(install_dir)
+                    arcname = rel_path.as_posix()
+                    log.debug(f"Adding package file: {arcname}")
+                    builder.add(str(file_path), arcname=arcname)
+
+        log.info(f"Created editable conda package: {conda_package_path}")
+        return conda_package_path
+
+
+def _create_minimal_conda_metadata(package_name: str, package_path: Path):
+    """Create minimal conda metadata for editable packages."""
+    from .builder import PackageRecord
+    import time
+
+    return PackageRecord(
+        name=package_name,
+        version="0.0.0+editable",
+        subdir="noarch",
+        depends=["python"],  # Minimal dependency
+        extras={},
+        build_number=0,
+        build_text="pypi",
+        license="",
+        noarch="python",
+        timestamp=int(time.time()),
+    )
+
+
+def _install_local_editable_packages(
+    local_packages: list[str], prefix: Union[Path, str]
+) -> list[str]:
+    """
+    Install local packages in editable mode using symlinks for live development.
+
+    Args:
+        local_packages: List of local directory paths
+        prefix: Conda environment prefix
+
+    Returns:
+        List of successfully installed package names
+    """
+    import platformdirs
+
+    prefix = Path(prefix)
+    installed_packages = []
+
+    pypi_channel_dir = Path(platformdirs.user_data_dir("pypi"))
+    noarch_dir = pypi_channel_dir / "noarch"
+    noarch_dir.mkdir(parents=True, exist_ok=True)
+
+    for package_path in local_packages:
+        try:
+            package_path = Path(package_path).resolve()
+            log.info(
+                f"Installing local package in editable mode (live development): {package_path}"
+            )
+
+            if not package_path.exists():
+                log.error(f"Local package path does not exist: {package_path}")
+                continue
+
+            has_pyproject = (package_path / "pyproject.toml").exists()
+            has_setup_py = (package_path / "setup.py").exists()
+            has_setup_cfg = (package_path / "setup.cfg").exists()
+
+            if not (has_pyproject or has_setup_py or has_setup_cfg):
+                log.error(f"No Python project files found in: {package_path}")
+                continue
+            _create_editable_conda_package(
+                package_path=package_path, output_dir=noarch_dir, prefix=prefix
+            )
+
+            package_name = _extract_package_name_from_source(package_path)
+            if not package_name:
+                log.error(f"Could not determine package name from {package_path}")
+                continue
+
+            installed_packages.append(package_name)
+            log.info(f"Successfully created editable conda package: {package_name}")
+
+        except Exception as e:
+            log.error(f"Failed to install local editable package {package_path}: {e}")
+
+    if installed_packages:
+        from .utils import update_index
+
+        log.info("Updating conda channel index")
+        update_index(pypi_channel_dir)
+
+    return installed_packages
+
+
 def _extract_package_name_from_source(repo_path: Path) -> str:
     """
     Extract package name from Python project source directory.
@@ -300,13 +497,17 @@ def prepare_packages_for_installation(
         vcs_packages = [pkg for pkg in requested if VCSHandler.is_vcs_url(pkg)]
         local_packages = [pkg for pkg in requested if not VCSHandler.is_vcs_url(pkg)]
 
+        installed_package_names = []
+
         if vcs_packages:
-            _install_vcs_editable_packages(vcs_packages, prefix)
+            vcs_installed = _install_vcs_editable_packages(vcs_packages, prefix)
+            installed_package_names.extend(vcs_installed)
 
         if local_packages:
-            log.info("Local editable installs will be handled directly by pip")
+            local_installed = _install_local_editable_packages(local_packages, prefix)
+            installed_package_names.extend(local_installed)
 
-        return []
+        return installed_package_names
 
     if with_dependencies:
         solver = PyPIDependencySolver(
