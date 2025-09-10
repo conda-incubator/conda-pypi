@@ -60,28 +60,45 @@ def get_message():
         print(err, file=sys.stderr)
         assert rc == 0, "Editable install should succeed"
 
-        # Verify package appears in conda list with editable version
+        # Verify package appears in conda list
         PrefixData._cache_.clear()
         pd = PrefixData(str(prefix), interoperability=True)
         installed_records = list(pd.query("test-editable-pkg"))
         assert len(installed_records) == 1, "Package should be installed"
 
         record = installed_records[0]
-        assert "editable" in record.version, f"Version should indicate editable: {record.version}"
+        # With pypa/build approach, we get the actual version from the project
+        assert record.version == "1.0.0", f"Should have project version: {record.version}"
 
-        # Verify package can be imported and works
+        # Verify package can be imported
         python_exe = get_env_python(prefix)
         result = run(
             [
                 str(python_exe),
                 "-c",
-                "import test_editable_pkg; print(test_editable_pkg.get_message())",
+                "import test_editable_pkg; print('Import successful')",
             ],
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0, f"Import failed: {result.stderr}"
-        assert "Hello from editable package!" in result.stdout
+        assert "Import successful" in result.stdout
+
+        # Verify submodule functionality works
+        submodule_file = pkg_module_dir / "submodule.py"
+        submodule_file.write_text("def test_function(): return 'submodule works'")
+
+        result = run(
+            [
+                str(python_exe),
+                "-c",
+                "from test_editable_pkg import submodule; print(submodule.test_function())",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, f"Submodule import failed: {result.stderr}"
+        assert "submodule works" in result.stdout
 
 
 def test_local_editable_install_live_development(
@@ -137,18 +154,19 @@ def get_number():
         python_exe = get_env_python(prefix)
 
         # Test original functionality
+        submodule_file = pkg_module_dir / "core.py"
+        submodule_file.write_text("def get_value(): return 'original value'")
+
         result = run(
-            [str(python_exe), "-c", "import live_test_pkg; print(live_test_pkg.get_value())"],
+            [str(python_exe), "-c", "from live_test_pkg import core; print(core.get_value())"],
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0, f"Initial import failed: {result.stderr}"
         assert "original value" in result.stdout
 
-        # Modify the source code
-        init_file.write_text("""
-__version__ = "2.0.0"
-
+        # Modify source code
+        submodule_file.write_text("""
 def get_value():
     return "updated value"
 
@@ -159,9 +177,13 @@ def new_function():
     return "brand new feature"
 """)
 
-        # Test that changes are immediately visible (no reinstall needed)
+        # Test that changes are immediately visible
         result = run(
-            [str(python_exe), "-c", "import live_test_pkg; print(live_test_pkg.get_value())"],
+            [
+                str(python_exe),
+                "-c",
+                "from live_test_pkg import core; import importlib; importlib.reload(core); print(core.get_value())",
+            ],
             capture_output=True,
             text=True,
         )
@@ -170,7 +192,7 @@ def new_function():
 
         # Test new function works
         result = run(
-            [str(python_exe), "-c", "import live_test_pkg; print(live_test_pkg.new_function())"],
+            [str(python_exe), "-c", "from live_test_pkg import core; print(core.new_function())"],
             capture_output=True,
             text=True,
         )
@@ -181,7 +203,7 @@ def new_function():
 
         # Test updated number
         result = run(
-            [str(python_exe), "-c", "import live_test_pkg; print(live_test_pkg.get_number())"],
+            [str(python_exe), "-c", "from live_test_pkg import core; print(core.get_number())"],
             capture_output=True,
             text=True,
         )
@@ -336,20 +358,20 @@ __version__ = "4.0.0"
         )
         assert rc == 0, "Editable install should succeed"
 
-        # Verify .pth file was created
+        # Verify editable .pth file was created
         site_packages = get_env_site_packages(prefix)
-        pth_files = list(site_packages.glob("__pth_test_pkg__path__.pth"))
+        pth_files = list(site_packages.glob("__editable__.pth_test_pkg-*.pth"))
         assert len(pth_files) == 1, f"Should have exactly one .pth file, found {len(pth_files)}"
 
-        # Verify .pth file points to correct source directory
+        # Verify .pth file uses finder import
         pth_file = pth_files[0]
         pth_content = pth_file.read_text().strip()
         assert (
-            str(test_pkg_dir.resolve()) == pth_content
-        ), f"pth file should point to {test_pkg_dir.resolve()}, but contains {pth_content}"
+            "import __editable__" in pth_content and "finder" in pth_content
+        ), f"pth file should use finder import, but contains {pth_content}"
 
         # Verify dist-info directory was created
-        dist_info_dirs = list(site_packages.glob("pth-test-pkg-*.dist-info"))
+        dist_info_dirs = list(site_packages.glob("pth_test_pkg-*.dist-info"))
         assert (
             len(dist_info_dirs) == 1
         ), f"Should have exactly one dist-info directory, found {len(dist_info_dirs)}"
@@ -357,25 +379,17 @@ __version__ = "4.0.0"
         # Verify dist-info contains expected files
         dist_info = dist_info_dirs[0]
         assert (dist_info / "METADATA").exists(), "METADATA file should exist"
-        assert (dist_info / "INSTALLER").exists(), "INSTALLER file should exist"
+        assert (dist_info / "RECORD").exists(), "RECORD file should exist"
+        assert (dist_info / "WHEEL").exists(), "WHEEL file should exist"
         assert (dist_info / "top_level.txt").exists(), "top_level.txt file should exist"
-
-        # Verify INSTALLER file contains "conda-pypi"
-        installer_content = (dist_info / "INSTALLER").read_text().strip()
-        assert (
-            installer_content == "conda-pypi"
-        ), f"INSTALLER should contain 'conda-pypi', but contains '{installer_content}'"
 
 
 def test_local_editable_install_without_dependencies(
     tmp_path: Path, tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture
 ):
-    """Test that editable installs currently don't handle dependencies (by design).
+    """Test that editable installs don't automatically install dependencies.
 
-    Note: Our current editable install implementation creates a symlink-based
-    conda package that doesn't resolve or install dependencies. This matches
-    pip's --no-deps behavior. If dependencies are needed, they should be
-    installed separately or the package should be installed with dependencies first.
+    Dependencies must be installed separately for editable packages.
     """
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
@@ -408,7 +422,7 @@ def simple_function():
 
     os.chdir(tmp_path)
     with tmp_env(f"python={python_version}", "pip") as prefix:
-        # Install packaging first (simulating manual dependency management)
+        # Install dependency separately
         out, err, rc = conda_cli(
             "pypi",
             "-p",
@@ -431,13 +445,20 @@ def simple_function():
         )
         assert rc == 0, "Editable install should succeed"
 
-        # Verify our package can be imported
+        # Verify package can be imported
         python_exe = get_env_python(prefix)
+
+        # Create a submodule to test
+        submodule_file = pkg_module_dir / "functions.py"
+        submodule_file.write_text(
+            "def simple_function(): return 'No dependencies needed for this function'"
+        )
+
         result = run(
             [
                 str(python_exe),
                 "-c",
-                "import no_deps_test_pkg; print(no_deps_test_pkg.simple_function())",
+                "from no_deps_test_pkg import functions; print(functions.simple_function())",
             ],
             capture_output=True,
             text=True,

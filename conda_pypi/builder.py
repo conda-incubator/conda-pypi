@@ -14,7 +14,10 @@ Now integrated and enhanced in conda-pypi
 
 from __future__ import annotations
 
+import base64
+import csv
 import dataclasses
+import hashlib
 import itertools
 import json
 import logging
@@ -439,11 +442,41 @@ def build_pypa(
             return build_conda(Path(wheel_file), tmpdir, output_path, python_exe)
 
 
+def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
+    """
+    Rewrite RECORD with new size, checksum for updated_file.
+    """
+    # note `installer` also has code to handle RECORD
+    if not record_path.exists():
+        return
+    record_text = record_path.read_text()
+    record_rows = list(csv.reader(record_text.splitlines()))
+
+    relpath = str(changed_path.relative_to(base_path)).replace(os.sep, "/")
+    for row in record_rows:
+        if row[0] == relpath:
+            data = changed_path.read_bytes()
+            size = len(data)
+            checksum = (
+                base64.urlsafe_b64encode(hashlib.sha256(data).digest())
+                .rstrip(b"=")
+                .decode("utf-8")
+            )
+            row[1] = f"sha256={checksum}"
+            row[2] = str(size)
+
+    with record_path.open(mode="w", newline="", encoding="utf-8") as record_file:
+        writer = csv.writer(record_file)
+        writer.writerows(record_rows)
+
+
 def build_conda(
     wheel_path,
     build_path: Path,
     output_path: Path,
     python_exe: Path,
+    project_path: Path = None,
+    is_editable: bool = False,
 ):
     """
     Convert a wheel file to a conda package.
@@ -489,6 +522,20 @@ def build_conda(
                     distribution = FileDistribution(metadata_content)
                 else:
                     raise ValueError(f"No metadata found in wheel: {wheel_path}")
+
+        # Handle direct_url.json for editable packages
+        if project_path and dist_info_dirs:
+            dist_info = dist_info_dirs[0]
+            direct_url = project_path.absolute().as_uri()
+            direct_url_path = dist_info / "direct_url.json"
+            direct_url_path.write_text(
+                json.dumps({"dir_info": {"editable": is_editable}, "url": direct_url})
+            )
+
+            # Update RECORD file for the new direct_url.json
+            record_path = dist_info / "RECORD"
+            if record_path.exists():
+                update_RECORD(record_path, site_packages, direct_url_path)
 
         # Convert to conda metadata
         conda_metadata = CondaMetadata.from_distribution(distribution)

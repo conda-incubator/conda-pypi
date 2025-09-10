@@ -141,3 +141,5 @@ conda_pypi/_version.py
 
 synthetic_repo/
 tests/pypi.db
+
+AGENTS.md
