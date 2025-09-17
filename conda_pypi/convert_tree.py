@@ -2,6 +2,8 @@
 Convert a dependency tree from pypi into .conda packages
 """
 
+from __future__ import annotations
+
 import logging
 import pathlib
 import re
@@ -24,6 +26,7 @@ from conda_libmamba_solver.solver import (
 from unearth import PackageFinder
 
 from conda_pypi.build import build_conda
+from conda_pypi.constants import DEFAULT_PYPI_INDEX_URL
 from conda_pypi.downloader import find_and_fetch, get_package_finder
 from conda_pypi.index import update_index
 
@@ -78,9 +81,11 @@ class ConvertTree:
         override_channels=False,
         repo: Optional[pathlib.Path] = None,
         finder: Optional[PackageFinder] = None,  # to change index_urls e.g.
+        index_url: str = DEFAULT_PYPI_INDEX_URL,
     ):
         # platformdirs location has a space in it; ok?
         # will be expanded to %20 in "as uri" output, conda understands that.
+        self.index_url = index_url
         self.repo = repo or Path(platformdirs.user_data_dir("conda-pypi"))
         prefix = prefix or context.active_prefix
         if not prefix:
@@ -94,9 +99,9 @@ class ConvertTree:
         self.finder = finder
 
     def default_package_finder(self):
-        return get_package_finder(self.prefix)
+        return get_package_finder(self.prefix, index_url=self.index_url)
 
-    def convert_tree(self, requested: List[MatchSpec], max_attempts=20):
+    def convert_tree(self, requested: List[MatchSpec], max_attempts: int = 20) -> str | None:
         (self.repo / "noarch").mkdir(parents=True, exist_ok=True)
         if not (self.repo / "noarch" / "repodata.json").exists():
             update_index(self.repo)
@@ -130,6 +135,7 @@ class ConvertTree:
             fetched_packages = set()
             missing_packages = set()
             attempts = 0
+
             while len(fetched_packages) < max_attempts and attempts < max_attempts:
                 attempts += 1
                 try:
@@ -163,6 +169,7 @@ class ConvertTree:
                             repo / "noarch",  # XXX could be arch
                             self.python_exe,
                             is_editable=False,
+                            index_url=self.index_url,
                         )
                         print("Conda at", package_conda)
                     except FileExistsError:
@@ -176,8 +183,8 @@ class ConvertTree:
                 update_index(repo)
             else:
                 print(f"Exceeded maximum of {max_attempts} attempts")
-                return
+                return None
 
             print("Solution", changes)
 
-            print(f"Install with conda install -c {repo.as_uri()} {requested}")
+            return repo.as_uri()

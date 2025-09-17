@@ -9,12 +9,12 @@ from conda.gateways.connection.download import download
 from conda.models.match_spec import MatchSpec
 from unearth import PackageFinder, TargetPython
 
+from conda_pypi.constants import DEFAULT_PYPI_INDEX_URL
+from conda_pypi.exceptions import CondaPypiError
 from conda_pypi.translate import conda_to_requires
 
-from conda_pypi.exceptions import CondaPypiError
 
-
-def get_package_finder(prefix: Path):
+def get_package_finder(prefix: Path, index_url: str = DEFAULT_PYPI_INDEX_URL) -> PackageFinder:
     """
     Finder with prefix's Python, not our Python.
     """
@@ -28,7 +28,7 @@ def get_package_finder(prefix: Path):
     return PackageFinder(
         target_python=target_python,
         only_binary=":all:",
-        index_urls=["https://pypi.org/simple/"],
+        index_urls=[index_url],
     )
 
 

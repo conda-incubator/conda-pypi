@@ -1,3 +1,7 @@
+"""
+Tests that use run `conda pypi install` use `conda_cli` as the primary caller
+"""
+
 from __future__ import annotations
 
 
@@ -28,3 +32,12 @@ def test_cli_plugin(monkeypatch):
     assert pypi_subcommand.summary == "Install PyPI packages as conda packages"
     assert pypi_subcommand.action is not None
     assert pypi_subcommand.configure_parser is not None
+
+
+def test_install_wheel(conda_cli, tmp_env, pypi_local_index):
+    """
+    Runs a basic test that installs a wheel into a conda environment by first converting it
+    to a conda package.
+    """
+    with tmp_env("python", "pip"):
+        out, err, rc = conda_cli("pypi", "install", "--index", pypi_local_index, "demo-package")

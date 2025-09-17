@@ -16,6 +16,8 @@ from installer import install
 from installer.destinations import SchemeDictionaryDestination
 from installer.sources import WheelFile
 
+from conda_pypi.constants import DEFAULT_PYPI_INDEX_URL
+
 
 def install_installer(python_executable: str, whl: Path, build_path: Path):
     # Handler for installation directories and writing into them.
@@ -36,7 +38,9 @@ def install_installer(python_executable: str, whl: Path, build_path: Path):
         )
 
 
-def install_pip(python_executable: str, whl: Path, build_path: Path):
+def install_pip(
+    python_executable: str, whl: Path, build_path: Path, index_url: str = DEFAULT_PYPI_INDEX_URL
+):
     command = [
         python_executable,
         "-m",
@@ -45,6 +49,8 @@ def install_pip(python_executable: str, whl: Path, build_path: Path):
         "--no-deps",
         "--target",
         str(build_path / "site-packages"),
+        "--index-url",
+        index_url,
         whl,
     ]
     subprocess.run(command, check=True)

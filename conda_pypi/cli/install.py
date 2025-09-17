@@ -6,6 +6,8 @@ from conda.base.context import context
 from conda.models.match_spec import MatchSpec
 
 from conda_pypi import convert_tree
+from conda_pypi.constants import DEFAULT_PYPI_INDEX_URL
+from conda_pypi.main import run_conda_install
 
 
 def configure_parser(parser: _SubParsersAction) -> None:
@@ -17,9 +19,9 @@ def configure_parser(parser: _SubParsersAction) -> None:
     epilog = dals(
         """
 
-        Install PyPI packages as conda packages.  Any dependencies that are
-        available on the configured conda channels will be installed with `conda`,
-        while the rest will be converted to conda packages from PyPI.
+        Install PyPI packages as conda packages. If available on the specified
+        index, the package will be downloaded and converted to a conda package.
+        This converted package will then be installed into the active environment.
 
         Examples:
 
@@ -29,15 +31,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
         Install multiple PyPI packages with specific versions::
 
-            conda pypi install "numpy>=1.20" "pandas==1.5.0"
-
-        Install packages into a specific conda environment::
-
-            conda pypi install -n myenv flask django
-
-        Install packages using only PyPI (skip configured conda channels)::
-
-            conda pypi install --override-channels fastapi
+            conda pypi install "package-a>=12.3"
 
         """
     )
@@ -46,6 +40,11 @@ def configure_parser(parser: _SubParsersAction) -> None:
         help=summary,
         description=description,
         epilog=epilog,
+    )
+    install.add_argument(
+        "--index",
+        help="PyPI index URL",
+        default=DEFAULT_PYPI_INDEX_URL,
     )
     install.add_argument(
         "--override-channels",
@@ -66,10 +65,17 @@ def execute(args: Namespace) -> int:
     """
     prefix_path = Path(context.target_prefix)
 
-    converter = convert_tree.ConvertTree(prefix_path, override_channels=args.override_channels)
+    converter = convert_tree.ConvertTree(
+        prefix_path,
+        override_channels=args.override_channels,
+        index_url=args.index,
+    )
 
     # Convert package strings to MatchSpec objects
     match_specs = [MatchSpec(pkg) for pkg in args.packages]
-    converter.convert_tree(match_specs)
+    channel_url = converter.convert_tree(match_specs)
+
+    # Install converted packages to current conda environment
+    run_conda_install(prefix_path, match_specs, channels=[channel_url], override_channels=False)
 
     return 0

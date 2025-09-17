@@ -22,6 +22,7 @@ from build import ProjectBuilder
 
 from conda_pypi import dependencies, installer, paths
 from conda_pypi.conda_build_utils import PathType, sha256_checksum
+from conda_pypi.constants import DEFAULT_PYPI_INDEX_URL
 from conda_pypi.translate import CondaMetadata
 
 
@@ -129,12 +130,13 @@ def build_conda(
     output_path: Path,
     python_executable,
     project_path: Optional[Path] = None,
-    is_editable=False,
+    is_editable: bool = False,
+    index_url: str = DEFAULT_PYPI_INDEX_URL,
 ):
     if not build_path.exists():
         build_path.mkdir()
 
-    installer.install_pip(python_executable, whl, build_path)
+    installer.install_pip(python_executable, whl, build_path, index_url=index_url)
 
     site_packages = build_path / "site-packages"
     dist_info = next(site_packages.glob("*.dist-info"))
