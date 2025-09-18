@@ -97,7 +97,9 @@ class ConvertTree:
     def default_package_finder(self):
         return get_package_finder(self.prefix)
 
-    def convert_tree(self, requested: List[MatchSpec], max_attempts: int = 20) -> tuple[tuple[PrefixRecord], tuple[PrefixRecord]] | None:
+    def convert_tree(
+        self, requested: List[MatchSpec], max_attempts: int = 20
+    ) -> tuple[tuple[PrefixRecord], tuple[PrefixRecord]] | None:
         """
         Preform a solve on the list of requested packages and converts the full dependency
         tree to conda packages if required. The converted packages will be stored in the
