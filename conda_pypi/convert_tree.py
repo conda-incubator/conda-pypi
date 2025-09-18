@@ -15,6 +15,7 @@ from conda.base.context import context
 from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
+from conda.models.records import PrefixRecord
 from conda_libmamba_solver.solver import (
     LibMambaIndexHelper,
     LibMambaSolver,
@@ -96,7 +97,24 @@ class ConvertTree:
     def default_package_finder(self):
         return get_package_finder(self.prefix)
 
-    def convert_tree(self, requested: List[MatchSpec], max_attempts=20):
+    def convert_tree(self, requested: List[MatchSpec], max_attempts: int = 20) -> tuple[tuple[PrefixRecord], tuple[PrefixRecord]] | None:
+        """
+        Preform a solve on the list of requested packages and converts the full dependency
+        tree to conda packages if required. The converted packages will be stored in the
+        local conda-pypi channel.
+
+        Args:
+            requested: List[MatchSpec]: The list of requested packages.
+            max_attempts: max number of times to try to execute the solve.
+
+        Returns:
+            tuple[PackageRef], tuple[PackageRef]:
+                A two-tuple of PackageRef sequences.  The first is the group of packages to
+                remove from the environment, in sorted dependency order from leaves to roots.
+                The second is the group of packages to add to the environment, in sorted
+                dependency order from roots to leaves.
+
+        """
         (self.repo / "noarch").mkdir(parents=True, exist_ok=True)
         if not (self.repo / "noarch" / "repodata.json").exists():
             update_index(self.repo)
