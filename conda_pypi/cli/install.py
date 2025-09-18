@@ -7,6 +7,7 @@ from conda.models.match_spec import MatchSpec
 
 from conda_pypi import convert_tree
 from conda_pypi.downloader import get_package_finder
+from conda_pypi.main import run_conda_install
 
 
 def configure_parser(parser: _SubParsersAction) -> None:
@@ -89,5 +90,9 @@ def execute(args: Namespace) -> int:
     # Convert package strings to MatchSpec objects
     match_specs = [MatchSpec(pkg) for pkg in args.packages]
     converter.convert_tree(match_specs)
+    channel_url = converter.repo.as_uri()
+
+    # Install converted packages to current conda environment
+    run_conda_install(prefix_path, match_specs, channels=[channel_url], override_channels=False)
 
     return 0
