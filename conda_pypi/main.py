@@ -14,11 +14,13 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
 from conda.base.context import context
+from conda.cli.python_api import run_command
 from conda.plugins.prefix_data_loaders.pypi.pkg_format import PythonDistribution
 from conda.core.prefix_data import PrefixData
-from conda.exceptions import InvalidVersionSpec
+from conda.exceptions import CondaSystemExit, InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
+from conda.models.match_spec import MatchSpec
 from conda.models.records import PackageRecord
 from conda.exceptions import CondaError
 from packaging.requirements import Requirement
@@ -33,6 +35,52 @@ from conda_pypi.python_paths import (
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
+
+
+def run_conda_install(
+    prefix: Path,
+    specs: Iterable[MatchSpec],
+    dry_run: bool = False,
+    quiet: bool = False,
+    verbosity: int = 0,
+    force_reinstall: bool = False,
+    yes: bool = False,
+    json: bool = False,
+    channels: Iterable[str] = None,
+    override_channels: bool = False,
+) -> int:
+    if not specs:
+        return 0
+
+    command = ["install", "--prefix", str(prefix)]
+    if dry_run:
+        command.append("--dry-run")
+    if quiet:
+        command.append("--quiet")
+    if verbosity:
+        command.append("-" + ("v" * verbosity))
+    if force_reinstall:
+        command.append("--force-reinstall")
+    if yes:
+        command.append("--yes")
+    if json:
+        command.append("--json")
+    if channels:
+        for channel in channels:
+            command.append("--channel")
+            command.append(channel)
+    if override_channels:
+        command.append("--override-channels")
+
+    command.extend(str(spec) for spec in specs)
+
+    print(command)
+    logger.info("conda install command: conda %s", command)
+    try:
+        *_, retcode = run_command(*command, stdout=None, stderr=None, use_exception_handler=True)
+    except CondaSystemExit:
+        return 0
+    return retcode
 
 
 def run_pip_install(
