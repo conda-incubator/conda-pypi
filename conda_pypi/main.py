@@ -9,12 +9,12 @@ from csv import reader as csv_reader
 from email.parser import HeaderParser
 from logging import getLogger
 from pathlib import Path
+import runpy
 from subprocess import run, CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
 from conda.base.context import context
-from conda.cli.python_api import run_command
 from conda.plugins.prefix_data_loaders.pypi.pkg_format import PythonDistribution
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import CondaSystemExit, InvalidVersionSpec
@@ -52,7 +52,7 @@ def run_conda_install(
     if not specs:
         return 0
 
-    command = ["install", "--prefix", str(prefix)]
+    command = ["conda", "install", "--prefix", str(prefix)]
     if dry_run:
         command.append("--dry-run")
     if quiet:
@@ -74,13 +74,20 @@ def run_conda_install(
 
     command.extend(str(spec) for spec in specs)
 
-    print(command)
-    logger.info("conda install command: conda %s", command)
+    logger.info("conda install command: %s", command)
     try:
-        *_, retcode = run_command(*command, stdout=None, stderr=None, use_exception_handler=True)
-    except CondaSystemExit:
-        return 0
-    return retcode
+        old_argv = sys.argv[:]
+        sys.argv = command
+        runpy.run_module("conda", run_name="__main__")
+    except SystemExit as exception:
+        logger.info("Error running conda command!", exc_info=True)
+    finally:
+        sys.argv[:] = old_argv[:]
+
+    # If there was no error, the conda command exited successfully.
+    # The return code is 0. 
+    return 0
+
 
 
 def run_pip_install(

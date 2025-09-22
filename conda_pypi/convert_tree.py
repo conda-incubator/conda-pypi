@@ -1,6 +1,7 @@
 """
 Convert a dependency tree from pypi into .conda packages
 """
+from __future__ import annotations
 
 import logging
 import pathlib
