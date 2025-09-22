@@ -3,6 +3,7 @@ from pathlib import Path
 
 from conda.auxlib.ish import dals
 from conda.base.context import context
+from conda.exceptions import ArgumentError
 
 from conda_pypi import build
 
@@ -12,7 +13,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
     Configure all subcommand arguments and options via argparse
     """
     # convert subcommand
-    summary = "Build and convert PyPI package or local Python project from wheel to conda package"
+    summary = "Build and convert local Python sdists, wheels or projects to conda packages"
     description = summary
     epilog = dals(
         """
@@ -20,7 +21,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
         Convert a PyPI package to conda format without installing::
 
-            conda pypi convert requests
+            conda pypi convert ./requests-2.32.5-py3-none-any.whl
 
         Convert a local Python project to conda package::
 
@@ -28,11 +29,12 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
         Convert a package and save to a specific output folder::
 
-            conda pypi convert --output-folder ./conda-packages numpy
+            conda pypi convert --output-folder ./conda-packages ./numpy-2.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
 
         Convert a package from a Git repository::
 
-            conda pypi convert https://github.com/user/repo.git
+            git clone https://github.com/user/repo.git
+            conda pypi convert ./repo
 
         """
     )
@@ -63,6 +65,8 @@ def execute(args: Namespace) -> int:
     Entry point for the `conda pypi convert` subcommand
     """
     prefix_path = Path(context.target_prefix)
+    if not Path(args.project_path).exists():
+        raise ArgumentError("PROJECT must be a local path to a sdist, wheel or directory.")
 
     package_path = build.pypa_to_conda(
         args.project_path,
@@ -71,6 +75,7 @@ def execute(args: Namespace) -> int:
         prefix=prefix_path,
     )
     print(
-        f"Conda package at {package_path} built and converted successfully.  Output folder: {args.output_folder}"
+        f"Conda package at {package_path} built and converted successfully. "
+        f"Output folder: {args.output_folder}."
     )
     return 0
