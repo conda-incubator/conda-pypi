@@ -58,7 +58,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
         "--index-url",
         dest="index_urls",
         action="append",
-        help="Add a PyPI index URL (can be used multiple times). ",
+        help="Add a PyPI index URL (can be used multiple times).",
     )
     install.add_argument(
         "packages",
