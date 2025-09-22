@@ -6,6 +6,7 @@ from conda.base.context import context
 from conda.models.match_spec import MatchSpec
 
 from conda_pypi import convert_tree
+from conda_pypi.downloader import DEFAULT_INDEX_URLS, get_package_finder
 
 
 def configure_parser(parser: _SubParsersAction) -> None:
@@ -50,7 +51,14 @@ def configure_parser(parser: _SubParsersAction) -> None:
     install.add_argument(
         "--override-channels",
         action="store_true",
-        help="Do not search default or .condarc channels. Will search pypi.",
+        help="Do not search default or .condarc channels. Will search PyPI.",
+    )
+    install.add_argument(
+        "-i",
+        "--index-url",
+        dest="index_urls",
+        action="append",
+        help="Add a PyPI index URL (can be used multiple times). ",
     )
     install.add_argument(
         "packages",
@@ -66,7 +74,17 @@ def execute(args: Namespace) -> int:
     """
     prefix_path = Path(context.target_prefix)
 
-    converter = convert_tree.ConvertTree(prefix_path, override_channels=args.override_channels)
+    if args.index_urls:
+        index_urls = tuple(dict.fromkeys((*DEFAULT_INDEX_URLS, *args.index_urls)))
+        finder = get_package_finder(prefix_path, index_urls)
+    else:
+        finder = None
+
+    converter = convert_tree.ConvertTree(
+        prefix_path,
+        override_channels=args.override_channels,
+        finder=finder,
+    )
 
     # Convert package strings to MatchSpec objects
     match_specs = [MatchSpec(pkg) for pkg in args.packages]
