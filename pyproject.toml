@@ -56,6 +56,7 @@ conda = ">=23.9"
 pip = "*"
 grayskull = "*"
 packaging = "*"
+conda-index = "*"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }
