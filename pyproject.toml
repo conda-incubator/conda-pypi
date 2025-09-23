@@ -28,12 +28,12 @@ dependencies = [
   "unearth >=0.17.2",               # download packages from pypi
   "pip",
 ]
+dynamic = ["version"]
 
 [project.optional-dependencies]
 auth = [
   "anaconda-auth",                  # authentication for private indexes
 ]
-dynamic = ["version"]
 
 [project.urls]
 homepage = "https://github.com/jaimergp/conda-pypi"
