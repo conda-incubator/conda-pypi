@@ -328,8 +328,30 @@ of its own:
 - `PIP_TRUSTED_HOST`: Trusted hosts for PyPI access
 
 ### Authentication Variables
+
+#### Core Authentication Variables
 - `ANACONDA_AUTH_TOKEN`: Authentication token for private indexes
-- `ANACONDA_AUTH_DOMAIN`: Domain for anaconda-auth configuration
+- `ANACONDA_AUTH_DOMAIN`: Domain for anaconda-auth configuration (default: `anaconda.com`)
+
+#### Advanced Authentication Configuration
+- `ANACONDA_AUTH_CLIENT_ID`: Client ID for authentication (used with staging/dev environments)
+- `ANACONDA_AUTH_SSL_VERIFY`: Whether to verify SSL certificates (default: `true`)
+- `ANACONDA_AUTH_PREFERRED_TOKEN_STORAGE`: Token storage method (`system` or `anaconda-keyring`, default: `anaconda-keyring`)
+- `ANACONDA_AUTH_API_KEY`: Explicit API key (overrides keyring storage)
+- `ANACONDA_AUTH_EXTRA_HEADERS`: Additional HTTP headers in JSON format
+
+#### Conda-Specific Variables
+- `CONDA_TOKEN_REPO_URL`: Repository URL for token management (used with private conda repositories)
+
+#### Example Environment Variable Usage
+
+**Basic Authentication:**
+```bash
+export ANACONDA_AUTH_DOMAIN=anaconda.com
+export ANACONDA_AUTH_TOKEN=your_token_here
+conda pypi install --index https://conda.anaconda.org/my-channel package-name
+```
+
 
 ## Authentication with Private Indexes
 

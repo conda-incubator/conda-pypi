@@ -24,6 +24,7 @@ from .core import convert_packages, install_packages, prepare_packages_for_insta
 from .main import validate_target_env
 from .utils import ensure_externally_managed
 from .utils import get_prefix, get_package_finder
+from .auth import ANACONDA_AUTH_AVAILABLE, get_auth_install_message
 
 
 logger = getLogger(f"conda.{__name__}")
@@ -147,16 +148,10 @@ def execute_install(args: argparse.Namespace) -> int:
                 else:
                     print(f"Using custom PyPI indexes: {', '.join(args.index_urls)}")
 
-                # Check if authentication is available
-                try:
-                    from .auth import check_anaconda_auth_available, get_auth_install_message
-
-                    if check_anaconda_auth_available():
-                        print("Authentication via anaconda-auth is available")
-                    else:
-                        print(f"Note: {get_auth_install_message()}")
-                except ImportError:
-                    pass
+                if ANACONDA_AUTH_AVAILABLE:
+                    print("Authentication via anaconda-auth is available")
+                else:
+                    print(f"Note: {get_auth_install_message()}")
 
             finder = get_package_finder(prefix, args.index_urls)
 
@@ -230,11 +225,8 @@ def execute_convert(args: argparse.Namespace) -> int:
             else:
                 print(f"Using custom PyPI indexes: {', '.join(args.index_urls)}")
 
-            # Check if authentication is available
             try:
-                from .auth import check_anaconda_auth_available, get_auth_install_message
-
-                if check_anaconda_auth_available():
+                if ANACONDA_AUTH_AVAILABLE:
                     print("Authentication via anaconda-auth is available")
                 else:
                     print(f"Note: {get_auth_install_message()}")

@@ -22,6 +22,7 @@ from logging import getLogger
 from os.path import isfile, islink
 from pathlib import Path
 from typing import Iterator, Optional, List
+from urllib.parse import urlparse
 
 import conda.common.path
 from conda.base.context import context, locate_prefix_by_name
@@ -34,7 +35,6 @@ from pip._internal.index.package_finder import PackageFinder
 from pip._internal.models.search_scope import SearchScope
 from pip._internal.models.selection_prefs import SelectionPreferences
 from pip._internal.models.target_python import TargetPython
-from pip._internal.network.session import PipSession
 
 from .exceptions import PypiError
 
@@ -43,6 +43,18 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass
+
+try:
+    from .auth import (
+        get_authenticated_index_urls,
+        get_auth_token_for_url,
+        is_private_index,
+        log_authentication_status,
+    )
+
+    AUTH_AVAILABLE = True
+except ImportError:
+    AUTH_AVAILABLE = False
 
 logger = getLogger(f"conda.{__name__}")
 
@@ -307,26 +319,18 @@ def get_package_finder(prefix: Path, index_urls: list[str] = None) -> PackageFin
     py_version_info = tuple(map(int, py_ver.split(".")))
     target_python = TargetPython(py_version_info=py_version_info)
 
-    # Create a session and link collector
-    session = PipSession()
-
     # Use custom index URLs if provided, otherwise default to PyPI
     if index_urls:
         urls = index_urls
-        # Try to authenticate with private indexes
-        try:
-            from .auth import create_authenticated_session, get_authenticated_index_urls
-
-            session = create_authenticated_session(urls)
+        if AUTH_AVAILABLE:
+            log_authentication_status(urls)
             urls = get_authenticated_index_urls(urls)
-        except ImportError:
-            # anaconda-auth not available, use original session
-            pass
+            logger.debug(f"Using authenticated URLs: {urls}")
     else:
         urls = ["https://pypi.org/simple/"]
 
     search_scope = SearchScope.create(find_links=[], index_urls=urls, no_index=False)
-    link_collector = LinkCollector(session=session, search_scope=search_scope)
+    link_collector = LinkCollector(session=None, search_scope=search_scope)
 
     # Create selection preferences
     selection_prefs = SelectionPreferences(allow_yanked=False)
@@ -362,12 +366,33 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
     """
     candidates = find_package(finder, package)
     if not candidates or not candidates.best_candidate:
+        # Provide more detailed error information
+        index_urls = getattr(finder._link_collector.search_scope, "index_urls", [])
+        logger.warning(f"No PyPI link for {package} found in indexes: {index_urls}")
+        logger.warning(f"Candidates result: {candidates}")
+
+        # Check if this might be an authentication issue
+        if any("anaconda" in url.lower() for url in index_urls):
+            logger.warning(
+                "Custom Anaconda index detected. Ensure you have a valid token for the domain."
+            )
+            logger.warning("Try running: anaconda token list")
+
         raise PypiError(f"No PyPI link for {package}")
 
     link = candidates.best_candidate.link
     filename = link.url_without_fragment.rsplit("/", 1)[-1]
     logger.info(f"Fetching {package} as {filename}")
-    download(link.url, target / filename)
+
+    download_url = link.url
+    if AUTH_AVAILABLE and is_private_index(download_url):
+        token = get_auth_token_for_url(download_url)
+        if token:
+            parsed = urlparse(download_url)
+            download_url = f"{parsed.scheme}://user:{token}@{parsed.netloc}{parsed.path}"
+            logger.debug(f"Authenticated download URL for {package}")
+
+    download(download_url, target / filename)
 
 
 def fetch_packages_from_pypi(
@@ -393,7 +418,10 @@ def fetch_packages_from_pypi(
             fetched_packages.add(package_name)
             logger.info(f"Successfully fetched: {package}")
         except Exception as e:
+            import traceback
+
             logger.warning(f"Failed to fetch {package}: {e}")
+            logger.warning(f"Full error details for {package}: {traceback.format_exc()}")
             # Continue with other packages even if one fails
 
     return fetched_packages
