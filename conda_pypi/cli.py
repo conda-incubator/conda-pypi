@@ -69,7 +69,7 @@ def configure_parser(parser: argparse.ArgumentParser):
         dest="index_urls",
         action="append",
         help="Add a PyPI index URL (can be used multiple times). "
-        "No authentication is supported.",
+        "Authentication via anaconda-auth is supported for private indexes (optional dependency).",
     )
     install.add_argument("packages", metavar="package", nargs="*")
 
@@ -92,7 +92,7 @@ def configure_parser(parser: argparse.ArgumentParser):
         dest="index_urls",
         action="append",
         help="Add a PyPI index URL (can be used multiple times). "
-        "No authentication is supported.",
+        "Authentication via anaconda-auth is supported for private indexes (optional dependency).",
     )
     convert.add_argument("packages", metavar="package", nargs="*")
 
@@ -146,6 +146,18 @@ def execute_install(args: argparse.Namespace) -> int:
                     print(f"Using custom PyPI index: {args.index_urls[0]}")
                 else:
                     print(f"Using custom PyPI indexes: {', '.join(args.index_urls)}")
+
+                # Check if authentication is available
+                try:
+                    from .auth import check_anaconda_auth_available, get_auth_install_message
+
+                    if check_anaconda_auth_available():
+                        print("Authentication via anaconda-auth is available")
+                    else:
+                        print(f"Note: {get_auth_install_message()}")
+                except ImportError:
+                    pass
+
             finder = get_package_finder(prefix, args.index_urls)
 
         if not args.quiet:
@@ -217,6 +229,18 @@ def execute_convert(args: argparse.Namespace) -> int:
                 print(f"Using custom PyPI index: {args.index_urls[0]}")
             else:
                 print(f"Using custom PyPI indexes: {', '.join(args.index_urls)}")
+
+            # Check if authentication is available
+            try:
+                from .auth import check_anaconda_auth_available, get_auth_install_message
+
+                if check_anaconda_auth_available():
+                    print("Authentication via anaconda-auth is available")
+                else:
+                    print(f"Note: {get_auth_install_message()}")
+            except ImportError:
+                pass
+
         finder = get_package_finder(prefix, args.index_urls)
 
     if not args.quiet:

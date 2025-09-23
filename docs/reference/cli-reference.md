@@ -253,6 +253,11 @@ Convert from specific environment:
 conda pypi convert -n myenv -d ./packages requests
 ```
 
+Convert from private index with authentication:
+```bash
+conda pypi convert --index https://conda.anaconda.org/my-channel package-name
+```
+
 Quiet conversion:
 ```bash
 conda pypi convert --quiet -d ./output requests
@@ -321,6 +326,55 @@ of its own:
 - `PIP_INDEX_URL`: Primary PyPI index URL
 - `PIP_EXTRA_INDEX_URL`: Additional PyPI index URLs
 - `PIP_TRUSTED_HOST`: Trusted hosts for PyPI access
+
+### Authentication Variables
+- `ANACONDA_AUTH_TOKEN`: Authentication token for private indexes
+- `ANACONDA_AUTH_DOMAIN`: Domain for anaconda-auth configuration
+
+## Authentication with Private Indexes
+
+`conda-pypi` supports authentication with private PyPI indexes using `anaconda-auth`.
+
+### Setup Authentication
+
+1. **Install conda-pypi with authentication support**:
+   ```bash
+   pip install conda-pypi[auth]
+   ```
+   Or install anaconda-auth separately:
+   ```bash
+   conda install anaconda-auth
+   ```
+
+2. **Login to Anaconda**:
+   ```bash
+   anaconda login --at anaconda.com
+   ```
+
+3. **Generate Access Token** (if needed):
+   - Navigate to your Anaconda account settings
+   - Create a new token with `conda:download` scope
+
+### Using Private Indexes
+
+Install from private index:
+```bash
+conda pypi install --index https://conda.anaconda.org/my-channel package-name
+```
+
+Convert from private index:
+```bash
+conda pypi convert --index https://conda.anaconda.org/my-channel package-name
+```
+
+Multiple private indexes:
+```bash
+conda pypi install --index https://conda.anaconda.org/channel1 --index https://conda.anaconda.org/channel2 package-name
+```
+
+### Authentication Methods
+
+The authentication system automatically detects private indexes and attempts to use `anaconda-auth` tokens when available. Authentication is handled transparently without requiring additional configuration.
 
 ## Integration with conda list
 

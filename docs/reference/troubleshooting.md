@@ -163,6 +163,67 @@ export HTTP_PROXY=http://username:password@proxy.company.com:8080
 export PIP_TRUSTED_HOST=pypi.org,pypi.python.org,files.pythonhosted.org
 ```
 
+## Authentication Issues
+
+### Private index authentication failures
+
+**Problem**: Cannot access private PyPI indexes that require authentication.
+
+**Error messages**:
+- `401 Unauthorized`
+- `403 Forbidden`
+- `Authentication failed`
+
+**Solutions**:
+```bash
+# Check if anaconda-auth is installed
+conda list anaconda-auth
+
+# Install conda-pypi with authentication support
+pip install conda-pypi[auth]
+
+# Or install anaconda-auth separately
+conda install anaconda-auth
+
+# Login to Anaconda
+anaconda login --at anaconda.com
+
+# Verify authentication status
+anaconda auth --whoami
+
+# Test with verbose output
+conda pypi install --index https://conda.anaconda.org/my-channel -v package-name
+```
+
+### Token expiration
+
+**Problem**: Previously working authentication stops working.
+
+**Solutions**:
+```bash
+# Check token status
+anaconda auth --whoami
+
+# Re-login if token expired
+anaconda login --at anaconda.com
+
+# Generate new token in Anaconda account settings
+```
+
+### Unsupported private index
+
+**Problem**: Private index not recognized for authentication.
+
+**Solutions**:
+```bash
+# Use explicit token in URL
+conda pypi install --index https://token:YOUR_TOKEN@private-index.com/simple/ package-name
+
+# Set environment variable
+export ANACONDA_AUTH_TOKEN=your_token_here
+conda pypi install --index https://private-index.com/simple/ package-name
+```
+
 ### SSL/TLS certificate issues
 
 **Problem**: Certificate verification failures.

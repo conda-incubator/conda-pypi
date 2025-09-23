@@ -309,11 +309,22 @@ def get_package_finder(prefix: Path, index_urls: list[str] = None) -> PackageFin
 
     # Create a session and link collector
     session = PipSession()
+
     # Use custom index URLs if provided, otherwise default to PyPI
     if index_urls:
         urls = index_urls
+        # Try to authenticate with private indexes
+        try:
+            from .auth import create_authenticated_session, get_authenticated_index_urls
+
+            session = create_authenticated_session(urls)
+            urls = get_authenticated_index_urls(urls)
+        except ImportError:
+            # anaconda-auth not available, use original session
+            pass
     else:
         urls = ["https://pypi.org/simple/"]
+
     search_scope = SearchScope.create(find_links=[], index_urls=urls, no_index=False)
     link_collector = LinkCollector(session=session, search_scope=search_scope)
 
