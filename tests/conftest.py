@@ -34,7 +34,7 @@ def pypi_local_index(xprocess):
 
     class Starter(ProcessStarter):
         pattern = "Serving HTTP on"
-        timeout = 5
+        timeout = 10
         args = [sys.executable, "-m", "http.server", "-d", HERE / "pypi_local_index", port]
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
