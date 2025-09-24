@@ -274,28 +274,3 @@ def test_editable_installs(
                 or src_path == pth_path
                 or pth_path.is_relative_to(src_path)
             ), f"Expected {src_path} to be a parent of or equal to {pth_path}"
-
-
-def test_index_urls(
-    tmp_path: Path,
-    tmp_env: TmpEnvFixture,
-    conda_cli: CondaCLIFixture,
-):
-    os.chdir(tmp_path)
-    with tmp_env("python=3.10", "pip") as prefix:
-        out, err, rc = conda_cli(
-            "pypi",
-            "--prefix",
-            prefix,
-            "install",
-            "--override-channels",
-            "--index-url",
-            "https://pypi.org/simple/",
-            "-i",
-            # No errors for bad index?
-            "https://pypi.org/404/",
-            "niquests",
-        )
-        print(out)
-        print(err, file=sys.stderr)
-        assert rc == 0

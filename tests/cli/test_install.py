@@ -1,4 +1,10 @@
+"""
+Tests that use run `conda pypi install` use `conda_cli` as the primary caller
+"""
+
 from __future__ import annotations
+
+import sys
 
 
 def test_cli(conda_cli):
@@ -17,7 +23,7 @@ def test_cli(conda_cli):
     assert "Convert named path/url as wheel converted to conda" in out
 
 
-def test_cli_plugin(monkeypatch):
+def test_cli_plugin():
     # Test that the plugin can be loaded and the subcommand is registered
     from conda_pypi.plugin import conda_subcommands
 
@@ -28,3 +34,21 @@ def test_cli_plugin(monkeypatch):
     assert pypi_subcommand.summary == "Install PyPI packages as conda packages"
     assert pypi_subcommand.action is not None
     assert pypi_subcommand.configure_parser is not None
+
+
+def test_index_urls(tmp_env, conda_cli, pypi_local_index):
+    print("XXXXX")
+    with tmp_env("python=3.10", "pip") as prefix:
+        out, err, rc = conda_cli(
+            "pypi",
+            "--prefix",
+            prefix,
+            "install",
+            "--override-channels",
+            "--index-url",
+            pypi_local_index,
+            "demo_package",
+        )
+        print(out)
+        print(err, file=sys.stderr)
+        assert rc == 0
