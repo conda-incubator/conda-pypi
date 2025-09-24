@@ -6,7 +6,7 @@ from conda.base.context import context
 from conda.models.match_spec import MatchSpec
 
 from conda_pypi import convert_tree
-from conda_pypi.downloader import DEFAULT_INDEX_URLS, get_package_finder
+from conda_pypi.downloader import get_package_finder
 
 
 def configure_parser(parser: _SubParsersAction) -> None:

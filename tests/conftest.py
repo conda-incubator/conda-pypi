@@ -12,6 +12,7 @@ pytest_plugins = (
 )
 HERE = Path(__file__).parent
 
+
 @pytest.fixture(autouse=True)
 def do_not_register_envs(monkeypatch):
     """Do not register environments created during tests"""

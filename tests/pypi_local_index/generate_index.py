@@ -1,6 +1,5 @@
 import hashlib
 from pathlib import Path
-from textwrap import dedent
 
 GLOBAL_INDEX = """
 <!DOCTYPE html>
@@ -28,8 +27,8 @@ PROJECT_INDEX = """
     __LIST_OF_ARTIFACTS__
   </body>
 </html>
-
 """
+
 HERE = Path(__file__).parent
 GLOBAL_INDEX_PATH = HERE / "index.html"
 
