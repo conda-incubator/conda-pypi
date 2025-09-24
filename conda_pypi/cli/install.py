@@ -75,7 +75,7 @@ def execute(args: Namespace) -> int:
     prefix_path = Path(context.target_prefix)
 
     if args.index_urls:
-        index_urls = tuple(dict.fromkeys((*DEFAULT_INDEX_URLS, *args.index_urls)))
+        index_urls = tuple(dict.fromkeys([*args.index_urls]))
         finder = get_package_finder(prefix_path, index_urls)
     else:
         finder = None
