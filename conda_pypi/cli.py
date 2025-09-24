@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import traceback
+from contextlib import nullcontext
 from logging import getLogger
 from pathlib import Path
 
@@ -155,26 +156,18 @@ def execute_install(args: argparse.Namespace) -> int:
 
             finder = get_package_finder(prefix, args.index_urls)
 
-        if not args.quiet:
-            spinner_message = (
-                "Installing packages"
-                if args.editable
-                else "Converting PyPI packages to conda format"
-            )
-            with get_spinner(spinner_message):
-                cached_package_names = prepare_packages_for_installation(
-                    args.packages,
-                    prefix,
-                    override_channels=args.override_channels,
-                    editable=args.editable,
-                    finder=finder,
-                )
-        else:
+        spinner_message = (
+            "Installing packages" if args.editable else "Converting PyPI packages to conda format"
+        )
+
+        spinner_context = get_spinner(spinner_message) if not args.quiet else nullcontext()
+        with spinner_context:
             cached_package_names = prepare_packages_for_installation(
                 args.packages,
                 prefix,
                 override_channels=args.override_channels,
                 editable=args.editable,
+                with_dependencies=not args.editable,
                 finder=finder,
             )
 
