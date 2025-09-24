@@ -35,6 +35,7 @@ from pip._internal.index.package_finder import PackageFinder
 from pip._internal.models.search_scope import SearchScope
 from pip._internal.models.selection_prefs import SelectionPreferences
 from pip._internal.models.target_python import TargetPython
+from pip._internal.network.session import PipSession
 
 from .exceptions import PypiError
 
@@ -330,7 +331,9 @@ def get_package_finder(prefix: Path, index_urls: list[str] = None) -> PackageFin
         urls = ["https://pypi.org/simple/"]
 
     search_scope = SearchScope.create(find_links=[], index_urls=urls, no_index=False)
-    link_collector = LinkCollector(session=None, search_scope=search_scope)
+
+    session = PipSession()
+    link_collector = LinkCollector(session=session, search_scope=search_scope)
 
     # Create selection preferences
     selection_prefs = SelectionPreferences(allow_yanked=False)
