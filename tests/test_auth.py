@@ -11,6 +11,13 @@ from conda_pypi.auth import (
     is_private_index,
     get_authenticated_index_urls,
     get_auth_install_message,
+    get_available_auth_backends,
+    is_authentication_available,
+    get_auth_status_summary,
+    AuthenticationBackend,
+    AnacondaAuthBackend,
+    CondaAuthBackend,
+    AuthenticationManager,
     ANACONDA_AUTH_AVAILABLE,
 )
 
@@ -185,9 +192,168 @@ def test_check_anaconda_auth_available_real_import():
 
 
 def test_get_auth_install_message():
-    """Test getting installation message for anaconda-auth."""
+    """Test getting installation message for authentication."""
     message = get_auth_install_message()
     assert isinstance(message, str)
-    assert "anaconda-auth" in message
-    assert "pip install conda-pypi[auth]" in message
-    assert "conda install anaconda-auth" in message
+    # Should mention either available backends or installation instructions
+    assert "anaconda-auth" in message or "conda-auth" in message or "backends available" in message
+    # If no backends are available, should include installation instructions
+    if "backends available" not in message:
+        assert "pip install conda-pypi[auth]" in message
+
+
+def test_authentication_backend_interface():
+    """Test that AuthenticationBackend is properly abstract."""
+    # Should not be able to instantiate directly
+    try:
+        AuthenticationBackend()
+        assert False, "Should not be able to instantiate abstract class"
+    except TypeError:
+        pass  # Expected
+
+
+def test_anaconda_auth_backend_name():
+    """Test backend name."""
+    backend = AnacondaAuthBackend()
+    assert backend.get_backend_name() == "anaconda-auth"
+
+
+def test_anaconda_auth_backend_availability():
+    """Test backend availability."""
+    backend = AnacondaAuthBackend()
+    assert isinstance(backend.is_available(), bool)
+
+
+@patch("conda_pypi.auth.ANACONDA_AUTH_AVAILABLE", False)
+def test_anaconda_auth_backend_unavailable():
+    """Test backend when anaconda-auth is not available."""
+    backend = AnacondaAuthBackend()
+    assert not backend.is_available()
+    assert backend.get_auth_token_for_url("https://test.com") is None
+
+
+def test_conda_auth_backend_name():
+    """Test backend name."""
+    backend = CondaAuthBackend()
+    assert backend.get_backend_name() == "conda-auth"
+
+
+def test_conda_auth_backend_availability():
+    """Test backend availability."""
+    backend = CondaAuthBackend()
+    assert isinstance(backend.is_available(), bool)
+
+
+@patch("conda_pypi.auth.CONDA_AUTH_AVAILABLE", False)
+def test_conda_auth_backend_unavailable():
+    """Test backend when conda-auth is not available."""
+    backend = CondaAuthBackend()
+    assert not backend.is_available()
+    assert backend.get_auth_token_for_url("https://test.com") is None
+
+
+def test_authentication_manager_initialization():
+    """Test manager initialization."""
+    manager = AuthenticationManager()
+    assert isinstance(manager.backends, list)
+    assert len(manager.backends) >= 0
+
+
+def test_get_available_backends():
+    """Test getting available backends."""
+    manager = AuthenticationManager()
+    backends = manager.get_available_backends()
+    assert isinstance(backends, list)
+    # Should contain valid backend names
+    for backend_name in backends:
+        assert backend_name in ["anaconda-auth", "conda-auth"]
+
+
+def test_is_any_backend_available():
+    """Test checking if any backend is available."""
+    manager = AuthenticationManager()
+    result = manager.is_any_backend_available()
+    assert isinstance(result, bool)
+
+
+def test_get_auth_token_for_url_no_backends():
+    """Test getting token when no backends are available."""
+    manager = AuthenticationManager()
+    # Mock all backends to be unavailable
+    with patch.object(manager, "backends", []):
+        token = manager.get_auth_token_for_url("https://test.com")
+        assert token is None
+
+
+def test_get_available_auth_backends():
+    """Test getting available authentication backends."""
+    backends = get_available_auth_backends()
+    assert isinstance(backends, list)
+
+
+def test_is_authentication_available():
+    """Test checking if authentication is available."""
+    result = is_authentication_available()
+    assert isinstance(result, bool)
+
+
+def test_get_auth_status_summary():
+    """Test getting authentication status summary."""
+    summary = get_auth_status_summary()
+    assert isinstance(summary, dict)
+    assert "conda_auth_available" in summary
+    assert "anaconda_auth_available" in summary
+    assert "available_backends" in summary
+    assert "any_backend_available" in summary
+
+    assert isinstance(summary["conda_auth_available"], bool)
+    assert isinstance(summary["anaconda_auth_available"], bool)
+    assert isinstance(summary["available_backends"], list)
+    assert isinstance(summary["any_backend_available"], bool)
+
+
+def test_backend_priority():
+    """Test that conda-auth backend is preferred over anaconda-auth."""
+    manager = AuthenticationManager()
+    if len(manager.backends) >= 2:
+        # conda-auth should be first (preferred)
+        assert manager.backends[0].get_backend_name() == "conda-auth"
+        assert manager.backends[1].get_backend_name() == "anaconda-auth"
+
+
+def test_fallback_behavior():
+    """Test fallback behavior when preferred backend fails."""
+    manager = AuthenticationManager()
+
+    # Mock conda-auth backend to return None
+    if len(manager.backends) >= 2:
+        conda_backend = manager.backends[0]
+        anaconda_backend = manager.backends[1]
+
+        with patch.object(conda_backend, "get_auth_token_for_url", return_value=None):
+            with patch.object(
+                anaconda_backend, "get_auth_token_for_url", return_value="test-token"
+            ):
+                token = manager.get_auth_token_for_url("https://test.com")
+                # Should fall back to anaconda-auth
+                assert token == "test-token"
+
+
+def test_log_authentication_status_with_backends():
+    """Test logging with available backends."""
+    with patch("conda_pypi.auth._auth_manager") as mock_manager:
+        mock_manager.get_available_backends.return_value = ["conda-auth", "anaconda-auth"]
+        mock_manager.get_auth_token_for_url.return_value = "test-token"
+
+        # Should not raise any exceptions
+        log_authentication_status(["https://conda.anaconda.org/test"])
+
+
+def test_log_authentication_status_no_backends():
+    """Test logging when no backends are available."""
+    with patch("conda_pypi.auth._auth_manager") as mock_manager:
+        mock_manager.get_available_backends.return_value = []
+        mock_manager.get_auth_token_for_url.return_value = None
+
+        # Should not raise any exceptions
+        log_authentication_status(["https://conda.anaconda.org/test"])

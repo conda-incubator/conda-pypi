@@ -355,7 +355,7 @@ conda pypi install --index https://conda.anaconda.org/my-channel package-name
 
 ## Authentication with Private Indexes
 
-`conda-pypi` supports authentication with private PyPI indexes using `anaconda-auth`.
+`conda-pypi` supports authentication with private PyPI indexes using both `conda-auth` and `anaconda-auth`.
 
 ### Setup Authentication
 
@@ -363,19 +363,24 @@ conda pypi install --index https://conda.anaconda.org/my-channel package-name
    ```bash
    pip install conda-pypi[auth]
    ```
-   Or install anaconda-auth separately:
+   Or install authentication packages separately:
    ```bash
-   conda install anaconda-auth
+   conda install conda-auth anaconda-auth
    ```
 
-2. **Login to Anaconda**:
+2. **Login using conda-auth**:
+   ```bash
+   conda auth login --at your-domain.com
+   ```
+
+3. **Login using anaconda-auth**:
    ```bash
    anaconda login --at anaconda.com
    ```
 
-3. **Generate Access Token** (if needed):
-   - Navigate to your Anaconda account settings
-   - Create a new token with `conda:download` scope
+4. **Generate Access Token** (if needed):
+   - For conda-auth: Use your system's authentication provider
+   - For anaconda-auth: Navigate to your Anaconda account settings and create a new token with `conda:download` scope
 
 ### Using Private Indexes
 
@@ -396,7 +401,12 @@ conda pypi install --index https://conda.anaconda.org/channel1 --index https://c
 
 ### Authentication Methods
 
-The authentication system automatically detects private indexes and attempts to use `anaconda-auth` tokens when available. Authentication is handled transparently without requiring additional configuration.
+The authentication system automatically detects private indexes and attempts to use available authentication backends in order of preference:
+
+1. **conda-auth**: General authentication system supporting multiple providers
+2. **anaconda-auth**: Anaconda-specific authentication system
+
+Authentication is handled transparently without requiring additional configuration. The system will automatically fall back to available backends if the first method fails.
 
 ## Integration with conda list
 

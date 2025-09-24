@@ -176,19 +176,24 @@ export PIP_TRUSTED_HOST=pypi.org,pypi.python.org,files.pythonhosted.org
 
 **Solutions**:
 ```bash
-# Check if anaconda-auth is installed
-conda list anaconda-auth
+# Check if authentication packages are installed
+conda list conda-auth anaconda-auth
 
 # Install conda-pypi with authentication support
 pip install conda-pypi[auth]
 
-# Or install anaconda-auth separately
-conda install anaconda-auth
+# Or install authentication packages separately
+conda install conda-auth anaconda-auth
 
-# Login to Anaconda
+# Login using conda-auth
+conda auth login --at your-domain.com
+
+# Or login using anaconda-auth
 anaconda login --at anaconda.com
 
 # Verify authentication status
+conda auth --whoami
+# or
 anaconda auth --whoami
 
 # Test with verbose output
@@ -202,12 +207,16 @@ conda pypi install --index https://conda.anaconda.org/my-channel -v package-name
 **Solutions**:
 ```bash
 # Check token status
+conda auth --whoami
+# or
 anaconda auth --whoami
 
 # Re-login if token expired
+conda auth login --at your-domain.com
+# or
 anaconda login --at anaconda.com
 
-# Generate new token in Anaconda account settings
+# Generate new token in your authentication provider's settings
 ```
 
 ### Unsupported private index

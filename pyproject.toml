@@ -32,7 +32,8 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 auth = [
-  "anaconda-auth",                  # authentication for private indexes
+  "conda-auth",                     # general authentication for private indexes
+  "anaconda-auth",                  # authentication for Anaconda systems
 ]
 
 [project.urls]
