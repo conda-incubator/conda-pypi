@@ -47,10 +47,11 @@ if TYPE_CHECKING:
 
 try:
     from .auth import (
-        get_authenticated_index_urls,
         get_auth_token_for_url,
         is_private_index,
         log_authentication_status,
+        download_with_auth_headers,
+        get_authentication_info_for_urls,
     )
 
     AUTH_AVAILABLE = True
@@ -325,14 +326,25 @@ def get_package_finder(prefix: Path, index_urls: list[str] = None) -> PackageFin
         urls = index_urls
         if AUTH_AVAILABLE:
             log_authentication_status(urls)
-            urls = get_authenticated_index_urls(urls)
-            logger.debug(f"Using authenticated URLs: {urls}")
+            logger.debug(f"Using index URLs: {urls}")
     else:
         urls = ["https://pypi.org/simple/"]
 
     search_scope = SearchScope.create(find_links=[], index_urls=urls, no_index=False)
 
     session = PipSession()
+
+    if AUTH_AVAILABLE:
+        auth_info = get_authentication_info_for_urls(urls)
+        for url, token in auth_info.items():
+            if token and is_private_index(url):
+                # Set authentication header on the pip session
+                session.headers["Authorization"] = f"Bearer {token}"
+                logger.debug(
+                    f"Set authentication header for private index: {urlparse(url).netloc}"
+                )
+                break
+
     link_collector = LinkCollector(session=session, search_scope=search_scope)
 
     # Create selection preferences
@@ -391,11 +403,10 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
     if AUTH_AVAILABLE and is_private_index(download_url):
         token = get_auth_token_for_url(download_url)
         if token:
-            parsed = urlparse(download_url)
-            download_url = f"{parsed.scheme}://user:{token}@{parsed.netloc}{parsed.path}"
-            logger.debug(f"Authenticated download URL for {package}")
-
-    download(download_url, target / filename)
+            logger.debug(f"Using header-based authentication for {package}")
+        download_with_auth_headers(download_url, target / filename, token)
+    else:
+        download(download_url, target / filename)
 
 
 def fetch_packages_from_pypi(

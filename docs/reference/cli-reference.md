@@ -340,6 +340,14 @@ of its own:
 - `ANACONDA_AUTH_API_KEY`: Explicit API key (overrides keyring storage)
 - `ANACONDA_AUTH_EXTRA_HEADERS`: Additional HTTP headers in JSON format
 
+#### Authentication Method
+conda-pypi uses **header-based authentication** for secure access to private indexes. This provides better security by:
+- Preventing tokens from appearing in server logs
+- Avoiding token exposure in URL caches
+- Following OAuth 2.0 Bearer Token best practices
+
+Authentication tokens are automatically included in the `Authorization: Bearer <token>` header for private index requests.
+
 #### Conda-Specific Variables
 - `CONDA_TOKEN_REPO_URL`: Repository URL for token management (used with private conda repositories)
 

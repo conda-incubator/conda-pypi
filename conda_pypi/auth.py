@@ -4,6 +4,8 @@ import logging
 from typing import Optional, Dict, Any, List
 from urllib.parse import urlparse
 from abc import ABC, abstractmethod
+from conda.gateways.connection.download import get_session
+from pathlib import Path
 
 try:
     import keyring
@@ -225,25 +227,22 @@ def is_private_index(url: str) -> bool:
     return domain not in ["pypi.org", "files.pythonhosted.org"]
 
 
-def get_authenticated_index_urls(index_urls: list[str]) -> list[str]:
-    """Return URLs with embedded tokens for private indexes."""
-    authenticated_urls = []
+def get_authentication_info_for_urls(index_urls: list[str]) -> Dict[str, Optional[str]]:
+    """Return authentication tokens for private indexes without modifying URLs."""
+    auth_info = {}
 
     for url in index_urls:
         if is_private_index(url):
             token = get_auth_token_for_url(url)
+            auth_info[url] = token
             if token:
-                parsed = urlparse(url)
-                auth_url = f"{parsed.scheme}://user:{token}@{parsed.netloc}{parsed.path}"
-                authenticated_urls.append(auth_url)
-                logger.debug(f"Embedded token in URL for {parsed.netloc}")
+                logger.debug(f"Found authentication token for {urlparse(url).netloc}")
             else:
-                authenticated_urls.append(url)
                 logger.warning(f"No token found for private index {url}")
         else:
-            authenticated_urls.append(url)
+            auth_info[url] = None
 
-    return authenticated_urls
+    return auth_info
 
 
 def get_auth_install_message() -> str:
@@ -277,3 +276,26 @@ def get_auth_status_summary() -> Dict[str, Any]:
         "available_backends": _auth_manager.get_available_backends(),
         "any_backend_available": _auth_manager.is_any_backend_available(),
     }
+
+
+def download_with_auth_headers(url: str, target_path: Path, token: Optional[str] = None) -> None:
+    """
+    Download a file with optional authentication headers using conda's session.
+
+    Args:
+        url: URL to download from
+        target_path: Path where the file should be saved
+        token: Optional authentication token to include in headers
+    """
+    session = get_session(url)
+
+    if token:
+        session.headers["Authorization"] = f"Bearer {token}"
+
+    response = session.get(url, stream=True)
+    response.raise_for_status()
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(target_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
