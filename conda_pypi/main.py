@@ -17,7 +17,7 @@ from typing import Any, Iterable, Literal
 from conda.base.context import context
 from conda.plugins.prefix_data_loaders.pypi.pkg_format import PythonDistribution
 from conda.core.prefix_data import PrefixData
-from conda.exceptions import CondaSystemExit, InvalidVersionSpec
+from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
 from conda.models.match_spec import MatchSpec

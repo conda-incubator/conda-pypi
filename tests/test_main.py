@@ -5,7 +5,7 @@ from conda_pypi.main import run_conda_cli, run_conda_install
 
 def test_run_conda_cli(mocker):
     mock = mocker.patch("conda_pypi.main.run_module")
-    
+
     old_sys_argv = sys.argv
     run_conda_cli()
 
@@ -14,14 +14,16 @@ def test_run_conda_cli(mocker):
 
     # Ensure args are restored
     assert sys.argv == old_sys_argv
-    
+
 
 def test_run_conda_install_basic(mocker):
     mock = mocker.patch("conda_pypi.main.run_conda_cli")
-    
+
     run_conda_install(
         prefix="idontexist",
-        specs=["numpy",]
+        specs=[
+            "numpy",
+        ],
     )
 
     # Ensure conda module is called
@@ -30,10 +32,10 @@ def test_run_conda_install_basic(mocker):
 
 def test_run_conda_install(mocker):
     mock = mocker.patch("conda_pypi.main.run_conda_cli")
-    
+
     run_conda_install(
         prefix="idontexist",
-        specs=["numpy","scipy"],
+        specs=["numpy", "scipy"],
         dry_run=True,
         quiet=True,
         verbosity=2,
@@ -46,5 +48,20 @@ def test_run_conda_install(mocker):
 
     # Ensure conda module is called
     mock.assert_called_once_with(
-        "install", "--prefix", "idontexist", "--dry-run", "--quiet", "-vv", "--force-reinstall", "--yes", "--json", "--channel", "mychannel", "--channel" , "abc", "--override-channels", "numpy", "scipy"
+        "install",
+        "--prefix",
+        "idontexist",
+        "--dry-run",
+        "--quiet",
+        "-vv",
+        "--force-reinstall",
+        "--yes",
+        "--json",
+        "--channel",
+        "mychannel",
+        "--channel",
+        "abc",
+        "--override-channels",
+        "numpy",
+        "scipy",
     )
