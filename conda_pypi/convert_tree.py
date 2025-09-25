@@ -101,7 +101,7 @@ class ConvertTree:
 
     def convert_tree(
         self, requested: List[MatchSpec], max_attempts: int = 20
-    ) -> tuple[tuple[PrefixRecord], tuple[PrefixRecord]] | None:
+    ) -> tuple[tuple[PrefixRecord, ...], tuple[PrefixRecord, ...]] | None:
         """
         Preform a solve on the list of requested packages and converts the full dependency
         tree to conda packages if required. The converted packages will be stored in the
@@ -112,7 +112,7 @@ class ConvertTree:
             max_attempts: max number of times to try to execute the solve.
 
         Returns:
-            tuple[PackageRef], tuple[PackageRef]:
+            tuple[PackageRef, ...], tuple[PackageRef, ...]:
                 A two-tuple of PackageRef sequences.  The first is the group of packages to
                 remove from the environment, in sorted dependency order from leaves to roots.
                 The second is the group of packages to add to the environment, in sorted

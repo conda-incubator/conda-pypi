@@ -37,7 +37,7 @@ logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
 
 
-def run_conda_cli(*cli_args, **env_kwargs):
+def run_conda_cli(*cli_args, **env_kwargs) -> int:
     command = ["conda", *cli_args]
     logger.info("conda command: %s", command)
     try:
@@ -65,7 +65,7 @@ def run_conda_install(
     force_reinstall: bool = False,
     yes: bool = False,
     json: bool = False,
-    channels: Iterable[str] = None,
+    channels: Iterable[str] = (),
     override_channels: bool = False,
 ) -> int:
     command = ["install", "--prefix", str(prefix)]
