@@ -37,7 +37,6 @@ def test_cli_plugin():
 
 
 def test_index_urls(tmp_env, conda_cli, pypi_local_index):
-    print("XXXXX")
     with tmp_env("python=3.10", "pip") as prefix:
         out, err, rc = conda_cli(
             "pypi",
