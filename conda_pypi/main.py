@@ -9,7 +9,7 @@ from csv import reader as csv_reader
 from email.parser import HeaderParser
 from logging import getLogger
 from pathlib import Path
-import runpy
+from runpy import run_module
 from subprocess import run, CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
@@ -45,7 +45,7 @@ def run_conda_cli(*cli_args, **env_kwargs):
         old_env = os.environ.copy()
         os.environ.update(env_kwargs)
         sys.argv = command
-        runpy.run_module("conda", run_name="__main__")
+        run_module("conda", run_name="__main__")
     except SystemExit as exc:
         logger.info("conda command system exit:", exc_info=True)
         return exc.code
