@@ -93,7 +93,7 @@ def execute(args: Namespace) -> int:
     channel_url = converter.repo.as_uri()
 
     # Install converted packages to current conda environment
-    run_conda_install(
+    return run_conda_install(
         prefix_path,
         match_specs,
         channels=[channel_url],
@@ -103,5 +103,3 @@ def execute(args: Namespace) -> int:
         verbosity=args.verbosity,
         dry_run=args.dry_run,
     )
-
-    return 0

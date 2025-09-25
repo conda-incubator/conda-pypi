@@ -37,6 +37,25 @@ logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
 
 
+def run_conda_cli(*cli_args, **env_kwargs):
+    command = ["conda", *cli_args]
+    logger.info("conda command: %s", command)
+    try:
+        old_argv = sys.argv[:]
+        old_env = os.environ.copy()
+        os.environ.update(env_kwargs)
+        sys.argv = command
+        runpy.run_module("conda", run_name="__main__")
+    except SystemExit as exc:
+        logger.info("conda command system exit:", exc_info=True)
+        return exc.code
+    else:
+        return 0
+    finally:
+        sys.argv[:] = old_argv[:]
+        os.environ = old_env
+
+
 def run_conda_install(
     prefix: Path,
     specs: Iterable[MatchSpec],
@@ -49,10 +68,7 @@ def run_conda_install(
     channels: Iterable[str] = None,
     override_channels: bool = False,
 ) -> int:
-    if not specs:
-        return 0
-
-    command = ["conda", "install", "--prefix", str(prefix)]
+    command = ["install", "--prefix", str(prefix)]
     if dry_run:
         command.append("--dry-run")
     if quiet:
@@ -74,20 +90,7 @@ def run_conda_install(
 
     command.extend(str(spec) for spec in specs)
 
-    logger.info("conda install command: %s", command)
-    try:
-        old_argv = sys.argv[:]
-        sys.argv = command
-        runpy.run_module("conda", run_name="__main__")
-    except SystemExit as exception:
-        logger.info("Error running conda command!", exc_info=True)
-    finally:
-        sys.argv[:] = old_argv[:]
-
-    # If there was no error, the conda command exited successfully.
-    # The return code is 0. 
-    return 0
-
+    return run_conda_cli(*command)
 
 
 def run_pip_install(
