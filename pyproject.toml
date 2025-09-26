@@ -65,7 +65,7 @@ conda-index = "*"
 dev = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()"'
 
 [tool.pixi.feature.build]
-dependencies = { conda-build = "*" }
+dependencies = { anaconda-client = "*", conda-build = "*" }
 tasks = { build = "conda build recipe" }
 
 [tool.pixi.feature.docs.tasks]
