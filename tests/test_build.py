@@ -46,5 +46,3 @@ def test_build_conda_package(
         # Ensure that the path.json file matches the packages up paths
         for path in paths_json_paths:
             assert path in included_package_paths
-        
-
