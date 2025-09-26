@@ -59,8 +59,8 @@ Technical architecture and plugin system design
 
 ::::{grid} 2
 
-:::{grid-item-card} 📚 CLI Reference
-:link: reference/cli-reference
+:::{grid-item-card} 📚 Commands
+:link: reference/commands/index
 :link-type: doc
 Complete command-line interface documentation
 :::
@@ -89,7 +89,7 @@ modules
 changelog
 developer/architecture
 developer/developer-notes
-reference/cli-reference
+reference/commands/index
 reference/troubleshooting
 reference/conda-channels-naming-analysis
 ```
