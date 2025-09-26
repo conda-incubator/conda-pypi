@@ -9,12 +9,15 @@ import sysconfig
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+import logging
 
 from conda.cli.main import main_subshell
 from conda.core.package_cache_data import PackageCacheData
 from installer import install
 from installer.destinations import SchemeDictionaryDestination
 from installer.sources import WheelFile
+
+log = logging.getLogger(__name__)
 
 
 def install_installer(python_executable: str, whl: Path, build_path: Path):
@@ -48,7 +51,7 @@ def install_pip(python_executable: str, whl: Path, build_path: Path):
         whl,
     ]
     subprocess.run(command, check=True)
-    print("Installed to", build_path)
+    log.debug(f"Installed to {build_path}")
 
 
 def install_ephemeral_conda(prefix: Path, package: Path):

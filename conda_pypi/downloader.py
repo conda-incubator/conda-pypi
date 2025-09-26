@@ -4,6 +4,7 @@ Fetch matching wheels from pypi.
 
 from pathlib import Path
 from collections.abc import Iterable
+import logging
 
 from conda.core.prefix_data import PrefixData
 from conda.gateways.connection.download import download
@@ -12,6 +13,8 @@ from unearth import PackageFinder, TargetPython
 
 from conda_pypi.exceptions import CondaPypiError
 from conda_pypi.translate import conda_to_requires
+
+log = logging.getLogger(__name__)
 
 DEFAULT_INDEX_URLS = ("https://pypi.org/simple/",)
 
@@ -57,5 +60,5 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
     if not link:
         raise CondaPypiError(f"No PyPI link for {package}")
     filename = link.url_without_fragment.rsplit("/", 1)[-1]
-    print(f"Fetch {package} as {filename}")
+    log.info(f"Fetch {package} as {filename}")
     download(link.url, target / filename)
