@@ -134,7 +134,7 @@ def build_conda(
     python_executable,
     project_path: Optional[Path] = None,
     is_editable=False,
-):
+) -> Path:
     if not build_path.exists():
         build_path.mkdir()
 
