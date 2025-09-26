@@ -9,6 +9,7 @@ from csv import reader as csv_reader
 from email.parser import HeaderParser
 from logging import getLogger
 from pathlib import Path
+from runpy import run_module
 from subprocess import run, CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
@@ -19,6 +20,7 @@ from conda.core.prefix_data import PrefixData
 from conda.exceptions import InvalidVersionSpec
 from conda.gateways.disk.read import compute_sum
 from conda.models.enums import PackageType
+from conda.models.match_spec import MatchSpec
 from conda.models.records import PackageRecord
 from conda.exceptions import CondaError
 from packaging.requirements import Requirement
@@ -33,6 +35,62 @@ from conda_pypi.python_paths import (
 
 logger = getLogger(f"conda.{__name__}")
 HERE = Path(__file__).parent.resolve()
+
+
+def run_conda_cli(*cli_args, **env_kwargs) -> int:
+    command = ["conda", *cli_args]
+    logger.info("conda command: %s", command)
+    try:
+        old_argv = sys.argv[:]
+        old_env = os.environ.copy()
+        os.environ.update(env_kwargs)
+        sys.argv = command
+        run_module("conda", run_name="__main__")
+    except SystemExit as exc:
+        logger.info("conda command system exit:", exc_info=True)
+        return exc.code
+    else:
+        return 0
+    finally:
+        sys.argv[:] = old_argv[:]
+        os.environ = old_env
+
+
+def run_conda_install(
+    prefix: Path,
+    specs: Iterable[MatchSpec],
+    dry_run: bool = False,
+    quiet: bool = False,
+    verbosity: int = 0,
+    force_reinstall: bool = False,
+    yes: bool = False,
+    json: bool = False,
+    channels: Iterable[str] = (),
+    override_channels: bool = False,
+) -> int:
+    command = ["install", "--prefix", str(prefix)]
+    if dry_run:
+        command.append("--dry-run")
+    if quiet:
+        command.append("--quiet")
+    if verbosity:
+        command.append("-" + ("v" * verbosity))
+    if force_reinstall:
+        command.append("--force-reinstall")
+    if yes:
+        command.append("--yes")
+    if json:
+        command.append("--json")
+    if channels:
+        for channel in channels:
+            command.append("--channel")
+            command.append(channel)
+    if override_channels:
+        command.append("--override-channels")
+
+    command.extend(str(spec) for spec in specs)
+
+    return run_conda_cli(*command)
 
 
 def run_pip_install(
