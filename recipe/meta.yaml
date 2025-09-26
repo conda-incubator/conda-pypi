@@ -28,7 +28,7 @@ requirements:
     - importlib_resources  # [py<39]
   run:
     - python
-    - conda >=25.7.0
+    - conda >=23.9.0
     - pip >=23.0.1
     - grayskull
     - importlib_resources  # [py<39]
@@ -45,8 +45,6 @@ requirements:
     - conda-package-streaming
 
 test:
-  requires:
-    - conda >=25.7.0
   imports:
     - conda_pypi
     - conda_pypi.main
