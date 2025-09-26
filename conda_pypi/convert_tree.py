@@ -176,8 +176,6 @@ class ConvertTree:
                 update_index(repo)
             else:
                 log.debug(f"Exceeded maximum of {max_attempts} attempts")
-                return
+                return None
 
-            print("Solution", changes)
-
-            print(f"Install with conda install -c {repo.as_uri()} {requested}")
+            return changes

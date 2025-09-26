@@ -26,6 +26,11 @@ def do_not_notify_outdated_conda(monkeypatch):
 
 
 @pytest.fixture(scope="session")
+def pypi_demo_package_wheel_path() -> Path:
+    return HERE / "pypi_local_index" / "demo-package" / "demo_package-0.1.0-py3-none-any.whl"
+
+
+@pytest.fixture(scope="session")
 def pypi_local_index(xprocess):
     """
     Runs a local PyPI index by serving the folder "tests/pypi_local_index"

@@ -18,6 +18,8 @@ from typing import Union, Optional
 import logging
 
 from conda_package_streaming.create import conda_builder
+from conda.common.path.windows import win_path_to_unix
+from conda.common.compat import on_win
 
 from build import ProjectBuilder
 
@@ -58,8 +60,9 @@ def paths_json(base: Union[Path, str]):
 
 def _paths(base, path, filter=lambda x: x.name != ".git"):
     for entry in os.scandir(path):
-        # TODO convert \\ to /
         relative_path = entry.path[len(base) :]
+        if on_win:
+            relative_path = win_path_to_unix(relative_path)
         if relative_path == "info" or not filter(entry):
             continue
         if entry.is_dir():
@@ -134,7 +137,7 @@ def build_conda(
     python_executable,
     project_path: Optional[Path] = None,
     is_editable=False,
-):
+) -> Path:
     if not build_path.exists():
         build_path.mkdir()
 
