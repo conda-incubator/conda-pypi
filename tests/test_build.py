@@ -16,12 +16,11 @@ def test_build_conda_package(
 ):
     build_path = tmp_path / "build"
     build_path.mkdir()
-    
+
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
 
     target_package_path = repo_path / "demo-package-0.1.0-pypi_0.conda"
-
 
     with tmp_env("python=3.12", "pip") as prefix:
         conda_package_path = build_conda(
@@ -34,8 +33,10 @@ def test_build_conda_package(
         assert conda_package_path is not None
 
         # Get a list of all the files in the package
-        included_package_paths = [mm.name for _, mm in package_streaming.stream_conda_component(target_package_path)]
-        
+        included_package_paths = [
+            mm.name for _, mm in package_streaming.stream_conda_component(target_package_path)
+        ]
+
         # Get the list of all the paths listed in the paths.json file
         for tar, member in package_streaming.stream_conda_info(target_package_path):
             if member.name == "info/paths.json":

@@ -16,11 +16,7 @@ from conda_pypi.downloader import get_package_finder
 REPO = Path(__file__).parents[1] / "synthetic_repo"
 
 
-def test_multiple(
-    tmp_env: TmpEnvFixture,
-    tmp_path: Path, 
-    monkeypatch: MockerFixture
-):
+def test_multiple(tmp_env: TmpEnvFixture, tmp_path: Path, monkeypatch: MockerFixture):
     """
     Install multiple only-available-from-pypi dependencies into an environment.
     """
@@ -44,7 +40,7 @@ def test_multiple(
 
 def test_convert_local_pypi_package(
     tmp_env: TmpEnvFixture,
-    tmp_path: Path, 
+    tmp_path: Path,
     monkeypatch: MockerFixture,
     pypi_local_index: str,
 ):
@@ -66,14 +62,9 @@ def test_convert_local_pypi_package(
 
     with tmp_env("python=3.12", "pip") as prefix:
         finder = get_package_finder(prefix, (pypi_local_index,))
-        converter = ConvertTree(
-            prefix,
-            repo=REPO,
-            override_channels=True,
-            finder = finder
-        )
+        converter = ConvertTree(prefix, repo=REPO, override_channels=True, finder=finder)
         changes = converter.convert_tree([TARGET_DEP])
 
         assert len(changes[0]) == 0
         assert len(changes[1]) == 1
-        assert changes[1][0].name == "demo-package" 
+        assert changes[1][0].name == "demo-package"
