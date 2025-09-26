@@ -42,7 +42,7 @@ def test_index_urls(tmp_env, conda_cli, pypi_local_index):
             "pypi",
             "--prefix",
             prefix,
-             "--yes",
+            "--yes",
             "install",
             "--override-channels",
             "--index-url",
