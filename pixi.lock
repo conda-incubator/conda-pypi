@@ -7835,8 +7835,8 @@ packages:
   timestamp: 1751548225624
 - pypi: ./
   name: conda-pypi
-  version: 0.2.1.dev84+g63b353ca1
-  sha256: d34b587f7984cca1081c34d3a40cc00738bc4ea417dcb81edb2bb56b5c4140f8
+  version: 0.2.1.dev86+gee7d71034
+  sha256: 8fdd7d548a60007076abc481e3f6fff194d4a40b0be23533453b7f36715aeb0d
   requires_dist:
   - build
   - grayskull
