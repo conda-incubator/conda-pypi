@@ -63,6 +63,9 @@ jobs:
   build-conda:
     name: Build conda package (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
     strategy:
       fail-fast: false
       matrix:
@@ -100,7 +103,6 @@ jobs:
           pixi run --environment build dev
       - name: Debug conda environment
         run: |
-          set -euo pipefail
           pixi run --environment build conda info
           pixi run --environment build conda config --show-sources
           pixi run --environment build conda list
@@ -117,18 +119,17 @@ jobs:
           && github.ref_name == 'main'
         shell: bash
         run: |
-          set -euo pipefail
-          SEARCH_ROOT="$CONDA_BLD_PATH/${{ matrix.subdir }}"
-          if [[ ! -d "$SEARCH_ROOT" ]]; then
-            echo "Expected build output directory $SEARCH_ROOT not found" >&2
+          search_root="$CONDA_BLD_PATH/${{ matrix.subdir }}"
+          if [[ ! -d "$search_root" ]]; then
+            echo "Expected build output directory $search_root not found" >&2
             exit 1
           fi
 
-          mapfile -t packages < <(find "$SEARCH_ROOT" -type f \
+          mapfile -t packages < <(find "$search_root" -type f \
             \( -name "${PACKAGE_NAME}-*.conda" -o -name "${PACKAGE_NAME}-*.tar.bz2" \) | sort)
 
           if [[ ${#packages[@]} -eq 0 ]]; then
-            echo "No conda packages found in $SEARCH_ROOT" >&2
+            echo "No conda packages found in $search_root" >&2
             exit 1
           fi
 
