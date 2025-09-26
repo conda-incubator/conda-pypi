@@ -109,7 +109,12 @@ jobs:
       - name: Build recipe
         run: pixi run --environment build build
       - name: Upload to conda-canary
-        if: github.event_name == 'push'
+        # Only publish canary builds after successful pushes to main on the canonical repo
+        if: >-
+          github.event_name == 'push'
+          && !cancelled()
+          && !github.event.repository.fork
+          && github.ref_name == 'main'
         shell: bash
         run: |
           set -euo pipefail
