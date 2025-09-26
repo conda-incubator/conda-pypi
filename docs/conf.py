@@ -30,20 +30,19 @@ author = "conda-pypi contributors"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
     "myst_parser",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.autosummary",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.graphviz",
     "sphinx.ext.ifconfig",
     "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
-    "sphinx_sitemap",
-    "sphinx_design",
     "sphinx_copybutton",
+    "sphinx_design",
     "sphinx_reredirects",
+    "sphinx_sitemap",
+    "sphinxarg.ext",
 ]
 
 # Autodoc configuration
