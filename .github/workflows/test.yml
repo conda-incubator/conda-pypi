@@ -109,6 +109,8 @@ jobs:
       - name: Clean conda cache
         run: pixi run --environment build conda clean --all --yes
       - name: Build recipe
+        env:
+          _CONDA_BUILD_ISOLATED_ACTIVATION: "1"
         run: pixi run --environment build build
       - name: Upload to conda-canary
         # Only publish canary builds after successful pushes to main on the canonical repo
