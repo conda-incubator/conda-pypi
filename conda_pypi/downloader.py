@@ -3,18 +3,23 @@ Fetch matching wheels from pypi.
 """
 
 from pathlib import Path
+from collections.abc import Iterable
 
 from conda.core.prefix_data import PrefixData
 from conda.gateways.connection.download import download
 from conda.models.match_spec import MatchSpec
 from unearth import PackageFinder, TargetPython
 
+from conda_pypi.exceptions import CondaPypiError
 from conda_pypi.translate import conda_to_requires
 
-from conda_pypi.exceptions import CondaPypiError
+DEFAULT_INDEX_URLS = ("https://pypi.org/simple/",)
 
 
-def get_package_finder(prefix: Path):
+def get_package_finder(
+    prefix: Path,
+    index_urls: Iterable[str] = DEFAULT_INDEX_URLS,
+) -> PackageFinder:
     """
     Finder with prefix's Python, not our Python.
     """
@@ -28,7 +33,7 @@ def get_package_finder(prefix: Path):
     return PackageFinder(
         target_python=target_python,
         only_binary=":all:",
-        index_urls=["https://pypi.org/simple/"],
+        index_urls=index_urls,
     )
 
 
