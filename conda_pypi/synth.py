@@ -122,7 +122,6 @@ def create_api(
                 full_name, package, whl_url = extract_version_of_project(
                     project_page, version, populate, noarch_dir
                 )
-                # print(package)
                 conda_style_packages.update({full_name: package})
 
     except Exception as e:

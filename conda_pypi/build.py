@@ -15,6 +15,7 @@ import tempfile
 from importlib.metadata import PathDistribution
 from pathlib import Path
 from typing import Union, Optional
+import logging
 
 from conda_package_streaming.create import conda_builder
 
@@ -23,6 +24,9 @@ from build import ProjectBuilder
 from conda_pypi import dependencies, installer, paths
 from conda_pypi.conda_build_utils import PathType, sha256_checksum
 from conda_pypi.translate import CondaMetadata
+
+
+log = logging.getLogger(__name__)
 
 
 def filter(tarinfo):
@@ -72,7 +76,7 @@ def _paths(base, path, filter=lambda x: x.name != ".git"):
                 "size_in_bytes": st_size,
             }
         else:
-            print("Not regular file", entry)
+            log.debug(f"Not regular file '{entry}'")
             # will Python's tarfile add pipes, device nodes to the archive?
 
 
@@ -109,16 +113,16 @@ def build_pypa(
         except dependencies.MissingDependencyError as e:
             dependencies.ensure_requirements(e.dependencies, prefix=prefix)
 
-    print("Installing requirements for build system:", missing)
+    log.debug(f"Installing requirements for build system: {missing}")
     # does flatten() work for a deeper dependency chain?
     dependencies.ensure_requirements(flatten(missing), prefix=prefix)
 
     requirements = builder.check_dependencies(distribution)
-    print(f"Additional requirements for {distribution}:", requirements)
+    log.debug(f"Additional requirements for {distribution}: {requirements}")
     dependencies.ensure_requirements(flatten(requirements), prefix=prefix)
 
     editable_file = builder.build(distribution, output_path)
-    print("The wheel is at", editable_file)
+    log.debug(f"The wheel is at {editable_file}")
 
     return editable_file
 

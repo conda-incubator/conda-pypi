@@ -137,10 +137,10 @@ class ConvertTree:
                     break
                 except conda.exceptions.PackagesNotFoundError as e:
                     missing_packages = set(e._kwargs["packages"])
-                    print(missing_packages)
+                    log.debug(f"Missing packages: {missing_packages}")
                 except LibMambaUnsatisfiableError as e:
                     # parse message
-                    print("Unsatisfiable", e)
+                    log.debug("Unsatisfiable: %r", e)
                     missing_packages.update(set(parse_libmamba_error(e.message)))
 
                 for package in sorted(missing_packages - fetched_packages):
@@ -151,7 +151,7 @@ class ConvertTree:
                     if normal_wheel in converted:
                         continue
 
-                    print("Convert", normal_wheel)
+                    log.debug(f"Converting '{normal_wheel}'")
 
                     build_path = tmp_path / normal_wheel.stem
                     build_path.mkdir()
@@ -164,18 +164,18 @@ class ConvertTree:
                             self.python_exe,
                             is_editable=False,
                         )
-                        print("Conda at", package_conda)
+                        log.debug("Conda at", package_conda)
                     except FileExistsError:
-                        print(
-                            "Tried to convert wheel that is already conda-ized",
-                            normal_wheel,
+                        log.debug(
+                            f"Tried to convert wheel that is already conda-ized: {normal_wheel}",
+                            exc_info=True,
                         )
 
                     converted.add(normal_wheel)
 
                 update_index(repo)
             else:
-                print(f"Exceeded maximum of {max_attempts} attempts")
+                log.debug(f"Exceeded maximum of {max_attempts} attempts")
                 return
 
             print("Solution", changes)
