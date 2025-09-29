@@ -9,12 +9,12 @@ from csv import reader as csv_reader
 from email.parser import HeaderParser
 from logging import getLogger
 from pathlib import Path
-from runpy import run_module
 from subprocess import run, CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterable, Literal
 
 from conda.base.context import context
+from conda.cli.main import main_subshell
 from conda.plugins.prefix_data_loaders.pypi.pkg_format import PythonDistribution
 from conda.core.prefix_data import PrefixData
 from conda.exceptions import InvalidVersionSpec
@@ -38,22 +38,14 @@ HERE = Path(__file__).parent.resolve()
 
 
 def run_conda_cli(*cli_args, **env_kwargs) -> int:
-    command = ["conda", *cli_args]
-    logger.info("conda command: %s", command)
+    logger.info("conda command: '%s'", " ".join(cli_args))
     try:
-        old_argv = sys.argv[:]
-        old_env = os.environ.copy()
-        os.environ.update(env_kwargs)
-        sys.argv = command
-        run_module("conda", run_name="__main__")
+        main_subshell(*cli_args)
     except SystemExit as exc:
         logger.info("conda command system exit:", exc_info=True)
         return exc.code
     else:
         return 0
-    finally:
-        sys.argv[:] = old_argv[:]
-        os.environ = old_env
 
 
 def run_conda_install(

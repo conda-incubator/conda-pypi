@@ -108,15 +108,14 @@ class ConvertTree:
         local conda-pypi channel.
 
         Args:
-            requested: List[MatchSpec]: The list of requested packages.
+            requested: The list of requested packages.
             max_attempts: max number of times to try to execute the solve.
 
         Returns:
-            tuple[PackageRef, ...], tuple[PackageRef, ...]:
-                A two-tuple of PackageRef sequences.  The first is the group of packages to
-                remove from the environment, in sorted dependency order from leaves to roots.
-                The second is the group of packages to add to the environment, in sorted
-                dependency order from roots to leaves.
+            A two-tuple of PackageRef sequences.  The first is the group of packages to
+            remove from the environment, in sorted dependency order from leaves to roots.
+            The second is the group of packages to add to the environment, in sorted
+            dependency order from roots to leaves.
 
         """
         (self.repo / "noarch").mkdir(parents=True, exist_ok=True)

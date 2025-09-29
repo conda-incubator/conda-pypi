@@ -1,19 +1,14 @@
-import sys
-
 from conda_pypi.main import run_conda_cli, run_conda_install
 
 
 def test_run_conda_cli(mocker):
-    mock = mocker.patch("conda_pypi.main.run_module")
+    mock = mocker.patch("conda_pypi.main.main_subshell")
 
-    old_sys_argv = sys.argv
-    run_conda_cli()
+    args = ["install", "--prefix", "/path/to/prefix"]
+    run_conda_cli(*args)
 
     # Ensure conda module is called
-    mock.assert_called_once_with("conda", run_name="__main__")
-
-    # Ensure args are restored
-    assert sys.argv == old_sys_argv
+    mock.assert_called_once_with(*args)
 
 
 def test_run_conda_install_basic(mocker):
