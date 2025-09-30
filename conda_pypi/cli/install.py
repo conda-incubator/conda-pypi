@@ -40,6 +40,10 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
             conda pypi install --override-channels fastapi
 
+        Install packages from an alternative package index URL::
+
+            conda pypi install --index-url https://example.com/simple fastapi
+
         """
     )
     install = parser.add_parser(
