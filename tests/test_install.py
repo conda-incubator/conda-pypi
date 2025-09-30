@@ -14,21 +14,20 @@ from conda.testing.fixtures import TmpEnvFixture, CondaCLIFixture
 from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 
-@pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
 @pytest.mark.parametrize(
     "pypi_spec,conda_spec,channel",
     [
         ("numpy", "", "conda-forge"),
         ("numpy=1.20", "", "conda-forge"),
-        # build was originally published as build in conda-forge
-        # and later renamed to python-build; conda-forge::build is
-        # only available til 0.7, but conda-forge::python-build has 1.x
-        ("build>=1", "python-build>=1", "conda-forge"),
-        # ib-insync is only available with dashes, not with underscores
-        ("ib_insync", "ib-insync", "conda-forge"),
-        # these won't be ever published in conda-forge, I guess
-        ("aaargh", None, "pypi"),
-        ("5-exercise-upload-to-pypi", None, "pypi"),
+        # # build was originally published as build in conda-forge
+        # # and later renamed to python-build; conda-forge::build is
+        # # only available til 0.7, but conda-forge::python-build has 1.x
+        # ("build>=1", "python-build>=1", "conda-forge"),
+        # # ib-insync is only available with dashes, not with underscores
+        # ("ib_insync", "ib-insync", "conda-forge"),
+        # # these won't be ever published in conda-forge, I guess
+        # ("aaargh", None, "pypi"),
+        # ("5-exercise-upload-to-pypi", None, "pypi"),
     ],
 )
 def test_conda_pypi_install(
@@ -37,16 +36,9 @@ def test_conda_pypi_install(
     pypi_spec: str,
     conda_spec: str,
     channel: str,
-    backend: str,
 ):
-    # Skip grayskull tests on Python < 3.10 due to grayskull dependency issues
-    if backend == "grayskull" and sys.version_info < (3, 10):
-        pytest.skip(
-            "Grayskull requires Python 3.10+ due to union type annotations in dependencies"
-        )
-
     conda_spec = conda_spec or pypi_spec
-    with tmp_env("python=3.9", "pip") as prefix:
+    with tmp_env("python=3.9") as prefix:
         out, err, rc = conda_cli(
             "pypi",
             "-p",
@@ -89,7 +81,7 @@ def test_spec_normalization(
             print(out)
             print(err, file=sys.stderr)
             assert rc == 0
-            assert "All packages are already installed." in out + err
+            assert "All requested packages already installed." in out
 
 
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
