@@ -29,6 +29,7 @@ from unearth import PackageFinder
 from conda_pypi.build import build_conda
 from conda_pypi.downloader import find_and_fetch, get_package_finder
 from conda_pypi.index import update_index
+from conda_pypi.utils import SuppressOutput
 
 log = logging.getLogger(__name__)
 
@@ -154,7 +155,8 @@ class ConvertTree:
             while len(fetched_packages) < max_attempts and attempts < max_attempts:
                 attempts += 1
                 try:
-                    changes = solver.solve_for_diff()
+                    with SuppressOutput():
+                        changes = solver.solve_for_diff()
                     break
                 except conda.exceptions.PackagesNotFoundError as e:
                     missing_packages = set(e._kwargs["packages"])

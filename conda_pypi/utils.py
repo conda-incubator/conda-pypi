@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import sys
+
 from logging import getLogger
 from pathlib import Path
 from typing import Iterator
@@ -32,3 +34,13 @@ def pypi_spec_variants(spec_str: str) -> Iterator[str]:
         if name_variant not in seen:  # only yield if actually different
             yield str(MatchSpec(spec, name=name_variant))
             seen.add(name_variant)
+
+
+class SuppressOutput:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
