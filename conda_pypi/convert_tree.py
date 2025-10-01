@@ -18,17 +18,20 @@ from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
 from conda.models.records import PrefixRecord
+from conda.reporters import get_spinner
 from conda_libmamba_solver.solver import (
     LibMambaIndexHelper,
     LibMambaSolver,
     LibMambaUnsatisfiableError,
     SolverInputState,
 )
+
 from unearth import PackageFinder
 
 from conda_pypi.build import build_conda
 from conda_pypi.downloader import find_and_fetch, get_package_finder
 from conda_pypi.index import update_index
+from conda_pypi.utils import SuppressOutput
 
 log = logging.getLogger(__name__)
 
@@ -49,6 +52,8 @@ class ReloadingLibMambaSolver(LibMambaSolver):
     Reload channels as we add newly converted packages.
     LibMambaIndexHelper appears to be addressing C++ singletons or global state.
     """
+
+    collected_metadata = False
 
     def _collect_all_metadata(
         self,
@@ -71,7 +76,7 @@ class ReloadingLibMambaSolver(LibMambaSolver):
             # XXX filter by local channel we update
             index.reload_channel(channel)
         return index
-
+    
 
 # import / pupate / transmogrify / ...
 class ConvertTree:
@@ -95,9 +100,88 @@ class ConvertTree:
         if not finder:
             finder = self.default_package_finder()
         self.finder = finder
+    
+    def _convert_loop(
+        self,
+        max_attempts: int,
+        solver: LibMambaSolver,
+        tmp_path: Path,
+    ) -> tuple[tuple[PrefixRecord, ...], tuple[PrefixRecord, ...]] | None:
+        converted = set()
+        fetched_packages = set()
+        missing_packages = set()
+        attempts = 0
+
+        repo = self.repo
+        wheel_dir = tmp_path / "wheels"
+        wheel_dir.mkdir(exist_ok=True)
+        
+        while len(fetched_packages) < max_attempts and attempts < max_attempts:
+            attempts += 1
+            try:
+                with SuppressOutput():
+                    changes = solver.solve_for_diff()
+                break
+            except conda.exceptions.PackagesNotFoundError as e:
+                missing_packages = set(e._kwargs["packages"])
+                log.debug(f"Missing packages: {missing_packages}")
+            except LibMambaUnsatisfiableError as e:
+                # parse message
+                log.debug("Unsatisfiable: %r", e)
+                missing_packages.update(set(parse_libmamba_error(e.message)))
+
+            for package in sorted(missing_packages - fetched_packages):
+                find_and_fetch(self.finder, wheel_dir, package)
+                fetched_packages.add(package)
+
+            for normal_wheel in wheel_dir.glob("*.whl"):
+                if normal_wheel in converted:
+                    continue
+
+                log.debug(f"Converting '{normal_wheel}'")
+
+                build_path = tmp_path / normal_wheel.stem
+                build_path.mkdir()
+
+                try:
+                    package_conda = build_conda(
+                        normal_wheel,
+                        build_path,
+                        repo / "noarch",  # XXX could be arch
+                        self.python_exe,
+                        is_editable=False,
+                    )
+                    log.debug("Conda at", package_conda)
+                except FileExistsError:
+                    log.debug(
+                        f"Tried to convert wheel that is already conda-ized: {normal_wheel}",
+                        exc_info=True,
+                    )
+
+                converted.add(normal_wheel)
+
+            update_index(repo)
+        else:
+            log.debug(f"Exceeded maximum of {max_attempts} attempts")
+            return None
+        return changes
 
     def default_package_finder(self):
         return get_package_finder(self.prefix)
+    
+    def _get_converting_spinner_message(self, channels) -> str:
+        pypi_index_names_dashed = "\n - ".join(s.get("url") for s in self.finder.sources if s.get("type") == "index")
+
+        canonical_names = list(dict.fromkeys([Channel(c).canonical_name for c in channels]))
+        canonical_names_dashed = "\n - ".join(canonical_names)
+        return (
+            "Inspecting pypi and conda dependencies\n"
+            "PYPI index channels:\n"
+            f" - {pypi_index_names_dashed}\n"
+            "Conda channels:\n"
+            f" - {canonical_names_dashed}\n"
+            "Converting required pypi packages"
+        )
 
     def convert_tree(
         self, requested: List[MatchSpec], max_attempts: int = 20
@@ -124,7 +208,6 @@ class ConvertTree:
 
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = pathlib.Path(tmp_path)
-            repo = self.repo
 
             WHEEL_DIR = tmp_path / "wheels"
             WHEEL_DIR.mkdir(exist_ok=True)
@@ -132,7 +215,7 @@ class ConvertTree:
             prefix = pathlib.Path(self.prefix)
             assert prefix.exists()
 
-            local_channel = Channel(repo.as_uri())
+            local_channel = Channel(self.repo.as_uri())
 
             if not self.override_channels:
                 channels = [local_channel, *context.channels]
@@ -147,56 +230,11 @@ class ConvertTree:
                 [],
             )
 
-            converted = set()
-            fetched_packages = set()
-            missing_packages = set()
-            attempts = 0
-            while len(fetched_packages) < max_attempts and attempts < max_attempts:
-                attempts += 1
-                try:
-                    changes = solver.solve_for_diff()
-                    break
-                except conda.exceptions.PackagesNotFoundError as e:
-                    missing_packages = set(e._kwargs["packages"])
-                    log.debug(f"Missing packages: {missing_packages}")
-                except LibMambaUnsatisfiableError as e:
-                    # parse message
-                    log.debug("Unsatisfiable: %r", e)
-                    missing_packages.update(set(parse_libmamba_error(e.message)))
-
-                for package in sorted(missing_packages - fetched_packages):
-                    find_and_fetch(self.finder, WHEEL_DIR, package)
-                    fetched_packages.add(package)
-
-                for normal_wheel in WHEEL_DIR.glob("*.whl"):
-                    if normal_wheel in converted:
-                        continue
-
-                    log.debug(f"Converting '{normal_wheel}'")
-
-                    build_path = tmp_path / normal_wheel.stem
-                    build_path.mkdir()
-
-                    try:
-                        package_conda = build_conda(
-                            normal_wheel,
-                            build_path,
-                            repo / "noarch",  # XXX could be arch
-                            self.python_exe,
-                            is_editable=False,
-                        )
-                        log.debug("Conda at", package_conda)
-                    except FileExistsError:
-                        log.debug(
-                            f"Tried to convert wheel that is already conda-ized: {normal_wheel}",
-                            exc_info=True,
-                        )
-
-                    converted.add(normal_wheel)
-
-                update_index(repo)
-            else:
-                log.debug(f"Exceeded maximum of {max_attempts} attempts")
-                return None
-
+            with get_spinner(self._get_converting_spinner_message(channels)):
+                changes = self._convert_loop(
+                    max_attempts=max_attempts,
+                    solver=solver,
+                    tmp_path=tmp_path
+                )
+           
             return changes
