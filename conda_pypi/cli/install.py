@@ -101,7 +101,7 @@ def execute(args: Namespace) -> int:
         prefix_path,
         match_specs,
         channels=[channel_url],
-        override_channels=False,
+        override_channels=args.override_channels,
         yes=args.yes,
         quiet=args.quiet,
         verbosity=args.verbosity,
