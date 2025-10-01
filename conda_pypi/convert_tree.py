@@ -53,8 +53,6 @@ class ReloadingLibMambaSolver(LibMambaSolver):
     LibMambaIndexHelper appears to be addressing C++ singletons or global state.
     """
 
-    collected_metadata = False
-
     def _collect_all_metadata(
         self,
         channels: Iterable[Channel],
@@ -119,6 +117,7 @@ class ConvertTree:
         while len(fetched_packages) < max_attempts and attempts < max_attempts:
             attempts += 1
             try:
+                # suppress messages coming from the solver
                 with SuppressOutput():
                     changes = solver.solve_for_diff()
                 break

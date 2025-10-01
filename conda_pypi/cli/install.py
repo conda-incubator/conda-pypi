@@ -93,8 +93,20 @@ def execute(args: Namespace) -> int:
 
     # Convert package strings to MatchSpec objects
     match_specs = [MatchSpec(pkg) for pkg in args.packages]
-    converter.convert_tree(match_specs)
+    changes = converter.convert_tree(match_specs)
     channel_url = converter.repo.as_uri()
+
+    packages_to_install = changes[1]
+    converted_packages = [str(pkg.to_simple_match_spec()) for pkg in packages_to_install if pkg.channel.canonical_name == channel_url]
+    if converted_packages:
+        converted_packages_dashed = "\n - ".join(converted_packages)
+        print(
+            "Converted packages\n"
+            f" - {converted_packages_dashed}\n"
+        )
+    else:
+        print("No packages converted\n")
+    print("Installing environment")
 
     # Install converted packages to current conda environment
     return run_conda_install(
