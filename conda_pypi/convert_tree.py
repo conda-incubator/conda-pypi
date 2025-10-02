@@ -74,7 +74,7 @@ class ReloadingLibMambaSolver(LibMambaSolver):
             # XXX filter by local channel we update
             index.reload_channel(channel)
         return index
-    
+
 
 # import / pupate / transmogrify / ...
 class ConvertTree:
@@ -98,7 +98,7 @@ class ConvertTree:
         if not finder:
             finder = self.default_package_finder()
         self.finder = finder
-    
+
     def _convert_loop(
         self,
         max_attempts: int,
@@ -113,7 +113,7 @@ class ConvertTree:
         repo = self.repo
         wheel_dir = tmp_path / "wheels"
         wheel_dir.mkdir(exist_ok=True)
-        
+
         while len(fetched_packages) < max_attempts and attempts < max_attempts:
             attempts += 1
             try:
@@ -167,9 +167,11 @@ class ConvertTree:
 
     def default_package_finder(self):
         return get_package_finder(self.prefix)
-    
+
     def _get_converting_spinner_message(self, channels) -> str:
-        pypi_index_names_dashed = "\n - ".join(s.get("url") for s in self.finder.sources if s.get("type") == "index")
+        pypi_index_names_dashed = "\n - ".join(
+            s.get("url") for s in self.finder.sources if s.get("type") == "index"
+        )
 
         canonical_names = list(dict.fromkeys([Channel(c).canonical_name for c in channels]))
         canonical_names_dashed = "\n - ".join(canonical_names)
@@ -231,9 +233,7 @@ class ConvertTree:
 
             with get_spinner(self._get_converting_spinner_message(channels)):
                 changes = self._convert_loop(
-                    max_attempts=max_attempts,
-                    solver=solver,
-                    tmp_path=tmp_path
+                    max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
                 )
-           
+
             return changes
