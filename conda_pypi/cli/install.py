@@ -105,8 +105,6 @@ def execute(args: Namespace) -> int:
     if converted_packages:
         converted_packages_dashed = "\n - ".join(converted_packages)
         print(f"Converted packages\n - {converted_packages_dashed}\n")
-    else:
-        print("No packages converted\n")
     print("Installing environment")
 
     # Install converted packages to current conda environment
