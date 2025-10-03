@@ -4,7 +4,7 @@ Tests that use run `conda pypi install` use `conda_cli` as the primary caller
 
 from __future__ import annotations
 
-import sys
+import re
 
 
 def test_cli(conda_cli):
@@ -49,6 +49,33 @@ def test_index_urls(tmp_env, conda_cli, pypi_local_index):
             pypi_local_index,
             "demo-package",
         )
-        print(out)
-        print(err, file=sys.stderr)
+        assert "Converted packages\n - demo-package==0.1.0" in out
         assert rc == 0
+
+
+def test_install_output(tmp_env, conda_cli):
+    with tmp_env("python=3.12") as prefix:
+        out, err, rc = conda_cli(
+            "pypi",
+            "--prefix",
+            prefix,
+            "--yes",
+            "install",
+            "--override-channels",
+            "scipy",
+        )
+
+        assert rc == 0
+
+        # strip spinner characters
+        out = out.replace(" \x08\x08/", "")
+        out = out.replace(" \x08\x08-", "")
+        out = out.replace(" \x08\x08\\", "")
+        out = out.replace(" \x08\x08|", "")
+        out = out.replace(" \x08\x08", "")
+
+        # Ensure a message about the converted packages is shown
+        assert "Converted packages" in out
+
+        # Ensure the solver messaging is only showed once when the final solve/install happens
+        assert len(re.findall(r"Solving environment:", out)) == 1
