@@ -35,6 +35,7 @@ dependencies = [
   "requests",
   "ruamel.yaml",
   "typer",
+  "unearth",
 ]
 dynamic = ["version"]
 
