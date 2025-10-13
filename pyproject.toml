@@ -57,7 +57,7 @@ pip = "*"
 grayskull = "*"
 packaging = "*"
 conda-index = "*"
-ruamel_yaml = "*"
+"ruamel.yaml" = "*"
 requests = "*"
 pydantic = "*"
 
@@ -87,18 +87,6 @@ sphinx-copybutton = "*"
 sphinx-design = "*"
 sphinx-reredirects = "*"
 sphinx-sitemap = "*"
-# Dependencies for autodoc
-grayskull = "*"
-packaging = ">=24"
-typer = "*"
-conda-package-streaming = ">=0.11"
-python-build = "*"
-pydantic = "*"
-python-installer = ">=0.7"
-conda-index = "*"
-
-[tool.pixi.feature.docs.pypi-dependencies]
-unearth = ">=0.17.2"
 
 [tool.pixi.feature.test.tasks]
 test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest'
