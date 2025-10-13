@@ -25,17 +25,17 @@ requires-python = ">=3.9"
 dependencies = [
   # "conda >=23.9.0",
   "pip",
-  "grayskull",
-  "packaging",
-  "unearth",
-  "pydantic",
   "build",
+  "conda-index",
+  "grayskull",
   "installer",
+  "packaging",
+  "platformdirs",
+  "pydantic",
   "requests",
   "ruamel.yaml",
   "typer",
   "pypi-simple",
-  "platformdirs",
 ]
 dynamic = ["version"]
 
@@ -57,6 +57,9 @@ pip = "*"
 grayskull = "*"
 packaging = "*"
 conda-index = "*"
+ruamel_yaml = "*"
+requests = "*"
+pydantic = "*"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }
