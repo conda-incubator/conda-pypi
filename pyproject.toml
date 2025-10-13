@@ -35,7 +35,6 @@ dependencies = [
   "requests",
   "ruamel.yaml",
   "typer",
-  "pypi-simple",
 ]
 dynamic = ["version"]
 
@@ -99,7 +98,6 @@ conda-index = "*"
 
 [tool.pixi.feature.docs.pypi-dependencies]
 unearth = ">=0.17.2"
-pypi-simple = "*"
 
 [tool.pixi.feature.test.tasks]
 test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest'
@@ -128,9 +126,6 @@ pyyaml = "*"
 zstandard = "*"  # Will be in stdlib as compression.zstd in Python 3.14+
 # Build backend for flit tests
 flit = "*"
-
-[tool.pixi.feature.test.pypi-dependencies]
-pypi-simple = "*"
 
 [tool.pixi.feature.py39.dependencies]
 python = "3.9.*"
