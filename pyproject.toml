@@ -25,17 +25,17 @@ requires-python = ">=3.9"
 dependencies = [
   # "conda >=23.9.0",
   "pip",
-  "grayskull",
-  "packaging",
-  "unearth",
-  "pydantic",
   "build",
+  "conda-index",
+  "grayskull",
   "installer",
+  "packaging",
+  "platformdirs",
+  "pydantic",
   "requests",
   "ruamel.yaml",
   "typer",
-  "pypi-simple",
-  "platformdirs",
+  "unearth",
 ]
 dynamic = ["version"]
 
@@ -57,6 +57,9 @@ pip = "*"
 grayskull = "*"
 packaging = "*"
 conda-index = "*"
+"ruamel.yaml" = "*"
+requests = "*"
+pydantic = "*"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }
@@ -84,19 +87,6 @@ sphinx-copybutton = "*"
 sphinx-design = "*"
 sphinx-reredirects = "*"
 sphinx-sitemap = "*"
-# Dependencies for autodoc
-grayskull = "*"
-packaging = ">=24"
-typer = "*"
-conda-package-streaming = ">=0.11"
-python-build = "*"
-pydantic = "*"
-python-installer = ">=0.7"
-conda-index = "*"
-
-[tool.pixi.feature.docs.pypi-dependencies]
-unearth = ">=0.17.2"
-pypi-simple = "*"
 
 [tool.pixi.feature.test.tasks]
 test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest'
@@ -125,9 +115,6 @@ pyyaml = "*"
 zstandard = "*"  # Will be in stdlib as compression.zstd in Python 3.14+
 # Build backend for flit tests
 flit = "*"
-
-[tool.pixi.feature.test.pypi-dependencies]
-pypi-simple = "*"
 
 [tool.pixi.feature.py39.dependencies]
 python = "3.9.*"

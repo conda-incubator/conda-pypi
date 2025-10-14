@@ -63,15 +63,6 @@
    :show-inheritance:
 ```
 
-## synth
-
-```{eval-rst}
-.. automodule:: conda_pypi.synth
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
 ```{toctree}
 :maxdepth: 4
 ```
