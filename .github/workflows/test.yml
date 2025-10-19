@@ -32,9 +32,9 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ["39", "310", "311"]
         include:
-          - os: macos-13
+          - os: macos-15-intel
             python-version: "310"
-          - os: macos-14
+          - os: macos-latest
             python-version: "311"
     env:
       PIXI_ENV_NAME: test-py${{ matrix.python-version }}
@@ -74,9 +74,9 @@ jobs:
             subdir: linux-64
           - os: windows-latest
             subdir: win-64
-          - os: macos-13
+          - os: macos-15-intel
             subdir: osx-64
-          - os: macos-14
+          - os: macos-latest
             subdir: osx-arm64
     env:
       PYTHONUNBUFFERED: "1"
