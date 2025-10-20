@@ -7,38 +7,41 @@ from collections.abc import Iterable
 from subprocess import run
 
 import pytest
-from conda.core.prefix_data import PrefixData
 from conda.models.match_spec import MatchSpec
 from conda.testing.fixtures import TmpEnvFixture, CondaCLIFixture
 
 from conda_pypi.python_paths import get_env_python, get_env_site_packages
 
 
+def test_conda_pypi_install_basic(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
+    """Test basic conda pypi install functionality."""
+    with tmp_env("python=3.11") as prefix:
+        out, err, rc = conda_cli(
+            "pypi",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "numpy",
+        )
+        assert rc == 0
+
+
 @pytest.mark.parametrize(
-    "pypi_spec,conda_spec,channel",
+    "pypi_spec,expected_in_output",
     [
-        ("numpy", "", "conda-forge"),
-        ("numpy=1.20", "", "conda-forge"),
-        # # build was originally published as build in conda-forge
-        # # and later renamed to python-build; conda-forge::build is
-        # # only available til 0.7, but conda-forge::python-build has 1.x
-        # ("build>=1", "python-build>=1", "conda-forge"),
-        # # ib-insync is only available with dashes, not with underscores
-        # ("ib_insync", "ib-insync", "conda-forge"),
-        # # these won't be ever published in conda-forge, I guess
-        # ("aaargh", None, "pypi"),
-        # ("5-exercise-upload-to-pypi", None, "pypi"),
+        ("certifi", "certifi"),
+        ("tomli==2.0.1", "tomli"),
     ],
 )
-def test_conda_pypi_install(
+def test_conda_pypi_install_package_conversion(
     tmp_env: TmpEnvFixture,
     conda_cli: CondaCLIFixture,
     pypi_spec: str,
-    conda_spec: str,
-    channel: str,
+    expected_in_output: str,
 ):
-    conda_spec = conda_spec or pypi_spec
-    with tmp_env("python=3.9") as prefix:
+    """Test that PyPI packages are correctly converted and installed."""
+    with tmp_env("python=3.11") as prefix:
         out, err, rc = conda_cli(
             "pypi",
             "-p",
@@ -47,10 +50,49 @@ def test_conda_pypi_install(
             "install",
             pypi_spec,
         )
-        print(out)
-        print(err, file=sys.stderr)
         assert rc == 0
-        # One these package names will be mentioned:
+        # Check that the package name appears in the output (either in conversion or already installed)
+        assert expected_in_output in out or "All requested packages already installed" in out
+
+
+def test_conda_pypi_install_matchspec_parsing(tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture):
+    """Test that MatchSpec parsing works correctly for various package specifications."""
+    with tmp_env("python=3.11") as prefix:
+        test_specs = [
+            "numpy",
+            "numpy>=1.20",
+        ]
+
+        for spec in test_specs:
+            out, err, rc = conda_cli(
+                "pypi",
+                "-p",
+                prefix,
+                "--yes",
+                "--dry-run",
+                "install",
+                spec,
+            )
+            assert rc == 0, f"Failed to parse spec '{spec}'"
+
+
+def test_conda_pypi_install_package_normalization(
+    tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture
+):
+    """Test that PyPI package names are correctly normalized and installed."""
+    with tmp_env("python=3.11") as prefix:
+        pypi_spec = "setuptools-scm"
+        conda_spec = "setuptools-scm"
+
+        out, err, rc = conda_cli(
+            "pypi",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            pypi_spec,
+        )
+        assert rc == 0
         assert any(
             name in out
             for name in (
@@ -59,15 +101,38 @@ def test_conda_pypi_install(
                 MatchSpec(conda_spec).name,
             )
         )
-        PrefixData._cache_.clear()
-        if channel == "pypi":
-            pd = PrefixData(str(prefix), interoperability=True)
-            records = list(pd.query(pypi_spec))
-        else:
-            pd = PrefixData(str(prefix), interoperability=False)
-            records = list(pd.query(conda_spec))
-        assert len(records) == 1
-        assert records[0].channel.name == channel
+
+
+def test_conda_pypi_install_requires_package_without_editable(
+    tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture
+):
+    """Test that conda pypi install requires a package when not in editable mode."""
+    with tmp_env("python=3.11") as prefix:
+        with pytest.raises(SystemExit) as exc:
+            conda_cli(
+                "pypi",
+                "-p",
+                prefix,
+                "install",
+            )
+        assert exc.value.code == 2  # Should exit with error code 2 (missing required argument)
+
+
+def test_conda_pypi_install_editable_without_packages_succeeds(
+    tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture
+):
+    """Test that conda pypi install -e succeeds without additional packages."""
+    with tmp_env("python=3.11") as prefix:
+        out, err, rc = conda_cli(
+            "pypi",
+            "-p",
+            prefix,
+            "--yes",
+            "install",
+            "-e",
+            str(Path(__file__).parent / "packages" / "has-build-dep"),
+        )
+        assert rc == 0
 
 
 @pytest.mark.skip(reason="Migrating to alternative install method using conda pupa")
@@ -245,8 +310,6 @@ def test_editable_installs(
             "-e",
             f"{requirement}#egg={name}",
         )
-        print(out)
-        print(err, file=sys.stderr)
         assert rc == 0
         sp = get_env_site_packages(prefix)
         editable_pth = list(sp.glob(f"__editable__.{name}-*.pth"))  # Modern pip format

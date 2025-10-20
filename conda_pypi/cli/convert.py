@@ -31,6 +31,10 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
             conda pypi convert --output-folder ./conda-packages ./numpy-2.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
 
+        Convert a local Python project to an editable package::
+
+            conda pypi convert -e . --output-folder ./conda-packages
+
         Convert a package from a Git repository::
 
             git clone https://github.com/user/repo.git
@@ -58,6 +62,12 @@ def configure_parser(parser: _SubParsersAction) -> None:
         metavar="PROJECT",
         help="Convert named path/url as wheel converted to conda.",
     )
+    convert.add_argument(
+        "-e",
+        "--editable",
+        action="store_true",
+        help="Build PROJECT as an editable package.",
+    )
 
 
 def execute(args: Namespace) -> int:
@@ -67,15 +77,16 @@ def execute(args: Namespace) -> int:
     prefix_path = Path(context.target_prefix)
     if not Path(args.project_path).exists():
         raise ArgumentError("PROJECT must be a local path to a sdist, wheel or directory.")
+    project_path = Path(args.project_path).expanduser()
+    output_folder = Path(args.output_folder).expanduser()
+    output_folder.mkdir(parents=True, exist_ok=True)
 
+    distribution = "editable" if args.editable else "wheel"
     package_path = build.pypa_to_conda(
-        args.project_path,
-        distribution="wheel",
-        output_path=args.output_folder,
+        project_path,
+        distribution=distribution,
+        output_path=output_folder,
         prefix=prefix_path,
     )
-    print(
-        f"Conda package at {package_path} built and converted successfully. "
-        f"Output folder: {args.output_folder}."
-    )
+    print(f"Conda package at {package_path} built successfully. Output folder: {output_folder}.")
     return 0

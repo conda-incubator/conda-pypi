@@ -11,6 +11,7 @@ Better PyPI interoperability for the conda ecosystem.
 Includes:
 
 - `conda pypi install`: Converts PyPI packages to `.conda` format for safer installation.
+- `conda pypi install -e .`: Converts a path to an editable `.conda` format package.
 - `conda pypi convert`: Convert PyPI packages to `.conda` format without installing them.
 - Adds `EXTERNALLY-MANAGED` to your environments.
 
