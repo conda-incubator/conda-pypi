@@ -51,7 +51,6 @@ def test_conda_pypi_install_package_conversion(
             pypi_spec,
         )
         assert rc == 0
-        # Check that the package name appears in the output (either in conversion or already installed)
         assert expected_in_output in out or "All requested packages already installed" in out
 
 
@@ -115,7 +114,7 @@ def test_conda_pypi_install_requires_package_without_editable(
                 prefix,
                 "install",
             )
-        assert exc.value.code == 2  # Should exit with error code 2 (missing required argument)
+        assert exc.value.code == 2
 
 
 def test_conda_pypi_install_editable_without_packages_succeeds(
