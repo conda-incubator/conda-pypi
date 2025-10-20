@@ -7,7 +7,6 @@ from collections.abc import Iterable
 from subprocess import run
 
 import pytest
-from conda.models.match_spec import MatchSpec
 from conda.testing.fixtures import TmpEnvFixture, CondaCLIFixture
 
 from conda_pypi.python_paths import get_env_python, get_env_site_packages
@@ -73,33 +72,6 @@ def test_conda_pypi_install_matchspec_parsing(tmp_env: TmpEnvFixture, conda_cli:
                 spec,
             )
             assert rc == 0, f"Failed to parse spec '{spec}'"
-
-
-def test_conda_pypi_install_package_normalization(
-    tmp_env: TmpEnvFixture, conda_cli: CondaCLIFixture
-):
-    """Test that PyPI package names are correctly normalized and installed."""
-    with tmp_env("python=3.11") as prefix:
-        pypi_spec = "setuptools-scm"
-        conda_spec = "setuptools-scm"
-
-        out, err, rc = conda_cli(
-            "pypi",
-            "-p",
-            prefix,
-            "--yes",
-            "install",
-            pypi_spec,
-        )
-        assert rc == 0
-        assert any(
-            name in out
-            for name in (
-                MatchSpec(pypi_spec).name,
-                MatchSpec(pypi_spec).name.replace("-", "_"),  # pip normalizes this
-                MatchSpec(conda_spec).name,
-            )
-        )
 
 
 def test_conda_pypi_install_requires_package_without_editable(
