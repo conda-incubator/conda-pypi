@@ -23,11 +23,6 @@ def conda_post_commands():
         run_for={"install", "create", "update", "remove"},
     )
     yield plugins.CondaPostCommand(
-        name="conda-pypi-post-list",
-        action=post_command.list.post_command,
-        run_for={"list"},
-    )
-    yield plugins.CondaPostCommand(
         name="conda-pypi-post-install-create",
         action=post_command.install.post_command,
         run_for={"install", "create"},

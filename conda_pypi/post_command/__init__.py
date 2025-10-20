@@ -1,3 +1,3 @@
-from conda_pypi.post_command import install, list
+from conda_pypi.post_command import install
 
-__all__ = ["install", "list"]
+__all__ = ["install"]

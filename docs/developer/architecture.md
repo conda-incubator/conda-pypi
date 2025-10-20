@@ -15,7 +15,7 @@ subcommand hook adds the `conda pypi` subcommand to conda through
 for installing PyPI packages with conversion and `conda pypi convert` for
 converting PyPI packages without installing them.
 
-The plugin also registers three post-command hooks that extend conda's
+The plugin also registers two post-command hooks that extend conda's
 existing commands. The environment protection hook triggers after `install`,
 `create`, `update`, and `remove` commands to automatically deploy
 `EXTERNALLY-MANAGED` files that prevent accidental `pip` (or any other Python install tool) usage. This is
@@ -67,17 +67,17 @@ Save to Output Directory
 conda command executed
          ↓
 Post-command hook?
-    ↓        ↓           ↓
-list      install/    install/create/
---explicit  create     update/remove
-    ↓        ↓           ↓
-Add PyPI  Process    Deploy
-lines     PyPI       EXTERNALLY-
-    ↓     lines      MANAGED
-Output to   ↓           ↓
-stdout   Install    Create marker
-         PyPI       files
-         packages
+    ↓           ↓
+install/      install/create/
+create        update/remove
+    ↓           ↓
+Process       Deploy
+PyPI          EXTERNALLY-
+lines         MANAGED
+    ↓           ↓
+Install       Create marker
+PyPI          files
+packages
 ```
 
 ## Key Design Principles
