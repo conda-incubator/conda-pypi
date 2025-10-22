@@ -16,12 +16,14 @@ license-files = [
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   # "conda >=23.9.0",
   "pip",
@@ -51,7 +53,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64", "linux-aarch64"]
 
 [tool.pixi.dependencies]
 # must match project.dependencies (sans python and conda)
-python = ">=3.8"
+python = ">=3.10"
 conda = ">=23.9"
 pip = "*"
 grayskull = "*"
@@ -116,21 +118,25 @@ zstandard = "*"  # Will be in stdlib as compression.zstd in Python 3.14+
 # Build backend for flit tests
 flit = "*"
 
-[tool.pixi.feature.py39.dependencies]
-python = "3.9.*"
-
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
 
 [tool.pixi.feature.py311.dependencies]
 python = "3.11.*"
 
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
+
 [tool.pixi.environments]
 build = ["build"]
 docs = ["docs"]
-test-py39 = ["test", "py39"]
 test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]
+test-py312 = ["test", "py312"]
+test-py313 = ["test", "py313"]
 
 [tool.hatch.version]
 source = "vcs"
