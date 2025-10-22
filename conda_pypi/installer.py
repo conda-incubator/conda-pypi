@@ -26,14 +26,16 @@ def install_installer(python_executable: str, whl: Path, build_path: Path):
     site_packages = build_path / "site-packages"
     site_packages.mkdir(parents=True, exist_ok=True)
 
-    # Use minimal scheme - just purelib (equivalent to pip --target)
+    # Use minimal scheme to mimic pip --target: purelib, platlib, and scripts
     scheme = {
         "purelib": str(site_packages),
+        "platlib": str(site_packages),
+        "scripts": str(build_path / "bin"),
     }
 
     destination = SchemeDictionaryDestination(
         scheme,
-        interpreter=python_executable,
+        interpreter=str(python_executable),
         script_kind="posix",
     )
 
