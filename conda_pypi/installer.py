@@ -4,8 +4,6 @@ Install a wheel / install a conda.
 
 import os
 import subprocess
-import sys
-import sysconfig
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
