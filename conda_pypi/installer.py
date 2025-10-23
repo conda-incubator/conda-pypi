@@ -28,9 +28,9 @@ def install_installer(python_executable: str, whl: Path, build_path: Path):
     # See sysconfig documentation for more details on scheme keys.
     # https://docs.python.org/3/library/sysconfig.html#installation-paths
     scheme = {
-        "purelib": str(site_packages), # Pure Python packages
-        "platlib": str(site_packages), # Platform-specific packages
-        "scripts": str(build_path / "bin"), # Console scripts
+        "purelib": str(site_packages),  # Pure Python packages
+        "platlib": str(site_packages),  # Platform-specific packages
+        "scripts": str(build_path / "bin"),  # Console scripts
     }
 
     destination = SchemeDictionaryDestination(
