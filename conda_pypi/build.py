@@ -141,7 +141,7 @@ def build_conda(
     if not build_path.exists():
         build_path.mkdir()
 
-    installer.install_pip(python_executable, whl, build_path)
+    installer.install_installer(python_executable, whl, build_path)
 
     site_packages = build_path / "site-packages"
     dist_info = next(site_packages.glob("*.dist-info"))
