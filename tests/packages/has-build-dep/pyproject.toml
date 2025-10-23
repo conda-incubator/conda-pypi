@@ -1,6 +1,6 @@
 [build-system]
-# sphinxcontrib has no deps and is unlikely to exist in parent environment
-requires = ["flit_core", "sphinxcontrib"]
+# packaging has no dependencies in recent versions and is available on conda-forge
+requires = ["flit_core", "packaging"]
 
 [project]
 name = "has_dep"

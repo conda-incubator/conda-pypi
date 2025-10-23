@@ -1,13 +1,14 @@
+import tempfile
 from argparse import _SubParsersAction, Namespace
 from pathlib import Path
 
 from conda.auxlib.ish import dals
-from conda.base.context import context
 from conda.models.match_spec import MatchSpec
 
-from conda_pypi import convert_tree
+from conda_pypi import convert_tree, build, installer
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.main import run_conda_install
+from conda_pypi.utils import get_prefix
 
 
 def configure_parser(parser: _SubParsersAction) -> None:
@@ -45,6 +46,14 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
             conda pypi install --index-url https://example.com/simple fastapi
 
+        Install a local project in editable mode::
+
+            conda pypi install -e ./my-project
+
+        Install the current directory in editable mode::
+
+            conda pypi install -e .
+
         """
     )
     install = parser.add_parser(
@@ -68,8 +77,19 @@ def configure_parser(parser: _SubParsersAction) -> None:
     install.add_argument(
         "packages",
         metavar="PACKAGE",
-        nargs="+",
+        nargs="*",
         help="PyPI packages to install",
+    )
+    install.add_argument(
+        "-p",
+        "--prefix",
+        help="Full path to environment location (i.e. prefix).",
+        required=False,
+    )
+    install.add_argument(
+        "-e",
+        "--editable",
+        help="Build and install named path as an editable package, linking project into environment.",
     )
 
 
@@ -77,7 +97,23 @@ def execute(args: Namespace) -> int:
     """
     Entry point for the `conda pypi install` subcommand.
     """
-    prefix_path = Path(context.target_prefix)
+    if not args.editable and not args.packages:
+        raise SystemExit(2)
+
+    prefix_path = get_prefix()
+
+    if args.editable:
+        editable_path = Path(args.editable).expanduser()
+        output_path_manager = tempfile.TemporaryDirectory("conda-pypi")
+        with output_path_manager as output_path:
+            package = build.pypa_to_conda(
+                editable_path,
+                distribution="editable",
+                output_path=Path(output_path),
+                prefix=prefix_path,
+            )
+            installer.install_ephemeral_conda(prefix_path, package)
+        return 0
 
     if args.index_urls:
         index_urls = tuple(dict.fromkeys(args.index_urls))
@@ -96,7 +132,10 @@ def execute(args: Namespace) -> int:
     changes = converter.convert_tree(match_specs)
     channel_url = converter.repo.as_uri()
 
-    packages_to_install = changes[1]
+    if changes is None:
+        packages_to_install = ()
+    else:
+        packages_to_install = changes[1]
     converted_packages = [
         str(pkg.to_simple_match_spec())
         for pkg in packages_to_install

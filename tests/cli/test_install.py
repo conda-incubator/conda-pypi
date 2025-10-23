@@ -4,7 +4,10 @@ Tests that use run `conda pypi install` use `conda_cli` as the primary caller
 
 from __future__ import annotations
 
+from conda.testing.fixtures import CondaCLIFixture
+
 import re
+import pytest
 
 
 def test_cli(conda_cli):
@@ -79,3 +82,15 @@ def test_install_output(tmp_env, conda_cli):
 
         # Ensure the solver messaging is only showed once when the final solve/install happens
         assert len(re.findall(r"Solving environment:", out)) == 1
+
+
+def test_install_requires_package_without_editable(conda_cli: CondaCLIFixture):
+    with pytest.raises(SystemExit) as exc:
+        conda_cli("pypi", "install")
+    assert exc.value.code == 2
+
+
+def test_install_editable_without_packages_succeeds(conda_cli: CondaCLIFixture):
+    project = "tests/packages/has-build-dep"
+    out, err, rc = conda_cli("pypi", "install", "-e", project)
+    assert rc == 0
