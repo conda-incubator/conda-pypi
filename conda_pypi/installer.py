@@ -25,10 +25,12 @@ def install_installer(python_executable: str, whl: Path, build_path: Path):
     site_packages.mkdir(parents=True, exist_ok=True)
 
     # Use minimal scheme to mimic pip --target: purelib, platlib, and scripts
+    # See sysconfig documentation for more details on scheme keys.
+    # https://docs.python.org/3/library/sysconfig.html#installation-paths
     scheme = {
-        "purelib": str(site_packages),
-        "platlib": str(site_packages),
-        "scripts": str(build_path / "bin"),
+        "purelib": str(site_packages), # Pure Python packages
+        "platlib": str(site_packages), # Platform-specific packages
+        "scripts": str(build_path / "bin"), # Console scripts
     }
 
     destination = SchemeDictionaryDestination(
