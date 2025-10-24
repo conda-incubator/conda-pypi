@@ -1,0 +1,111 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+    paths:
+      - ".github/workflows/test.yml"
+      - "conda_pypi/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "pixi.toml"
+
+concurrency:
+  # Concurrency group that uses the workflow name and PR number if available
+  # or commit SHA as a fallback. If a new build is triggered under that
+  # concurrency group while a previous build is running it will be canceled.
+  # Repeated pushes to a PR will cancel all previous builds, while multiple
+  # merges to main will not cancel.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  build-conda:
+    name: Build conda package (${{ matrix.os }} - ${{matrix.python-version}})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["310", "311", "312", "313"]
+        os: [ubuntu-latest, windows-latest, macos-15-intel, macos-latest]
+    env:
+      PIXI_ENV_NAME: build-py${{ matrix.python-version }}
+      PYTHONUNBUFFERED: "1"
+      CONDA_BLD_PATH: ${{ github.workspace }}/pkgs
+      PACKAGE_NAME: conda-pypi
+      ANACONDA_ORG_CHANNEL: conda-canary
+      ANACONDA_ORG_LABEL: dev
+      BINSTAR_API_TOKEN: ${{ secrets.ANACONDA_ORG_CONDA_CANARY_TOKEN }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+      - uses: prefix-dev/setup-pixi@194d461b21b6c5717c722ffc597fa91ed2ff29fa # v0.9.1
+        with:
+          environments:  ${{ env.PIXI_ENV_NAME }}
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run:
+          # Remove global pip config that interferes with isolated testing
+          # See: https://github.com/actions/runner-images/blob/6d025759810a/images/ubuntu/scripts/build/install-python.sh#L15-L21
+          sudo rm /etc/pip.conf
+      - name: Setup project for building
+        run: |
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda config --add channels defaults
+      - name: Debug conda environment
+        run: |
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda config --show-sources
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda list
+      - name: Clean conda cache
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} conda clean --all --yes
+      - name: Build recipe
+        env:
+          _CONDA_BUILD_ISOLATED_ACTIVATION: "1"
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} build
+      - name: Upload to conda-canary
+        # Only publish canary builds after successful pushes to main on the canonical repo
+        if: >-
+          github.event_name == 'push'
+          && !cancelled()
+          && !github.event.repository.fork
+          && github.ref_name == 'main'
+        shell: bash
+        run: |
+          SEARCH_ROOT="$CONDA_BLD_PATH/${{ matrix.subdir }}"
+          if [[ ! -d "$SEARCH_ROOT" ]]; then
+            echo "Expected build output directory $SEARCH_ROOT not found" >&2
+            exit 1
+          fi
+
+          PACKAGES=(
+            $(
+              find "$SEARCH_ROOT" -type f \
+              \( -name "${PACKAGE_NAME}-*.conda" -o -name "${PACKAGE_NAME}-*.tar.bz2" \) \
+              -print | sort
+            )
+          )
+
+          if [[ ${#PACKAGES[@]} -eq 0 ]]; then
+            echo "No conda packages found in $SEARCH_ROOT" >&2
+            exit 1
+          fi
+
+          printf 'Uploading packages to %s/label/%s:\n' "$ANACONDA_ORG_CHANNEL" "$ANACONDA_ORG_LABEL"
+          printf '  %s\n' "${PACKAGES[@]}"
+          pixi run --environment build \
+            anaconda \
+            upload \
+            --force \
+            --register \
+            --no-progress \
+            --user "$ANACONDA_ORG_CHANNEL" \
+            --label "$ANACONDA_ORG_LABEL" \
+            "${PACKAGES[@]}"
