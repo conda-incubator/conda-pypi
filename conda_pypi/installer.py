@@ -31,6 +31,7 @@ def install_installer(python_executable: str, whl: Path, build_path: Path):
         "purelib": str(site_packages),  # Pure Python packages
         "platlib": str(site_packages),  # Platform-specific packages
         "scripts": str(build_path / "bin"),  # Console scripts
+        "data": str(build_path),  # Data files (JS, CSS, templates, etc.)
     }
 
     destination = SchemeDictionaryDestination(
