@@ -23,7 +23,7 @@ def add_whl_support(command: str) -> None:
     # Add support for extracting wheels with in-line creation of conda metadata files
     import conda.core.path_actions
     if conda.core.path_actions.extract_tarball.__module__ != __name__:
-        from .extract_whl_or_tarball import extract_whl_or_tarball
+        from conda_pypi.pre_command.extract_whl_or_tarball import extract_whl_or_tarball
         conda.core.path_actions.extract_tarball = extract_whl_or_tarball
 
     # Allow the creation of prefix record JSON files for .whl files
@@ -33,7 +33,7 @@ def add_whl_support(command: str) -> None:
     # Skip the check that name, version, build matches filename in prefix record json
     from conda.core.prefix_data import PrefixData
     if PrefixData._load_single_record.__module__ != __name__:
-        from .patched_load import _load_single_record
+        from conda_pypi.pre_command.patched_load import _load_single_record
         PrefixData._load_single_record = _load_single_record
 
     return
