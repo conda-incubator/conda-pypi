@@ -17,23 +17,27 @@ SUPPORTED_SCEMES: Tuple[Scheme] = ("platlib", "purelib")
 
 
 # inline version of
-#from conda.gateways.disk.create import write_as_json_to_file
+# from conda.gateways.disk.create import write_as_json_to_file
 def write_as_json_to_file(file_path, obj):
     with codecs.open(file_path, mode="wb", encoding="utf-8") as fo:
         json_str = json.dumps(
-            obj, indent=2, sort_keys=True, separators=(",", ": "),
+            obj,
+            indent=2,
+            sort_keys=True,
+            separators=(",", ": "),
         )
         fo.write(json_str)
 
 
 class MyWheelDestination(WheelDestination):
-
     def __init__(self, target_full_path: str) -> None:
         self.target_full_path = target_full_path
         self.sp_dir = os.path.join(target_full_path, "site-packages")
         self.entry_points = []
 
-    def write_script(self, name: str, module: str, attr: str, section: Literal['console'] | Literal['gui']) -> RecordEntry:
+    def write_script(
+        self, name: str, module: str, attr: str, section: Literal["console"] | Literal["gui"]
+    ) -> RecordEntry:
         # TODO check if console/gui
         entry_point = f"{name} = {module}:{attr}"
         self.entry_points.append(entry_point)
@@ -43,7 +47,9 @@ class MyWheelDestination(WheelDestination):
             size=None,
         )
 
-    def write_file(self, scheme: Scheme, path: str | PathLike[str], stream: BinaryIO, is_executable: bool) -> RecordEntry:
+    def write_file(
+        self, scheme: Scheme, path: str | PathLike[str], stream: BinaryIO, is_executable: bool
+    ) -> RecordEntry:
         if scheme not in SUPPORTED_SCEMES:
             raise ValueError(f"Unsupported scheme: {scheme}")
 
@@ -54,7 +60,7 @@ class MyWheelDestination(WheelDestination):
         if not os.path.exists(parent_folder):
             os.makedirs(parent_folder)
 
-        #print(f"Writing {dest_path} from {source}")
+        # print(f"Writing {dest_path} from {source}")
         with open(dest_path, "wb") as dest:
             hash_, size = installer.utils.copyfileobj_with_hashing(
                 source=stream,
@@ -72,16 +78,13 @@ class MyWheelDestination(WheelDestination):
         )
 
     def _create_conda_metadata(self, records: Iterable[Tuple[Scheme, RecordEntry]]) -> None:
-        os.makedirs(
-            os.path.join(self.target_full_path, "info"),
-            exist_ok=True
-        )
+        os.makedirs(os.path.join(self.target_full_path, "info"), exist_ok=True)
         # link.json
         link_json_data = {
             "noarch": {
                 "type": "python",
             },
-            "package_metadata_version": 1
+            "package_metadata_version": 1,
         }
         if self.entry_points:
             link_json_data["noarch"]["entry_points"] = self.entry_points
@@ -91,7 +94,7 @@ class MyWheelDestination(WheelDestination):
         # paths.json
         paths = []
         for _, record in records:
-            if record.path.startswith('..'):
+            if record.path.startswith(".."):
                 # entry point
                 continue
             path = {
@@ -114,12 +117,16 @@ class MyWheelDestination(WheelDestination):
         index_json_path = os.path.join(self.target_full_path, "info", "index.json")
         write_as_json_to_file(index_json_path, index_json_data)
 
-    def finalize_installation(self, scheme: Scheme, record_file_path: str, records: Iterable[Tuple[Scheme, RecordEntry]]) -> None:
+    def finalize_installation(
+        self, scheme: Scheme, record_file_path: str, records: Iterable[Tuple[Scheme, RecordEntry]]
+    ) -> None:
         record_list = list(records)
         with installer.utils.construct_record_file(record_list, lambda x: None) as record_stream:
             dest_path = os.path.join(self.sp_dir, record_file_path)
             with open(dest_path, "wb") as dest:
-                hash_, size = installer.utils.copyfileobj_with_hashing(record_stream, dest, "sha256")
+                hash_, size = installer.utils.copyfileobj_with_hashing(
+                    record_stream, dest, "sha256"
+                )
                 record_file_record = RecordEntry(
                     path=record_file_path,
                     hash_=Hash("sha256", hash_),
@@ -132,13 +139,14 @@ class MyWheelDestination(WheelDestination):
 
 def extract_whl_as_conda_pkg(whl_full_path: str, target_full_path: str):
     destination = MyWheelDestination(target_full_path)
-    additional_metadata ={"INSTALLER": b"conda-via-whl"}
+    additional_metadata = {"INSTALLER": b"conda-via-whl"}
     with WheelFile.open(whl_full_path) as source:
         installer.install(
             source=source,
             destination=destination,
             additional_metadata=additional_metadata,
         )
+
 
 if __name__ == "__main__":
     extract_whl_as_conda_pkg(

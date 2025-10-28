@@ -17,9 +17,7 @@ def _load_single_record(self, prefix_record_json_path):
         except (UnicodeDecodeError, json.JSONDecodeError):
             # UnicodeDecodeError: catch horribly corrupt files
             # JSONDecodeError: catch bad json format files
-            raise CorruptedEnvironmentError(
-                self.prefix_path, prefix_record_json_path
-            )
+            raise CorruptedEnvironmentError(self.prefix_path, prefix_record_json_path)
 
         # TODO: consider, at least in memory, storing prefix_record_json_path as part
         #       of PrefixRecord
@@ -45,6 +43,6 @@ def _load_single_record(self, prefix_record_json_path):
             return
         """
 
-        #self.__prefix_records[prefix_record.name] = prefix_record
+        # self.__prefix_records[prefix_record.name] = prefix_record
         # name mangled version as this is used out of the class scope
         self._PrefixData__prefix_records[prefix_record.name] = prefix_record
