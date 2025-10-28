@@ -100,7 +100,7 @@ jobs:
 
           printf 'Uploading packages to %s/label/%s:\n' "$ANACONDA_ORG_CHANNEL" "$ANACONDA_ORG_LABEL"
           printf '  %s\n' "${PACKAGES[@]}"
-          pixi run --environment build \
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} \
             anaconda \
             upload \
             --force \
