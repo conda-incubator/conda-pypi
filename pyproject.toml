@@ -47,7 +47,7 @@ homepage = "https://github.com/conda-incubator/conda-pypi"
 [project.entry-points.conda]
 conda-pypi = "conda_pypi.plugin"
 
-[tool.pixi.project]
+[tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64", "linux-aarch64"]
 
@@ -131,7 +131,10 @@ python = "3.12.*"
 python = "3.13.*"
 
 [tool.pixi.environments]
-build = ["build"]
+build-py310 = ["build", "py310"]
+build-py311 = ["build", "py311"]
+build-py312 = ["build", "py312"]
+build-py313 = ["build", "py313"]
 docs = ["docs"]
 test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]
