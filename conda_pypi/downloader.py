@@ -59,6 +59,15 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
     link = result.best and result.best.link
     if not link:
         raise CondaPypiError(f"No PyPI link for {package}")
+
+    # Check if the file is a wheel (.whl)
     filename = link.url_without_fragment.rsplit("/", 1)[-1]
+    if not filename.endswith(".whl"):
+        raise CondaPypiError(
+            f"No wheel file available for {package}. "
+            f"Only source distributions are available. "
+            f"conda-pypi requires wheel files for conversion."
+        )
+
     log.info(f"Fetch {package} as {filename}")
     download(link.url, target / filename)
