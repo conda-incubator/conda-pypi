@@ -10,10 +10,8 @@ import os
 from pathlib import Path
 
 import pytest
-from conda.models.match_spec import MatchSpec
 from conda.testing.fixtures import TmpEnvFixture
 
-from conda_pypi.convert_tree import ConvertTree
 from conda_pypi.exceptions import CondaPypiError
 
 
@@ -42,5 +40,6 @@ def test_downloader_detects_no_wheels(tmp_env: TmpEnvFixture, monkeypatch, tmp_p
         # Verify we get a meaningful error message
         error_msg = str(exc_info.value).lower()
         assert "wheel" in error_msg, f"Expected error message to mention 'wheel', got: {error_msg}"
-        assert "source distributions" in error_msg or "only source" in error_msg, \
+        assert "source distributions" in error_msg or "only source" in error_msg, (
             f"Expected error message to mention source distributions, got: {error_msg}"
+        )
