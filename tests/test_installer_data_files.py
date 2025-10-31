@@ -3,6 +3,7 @@ Tests for installer data file handling.
 
 Tests that data files in wheels are properly installed.
 """
+
 from pathlib import Path
 
 import pytest
