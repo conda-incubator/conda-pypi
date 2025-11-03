@@ -9,10 +9,12 @@ from conda_pypi.whl import add_whl_support
 
 import logging
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from typing import Generator
 
 log = logging.getLogger(__name__)
+
 
 @plugins.hookimpl
 def conda_subcommands():
