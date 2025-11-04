@@ -30,10 +30,11 @@ def write_as_json_to_file(file_path, obj):
 
 
 class MyWheelDestination(WheelDestination):
-    def __init__(self, target_full_path: str) -> None:
+    def __init__(self, target_full_path: str, source: WheelFile) -> None:
         self.target_full_path = target_full_path
         self.sp_dir = os.path.join(target_full_path, "site-packages")
         self.entry_points = []
+        self.source= source
 
     def write_script(
         self, name: str, module: str, attr: str, section: Literal["console"] | Literal["gui"]
@@ -77,7 +78,7 @@ class MyWheelDestination(WheelDestination):
             size=size,
         )
 
-    def _create_conda_metadata(self, records: Iterable[Tuple[Scheme, RecordEntry]]) -> None:
+    def _create_conda_metadata(self, records: Iterable[Tuple[Scheme, RecordEntry]], source: WheelFile) -> None:
         os.makedirs(os.path.join(self.target_full_path, "info"), exist_ok=True)
         # link.json
         link_json_data = {
@@ -113,12 +114,15 @@ class MyWheelDestination(WheelDestination):
 
         # index.json
         # index.json file is empty, the actual index metadata comes from repodata
-        index_json_data = {}
+        
+        name=source.distribution
+        version=source.version
+        index_json_data={"name": str(name), "version": str(version), "build_number": 1, "build": "random"}
         index_json_path = os.path.join(self.target_full_path, "info", "index.json")
         write_as_json_to_file(index_json_path, index_json_data)
 
     def finalize_installation(
-        self, scheme: Scheme, record_file_path: str, records: Iterable[Tuple[Scheme, RecordEntry]]
+        self, scheme: Scheme, record_file_path: str, records: Iterable[Tuple[Scheme, RecordEntry]],
     ) -> None:
         record_list = list(records)
         with installer.utils.construct_record_file(record_list, lambda x: None) as record_stream:
@@ -133,24 +137,16 @@ class MyWheelDestination(WheelDestination):
                     size=size,
                 )
         record_list[-1] = ("purelib", record_file_record)
-        self._create_conda_metadata(record_list)
+        self._create_conda_metadata(record_list, self.source)
         return
 
 
 def extract_whl_as_conda_pkg(whl_full_path: str, target_full_path: str):
-    print("CALLED extract_whl_as_conda_pkg()")
-    destination = MyWheelDestination(target_full_path)
-    additional_metadata = {"INSTALLER": b"conda-via-whl"}
     with WheelFile.open(whl_full_path) as source:
+        destination = MyWheelDestination(target_full_path, source)
+        additional_metadata = {"INSTALLER": b"conda-via-whl"}
         installer.install(
             source=source,
             destination=destination,
             additional_metadata=additional_metadata,
         )
-
-
-if __name__ == "__main__":
-    extract_whl_as_conda_pkg(
-        "./imagesize-1.4.1-py2.py3-none-any.whl",
-        "./unpack",
-    )

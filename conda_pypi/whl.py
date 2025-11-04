@@ -37,7 +37,6 @@ def mocked_from_dist_str(cls, dist_str):
         return cls(**parts)
 
 def mocked_is_package_file(path):
-    print("mocked func called")
     return path[-6:] == ".conda" or path[-8:] == ".tar.bz2" or path[-4:]==".whl"
 
 mocked_url_pat=re.compile(
@@ -74,7 +73,6 @@ def add_whl_support(command: str) -> None:
     if conda.core.path_actions.extract_tarball.__module__ != __name__:
         from conda_pypi.pre_command.extract_whl_or_tarball import extract_whl_or_tarball
 
-        print("mocking extract_tarball_whl_support")
         conda.core.path_actions.extract_tarball = extract_whl_or_tarball
 
     # Allow the creation of prefix record JSON files for .whl files
@@ -96,6 +94,6 @@ def add_whl_support(command: str) -> None:
     import conda.misc
     conda.misc.url_pat = mocked_url_pat
 
-    import conda.models.match_spec
-    conda.models.match_spec.MatchSpec.from_dist_str = mocked_from_dist_str
+    # import conda.models.match_spec
+    # conda.models.match_spec.MatchSpec.from_dist_str = mocked_from_dist_str
     return
