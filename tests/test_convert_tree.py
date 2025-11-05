@@ -101,4 +101,4 @@ def test_package_without_wheel_should_fail_early(
 
         # Verify we get a meaningful error message
         error_msg = str(exc_info.value).lower()
-        assert "wheel" in error_msg, f"Expected error message to mention 'wheel', got: {error_msg}"
+        assert "wheel" in error_msg
