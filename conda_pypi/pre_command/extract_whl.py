@@ -149,10 +149,8 @@ class MyWheelDestination(WheelDestination):
 
 def extract_whl_as_conda_pkg(whl_full_path: str, target_full_path: str):
     with WheelFile.open(whl_full_path) as source:
-        destination = MyWheelDestination(target_full_path, source)
-        additional_metadata = {"INSTALLER": b"conda-via-whl"}
         installer.install(
             source=source,
-            destination=destination,
-            additional_metadata=additional_metadata,
+            destination=MyWheelDestination(target_full_path, source),
+            additional_metadata={"INSTALLER": b"conda-via-whl"},
         )
