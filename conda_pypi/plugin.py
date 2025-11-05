@@ -7,13 +7,10 @@ from conda_pypi import post_command
 from conda_pypi.main import ensure_target_env_has_externally_managed
 from conda_pypi.whl import add_whl_support
 
-import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Generator
-
-log = logging.getLogger(__name__)
 
 
 @plugins.hookimpl
