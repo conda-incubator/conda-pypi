@@ -34,7 +34,7 @@ class MyWheelDestination(WheelDestination):
         self.target_full_path = target_full_path
         self.sp_dir = os.path.join(target_full_path, "site-packages")
         self.entry_points = []
-        self.source= source
+        self.source = source
 
     def write_script(
         self, name: str, module: str, attr: str, section: Literal["console"] | Literal["gui"]
@@ -78,7 +78,9 @@ class MyWheelDestination(WheelDestination):
             size=size,
         )
 
-    def _create_conda_metadata(self, records: Iterable[Tuple[Scheme, RecordEntry]], source: WheelFile) -> None:
+    def _create_conda_metadata(
+        self, records: Iterable[Tuple[Scheme, RecordEntry]], source: WheelFile
+    ) -> None:
         os.makedirs(os.path.join(self.target_full_path, "info"), exist_ok=True)
         # link.json
         link_json_data = {
@@ -114,15 +116,23 @@ class MyWheelDestination(WheelDestination):
 
         # index.json
         # index.json file is empty, the actual index metadata comes from repodata
-        
-        name=source.distribution
-        version=source.version
-        index_json_data={"name": str(name), "version": str(version), "build_number": 1, "build": "random"}
+
+        name = source.distribution
+        version = source.version
+        index_json_data = {
+            "name": str(name),
+            "version": str(version),
+            "build_number": 1,
+            "build": "random",
+        }
         index_json_path = os.path.join(self.target_full_path, "info", "index.json")
         write_as_json_to_file(index_json_path, index_json_data)
 
     def finalize_installation(
-        self, scheme: Scheme, record_file_path: str, records: Iterable[Tuple[Scheme, RecordEntry]],
+        self,
+        scheme: Scheme,
+        record_file_path: str,
+        records: Iterable[Tuple[Scheme, RecordEntry]],
     ) -> None:
         record_list = list(records)
         with installer.utils.construct_record_file(record_list, lambda x: None) as record_stream:
