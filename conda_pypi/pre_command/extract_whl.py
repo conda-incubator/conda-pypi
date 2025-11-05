@@ -115,8 +115,6 @@ class MyWheelDestination(WheelDestination):
         write_as_json_to_file(paths_json_path, paths_json_data)
 
         # index.json
-        # index.json file is empty, the actual index metadata comes from repodata
-
         name = source.distribution
         version = source.version
         index_json_data = {
