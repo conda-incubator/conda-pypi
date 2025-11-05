@@ -115,11 +115,9 @@ class MyWheelDestination(WheelDestination):
         write_as_json_to_file(paths_json_path, paths_json_data)
 
         # index.json
-        name = source.distribution
-        version = source.version
         index_json_data = {
-            "name": str(name),
-            "version": str(version),
+            "name": str(source.distribution),
+            "version": str(source.version),
             "build": "pypi_0",
             "build_number": 0,
         }
