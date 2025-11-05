@@ -1,5 +1,5 @@
 from conda.gateways.disk.create import extract_tarball
-from . import extract_whl
+from conda_pypi.pre_command import extract_whl
 
 
 def extract_whl_or_tarball(
