@@ -122,8 +122,8 @@ class MyWheelDestination(WheelDestination):
         index_json_data = {
             "name": str(name),
             "version": str(version),
-            "build_number": 1,
-            "build": "random",
+            "build": "pypi_0",
+            "build_number": 0,
         }
         index_json_path = os.path.join(self.target_full_path, "info", "index.json")
         write_as_json_to_file(index_json_path, index_json_data)
