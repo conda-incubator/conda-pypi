@@ -43,7 +43,7 @@ class MyWheelDestination(WheelDestination):
         entry_point = f"{name} = {module}:{attr}"
         self.entry_points.append(entry_point)
         return RecordEntry(
-            path="../../../bin/{name}",
+            path=f"../../../bin/{name}",
             hash_=None,
             size=None,
         )
