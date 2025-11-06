@@ -60,6 +60,8 @@ def add_whl_support(command: str) -> None:
 
     conda.misc.url_pat = mocked_url_pat
 
+    conda.models.match_spec._PARSE_CACHE.clear()
+
     # TODO
     # There is some extension handling taking place in `conda.models.match_spec.MatchSpec.from_dist_str``
     # that we might need to patch
