@@ -1,7 +1,7 @@
 import json
 from logging import getLogger
 
-from conda.common.serialize import json_load
+from conda.common.serialize.json import loads as json_load
 from conda.models.records import PrefixRecord
 from conda.exceptions import CorruptedEnvironmentError
 

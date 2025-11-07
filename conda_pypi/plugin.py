@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from conda import plugins
+from conda.plugins import hookimpl
+from conda.plugins.types import CondaSubcommand, CondaPostCommand, CondaPreCommand
 
 from conda_pypi import cli
 from conda_pypi import post_command
@@ -13,9 +14,9 @@ if TYPE_CHECKING:
     from typing import Generator
 
 
-@plugins.hookimpl
+@hookimpl
 def conda_subcommands():
-    yield plugins.CondaSubcommand(
+    yield CondaSubcommand(
         name="pypi",
         action=cli.main.execute,
         configure_parser=cli.main.configure_parser,
@@ -23,23 +24,23 @@ def conda_subcommands():
     )
 
 
-@plugins.hookimpl
+@hookimpl
 def conda_post_commands():
-    yield plugins.CondaPostCommand(
+    yield CondaPostCommand(
         name="conda-pypi-ensure-target-env-has-externally-managed",
         action=ensure_target_env_has_externally_managed,
         run_for={"install", "create", "update", "remove"},
     )
-    yield plugins.CondaPostCommand(
+    yield CondaPostCommand(
         name="conda-pypi-post-install-create",
         action=post_command.install.post_command,
         run_for={"install", "create"},
     )
 
 
-@plugins.hookimpl
-def conda_pre_commands() -> Generator[plugins.CondaPreCommand, None, None]:
-    yield plugins.CondaPreCommand(
+@hookimpl
+def conda_pre_commands() -> Generator[CondaPreCommand, None, None]:
+    yield CondaPreCommand(
         name="conda-whl-support",
         action=add_whl_support,
         run_for={
