@@ -145,3 +145,5 @@ conda_pypi/_version.py
 *.db
 synthetic_repodata.json
 synthetic_repo/
+
+.codspeed/
