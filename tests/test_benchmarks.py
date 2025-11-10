@@ -8,6 +8,7 @@ from conda.models.match_spec import MatchSpec
 from conda_pypi.convert_tree import ConvertTree
 
 
+@pytest.mark.benchmark
 @pytest.mark.parametrize(
     "packages", 
     [

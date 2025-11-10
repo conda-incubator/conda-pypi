@@ -59,3 +59,5 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run tests
         run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} -vv
+      - name: Run benchmark tests
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} benchmark-test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} -vv
