@@ -92,7 +92,7 @@ sphinx-reredirects = "*"
 sphinx-sitemap = "*"
 
 [tool.pixi.feature.test.tasks]
-test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest'
+test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest -m "not benchmark"'
 benchmark-test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest --codspeed'
 pre-commit = 'pre-commit'
 
