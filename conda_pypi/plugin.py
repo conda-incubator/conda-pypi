@@ -10,7 +10,7 @@ from conda_pypi.whl import add_whl_support
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Generator
+    pass
 
 
 @plugins.hookimpl
@@ -37,19 +37,22 @@ def conda_post_commands():
     )
 
 
-@plugins.hookimpl
-def conda_pre_commands() -> Generator[plugins.CondaPreCommand, None, None]:
-    yield plugins.CondaPreCommand(
-        name="conda-whl-support",
-        action=add_whl_support,
-        run_for={
-            "create",
-            "install",
-            "remove",
-            "rename",
-            "update",
-            "env_create",
-            "env_update",
-            "list",
-        },
-    )
+# @plugins.hookimpl
+# def conda_pre_commands() -> Generator[plugins.CondaPreCommand, None, None]:
+#     yield plugins.CondaPreCommand(
+#         name="conda-whl-support",
+#         action=lambda _ : add_whl_support(),
+#         run_for={
+#             "create",
+#             "install",
+#             "remove",
+#             "rename",
+#             "update",
+#             "env_create",
+#             "env_update",
+#             "list",
+#         },
+#     )
+
+# Commenting out the plugin implementation and directly calling `add_whl_support`.
+add_whl_support()
