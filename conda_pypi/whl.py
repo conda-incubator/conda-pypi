@@ -18,7 +18,7 @@ mocked_url_pat = re.compile(
 )
 
 
-def add_whl_support(command: str) -> None:
+def add_whl_support() -> None:
     """Implement support for installing wheels in conda"""
     log.debug("Inside add_whl_support")
 
@@ -60,10 +60,6 @@ def add_whl_support(command: str) -> None:
 
     conda.misc.url_pat = mocked_url_pat
 
-    # Conda CLI/argparse uses MatchSpec to validate specs, causing specs to be
-    # parsed (and cached) before the whl monkeypatching occurs.
-    # Clear cache after monkeypatching so subsequent MatchSpec usage
-    # (e.g., in Environment.from_cli) will parse the spec correctly.
     conda.models.match_spec._PARSE_CACHE.clear()
 
     # TODO
