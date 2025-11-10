@@ -11,7 +11,6 @@ log = getLogger(__name__)
 
 # Modified version of conda.core.prefix_data.PrefixData::_load_single_record
 def _load_single_record(self, prefix_record_json_path):
-    # print(f"{_load_single_record=}")
     log.debug("loading prefix record %s", prefix_record_json_path)
     with open(prefix_record_json_path) as fh:
         try:
