@@ -15,8 +15,6 @@ def _load_single_record(self, prefix_record_json_path):
     with open(prefix_record_json_path) as fh:
         try:
             json_data = json_load(fh.read())
-            # get `fn` from the json data, to extract the extension later
-            fn = json_data["fn"]
         except (UnicodeDecodeError, json.JSONDecodeError):
             # UnicodeDecodeError: catch horribly corrupt files
             # JSONDecodeError: catch bad json format files
@@ -26,11 +24,10 @@ def _load_single_record(self, prefix_record_json_path):
         #       of PrefixRecord
         prefix_record = PrefixRecord(**json_data)
 
-        # check that prefix record json filename conforms to name-version-build
-        # apparently implemented as part of #2638 to resolve #2599
-
         # Skip this check for `.whl` packages since it will likely fail
-        if not fn.endswith(".whl"):
+        if not json_data.get("fn", "").endswith(".whl"):
+            # check that prefix record json filename conforms to name-version-build
+            # apparently implemented as part of #2638 to resolve #2599
             try:
                 n, v, b = basename(prefix_record_json_path)[:-5].rsplit("-", 2)
                 if (n, v, b) != (
