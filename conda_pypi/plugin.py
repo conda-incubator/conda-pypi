@@ -7,11 +7,6 @@ from conda_pypi import post_command
 from conda_pypi.main import ensure_target_env_has_externally_managed
 from conda_pypi.whl import add_whl_support
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
-
 
 @plugins.hookimpl
 def conda_subcommands():
