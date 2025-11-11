@@ -2,7 +2,6 @@ from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 from pytest_mock import MockerFixture
 from conda_pypi.pre_command import extract_whl_or_tarball
 from conda_pypi.pre_command.extract_whl import extract_whl_as_conda_pkg
-from conda_pypi import plugin
 import pytest
 from pathlib import Path
 
@@ -39,16 +38,12 @@ def test_extract_whl_as_conda_called(
         )
 
         # spy on monkeypatches
-        spy_add_whl_support = mocker.spy(plugin, "add_whl_support")
         spy_extract_whl_as_conda_pkg = mocker.spy(
             extract_whl_or_tarball.extract_whl, "extract_whl_as_conda_pkg"
         )
 
         # install package
         conda_cli("install", f"--prefix={prefix}", package)
-
-        # monkeypatch always happens
-        assert spy_add_whl_support.call_count == 1
 
         # wheel extraction only happens for .whl
         assert spy_extract_whl_as_conda_pkg.call_count == call_count

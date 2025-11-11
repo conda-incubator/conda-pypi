@@ -18,7 +18,7 @@ mocked_url_pat = re.compile(
 )
 
 
-def add_whl_support(command: str) -> None:
+def add_whl_support() -> None:
     """Implement support for installing wheels in conda"""
     log.debug("Inside add_whl_support")
 
