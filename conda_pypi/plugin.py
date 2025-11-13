@@ -35,7 +35,7 @@ def conda_post_commands():
 
 # @hookimpl
 # def conda_pre_commands() -> Generator[plugins.CondaPreCommand, None, None]:
-#     yield plugins.CondaPreCommand(
+#     yield CondaPreCommand(
 #         name="conda-whl-support",
 #         action=lambda _ : add_whl_support(),
 #         run_for={
