@@ -51,7 +51,7 @@ def find_package(finder: PackageFinder, package: str):
     return finder.find_best_match(requirement)
 
 
-def find_and_fetch(finder: PackageFinder, target: Path, package: str):
+def find_and_fetch(finder: PackageFinder, target: Path, package: str) -> Path:
     """
     Find package on PyPI, download best link to target.
     """
@@ -70,4 +70,6 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
         )
 
     log.info(f"Fetch {package} as {filename}")
-    download(link.url, target / filename)
+    target_path =  target / filename
+    download(link.url, target_path)
+    return target_path

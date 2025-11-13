@@ -1,11 +1,15 @@
 import pytest
+from pathlib import Path
 
 from pytest import MonkeyPatch
 
 from conda.testing.fixtures import CondaCLIFixture
 from conda.models.match_spec import MatchSpec
+from conda.common.path import get_python_short_path
 
 from conda_pypi.convert_tree import ConvertTree
+from conda_pypi.downloader import find_and_fetch, get_package_finder
+from conda_pypi.build import build_conda
 
 
 @pytest.mark.benchmark
@@ -96,5 +100,52 @@ def test_convert_tree(
         target,
         setup=setup,
         rounds=2,
+        warmup_rounds=0  # no warm up, cleaning the cache every time
+    )
+
+
+@pytest.mark.benchmark
+@pytest.mark.parametrize(
+    "package", 
+    [
+        pytest.param("imagesize", id="imagesize"),
+        pytest.param("jupyterlab", id="jupyterlab"),
+    ]
+)
+def test_build_conda(
+    tmp_path_factory,
+    conda_cli: CondaCLIFixture,
+    package: str,
+    benchmark,
+):
+    """Benchmark building the conda package from a wheel."""
+    wheel_dir = tmp_path_factory.mktemp("wheel_dir")
+    
+    def setup():
+        prefix = str(tmp_path_factory.mktemp(f"{package}"))
+        build_path = tmp_path_factory.mktemp(f"build-{package}")
+        output_path = tmp_path_factory.mktemp(f"output-{package}")
+
+        conda_cli("create", "--yes", "--prefix", prefix, "python=3.11")
+        
+        python_exe = Path(prefix, get_python_short_path())
+        finder = get_package_finder(prefix)
+        wheel_path = find_and_fetch(finder, wheel_dir, package)
+
+        return(wheel_path, python_exe, build_path, output_path), {}
+
+    def target(wheel_path, python_exe, build_path, output_path):
+        build_conda(
+            wheel_path,
+            build_path,
+            output_path,
+            python_exe,
+            is_editable=False,
+        )
+    
+    benchmark.pedantic(
+        target,
+        setup=setup,
+        rounds=1,
         warmup_rounds=0  # no warm up, cleaning the cache every time
     )
