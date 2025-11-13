@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from conda.plugins import hookimpl
-from conda.plugins.types import CondaSubcommand, CondaPostCommand, CondaPreCommand
+from conda.plugins.types import CondaSubcommand, CondaPostCommand
 
 from conda_pypi import cli
 from conda_pypi import post_command
