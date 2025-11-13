@@ -1,5 +1,6 @@
 import json
 from logging import getLogger
+from os.path import basename
 
 from conda.common.serialize.json import loads as json_load
 from conda.models.records import PrefixRecord
@@ -23,25 +24,22 @@ def _load_single_record(self, prefix_record_json_path):
         #       of PrefixRecord
         prefix_record = PrefixRecord(**json_data)
 
-        # Skip this check since it will likely fail for whl based packages
-        """
-        # check that prefix record json filename conforms to name-version-build
-        # apparently implemented as part of #2638 to resolve #2599
-        try:
-            n, v, b = basename(prefix_record_json_path)[:-5].rsplit("-", 2)
-            if (n, v, b) != (
-                prefix_record.name,
-                prefix_record.version,
-                prefix_record.build,
-            ):
-                raise ValueError()
-        except ValueError:
-            log.warning(
-                "Ignoring malformed prefix record at: %s", prefix_record_json_path
-            )
-            # TODO: consider just deleting here this record file in the future
-            return
-        """
+        # Skip this check for `.whl` packages since it will likely fail
+        if not json_data.get("fn", "").endswith(".whl"):
+            # check that prefix record json filename conforms to name-version-build
+            # apparently implemented as part of #2638 to resolve #2599
+            try:
+                n, v, b = basename(prefix_record_json_path)[:-5].rsplit("-", 2)
+                if (n, v, b) != (
+                    prefix_record.name,
+                    prefix_record.version,
+                    prefix_record.build,
+                ):
+                    raise ValueError()
+            except ValueError:
+                log.warning("Ignoring malformed prefix record at: %s", prefix_record_json_path)
+                # TODO: consider just deleting here this record file in the future
+                return
 
         # self.__prefix_records[prefix_record.name] = prefix_record
         # name mangled version as this is used out of the class scope
