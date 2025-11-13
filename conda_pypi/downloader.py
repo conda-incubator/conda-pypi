@@ -70,6 +70,6 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str) -> Path:
         )
 
     log.info(f"Fetch {package} as {filename}")
-    target_path =  target / filename
+    target_path = target / filename
     download(link.url, target_path)
     return target_path
