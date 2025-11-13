@@ -14,12 +14,12 @@ from conda_pypi.build import build_conda
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
-    "packages", 
+    "packages",
     [
         pytest.param(("imagesize",), id="imagesize"),  # small package, few dependencies
-        pytest.param(("scipy",), id="scipy"),  # larger package 
-        pytest.param(("jupyterlab",), id="jupyterlab")
-    ]
+        pytest.param(("scipy",), id="scipy"),  # slightly larger package
+        pytest.param(("jupyterlab",), id="jupyterlab"),
+    ],
 )
 def test_conda_pypi_install_basic(
     tmp_path_factory,
@@ -29,6 +29,7 @@ def test_conda_pypi_install_basic(
     monkeypatch: MonkeyPatch,
 ):
     """Benchmark basic conda pypi install functionality."""
+
     def setup():
         # Setup function is run every time. So, using benchmarks to run multiple
         # iterations of the test will create new paths for repo_dir and
@@ -52,24 +53,24 @@ def test_conda_pypi_install_basic(
             *packages,
         )
         return rc
-    
+
     result = benchmark.pedantic(
         target,
         setup=setup,
         rounds=2,
-        warmup_rounds=0  # no warm up, cleaning the cache every time
+        warmup_rounds=0,  # no warm up, cleaning the cache every time
     )
     assert result == 0
 
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
-    "packages", 
+    "packages",
     [
-        pytest.param(("imagesize",), id="imagesize"),    # small package, few dependencies
+        pytest.param(("imagesize",), id="imagesize"),  # small package, few dependencies
         pytest.param(("jupyterlab",), id="jupyterlab"),  # large package
-        pytest.param(("numpy>2.0",), id="numpy>2.0"),    # package with version constraint
-    ]
+        pytest.param(("numpy>2.0",), id="numpy>2.0"),  # package with version constraint
+    ],
 )
 def test_convert_tree(
     tmp_path_factory,
@@ -80,37 +81,34 @@ def test_convert_tree(
     """Benchmark convert_tree. This test overrides channels so the whole
     dependency tree is converted.
     """
+
     def setup():
         repo_dir = tmp_path_factory.mktemp(f"{'-'.join(packages)}-pkg-repo")
         prefix = str(tmp_path_factory.mktemp(f"{'-'.join(packages)}"))
         conda_cli("create", "--yes", "--prefix", prefix, "python=3.11")
 
-        tree_converter =  ConvertTree(
-            prefix=prefix,
-            override_channels=True,
-            repo=repo_dir
-        )
+        tree_converter = ConvertTree(prefix, True, repo_dir)
         return (tree_converter,), {}
 
     def target(tree_converter):
         match_specs = [MatchSpec(pkg) for pkg in packages]
         tree_converter.convert_tree(match_specs)
-    
+
     benchmark.pedantic(
         target,
         setup=setup,
         rounds=2,
-        warmup_rounds=0  # no warm up, cleaning the cache every time
+        warmup_rounds=0,  # no warm up, cleaning the cache every time
     )
 
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
-    "package", 
+    "package",
     [
         pytest.param("imagesize", id="imagesize"),
         pytest.param("jupyterlab", id="jupyterlab"),
-    ]
+    ],
 )
 def test_build_conda(
     tmp_path_factory,
@@ -120,19 +118,19 @@ def test_build_conda(
 ):
     """Benchmark building the conda package from a wheel."""
     wheel_dir = tmp_path_factory.mktemp("wheel_dir")
-    
+
     def setup():
         prefix = str(tmp_path_factory.mktemp(f"{package}"))
         build_path = tmp_path_factory.mktemp(f"build-{package}")
         output_path = tmp_path_factory.mktemp(f"output-{package}")
 
         conda_cli("create", "--yes", "--prefix", prefix, "python=3.11")
-        
+
         python_exe = Path(prefix, get_python_short_path())
         finder = get_package_finder(prefix)
         wheel_path = find_and_fetch(finder, wheel_dir, package)
 
-        return(wheel_path, python_exe, build_path, output_path), {}
+        return (wheel_path, python_exe, build_path, output_path), {}
 
     def target(wheel_path, python_exe, build_path, output_path):
         build_conda(
@@ -142,10 +140,10 @@ def test_build_conda(
             python_exe,
             is_editable=False,
         )
-    
+
     benchmark.pedantic(
         target,
         setup=setup,
         rounds=1,
-        warmup_rounds=0  # no warm up, cleaning the cache every time
+        warmup_rounds=0,  # no warm up, cleaning the cache every time
     )
