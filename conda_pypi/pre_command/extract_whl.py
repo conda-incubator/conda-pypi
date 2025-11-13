@@ -115,11 +115,20 @@ class MyWheelDestination(WheelDestination):
         write_as_json_to_file(paths_json_path, paths_json_data)
 
         # index.json
+        # Set fn to include the build string AND extension so _get_json_fn() works correctly
+        # Format: name-version-build.whl (e.g., "requests-2.28.0-pypi_0.whl")
+        # The extension is required because _get_json_fn() uses endswith() to detect package type
+        package_name = str(source.distribution)
+        package_version = str(source.version)
+        build_string = "pypi_0"
+        fn = f"{package_name}-{package_version}-{build_string}.whl"
+
         index_json_data = {
-            "name": str(source.distribution),
-            "version": str(source.version),
-            "build": "pypi_0",
+            "name": package_name,
+            "version": package_version,
+            "build": build_string,
             "build_number": 0,
+            "fn": fn,
         }
         index_json_path = os.path.join(self.target_full_path, "info", "index.json")
         write_as_json_to_file(index_json_path, index_json_data)
