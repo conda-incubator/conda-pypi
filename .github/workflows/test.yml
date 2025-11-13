@@ -58,7 +58,7 @@ jobs:
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
 
-  linux-benchmark-tests:
+  linux-benchmarks:
     name: benchmarks py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
@@ -85,9 +85,9 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
-      - name: Run benchmark tests
+      - name: Run benchmarks
         uses: CodSpeedHQ/action@c6574d0c2a990bca2842ce9af71549c5bfd7fbe0 # v4.2.1
         with:
           mode: instrumentation
           token: ${{ secrets.CODSPEED_TOKEN }}
-          run: pixi run --environment ${{ env.PIXI_ENV_NAME }} benchmark-test
+          run: pixi run --environment ${{ env.PIXI_ENV_NAME }} benchmark
