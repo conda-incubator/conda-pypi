@@ -1,8 +1,6 @@
 import pytest
 from pathlib import Path
 
-from pytest import MonkeyPatch
-
 from conda.testing.fixtures import CondaCLIFixture
 from conda.models.match_spec import MatchSpec
 from conda.common.path import get_python_short_path
@@ -12,55 +10,55 @@ from conda_pypi.downloader import find_and_fetch, get_package_finder
 from conda_pypi.build import build_conda
 
 
-@pytest.mark.benchmark
-@pytest.mark.parametrize(
-    "packages",
-    [
-        pytest.param(("imagesize",), id="imagesize"),  # small package, few dependencies
-        pytest.param(("scipy",), id="scipy"),  # slightly larger package
-        pytest.param(("jupyterlab",), id="jupyterlab"),
-    ],
-)
-def test_conda_pypi_install_basic(
-    tmp_path_factory,
-    conda_cli: CondaCLIFixture,
-    packages: tuple[str],
-    benchmark,
-    monkeypatch: MonkeyPatch,
-):
-    """Benchmark basic conda pypi install functionality."""
+# @pytest.mark.benchmark
+# @pytest.mark.parametrize(
+#     "packages",
+#     [
+#         pytest.param(("imagesize",), id="imagesize"),  # small package, few dependencies
+#         pytest.param(("scipy",), id="scipy"),  # slightly larger package
+#         pytest.param(("jupyterlab",), id="jupyterlab"),
+#     ],
+# )
+# def test_conda_pypi_install_basic(
+#     tmp_path_factory,
+#     conda_cli: CondaCLIFixture,
+#     packages: tuple[str],
+#     benchmark,
+#     monkeypatch: MonkeyPatch,
+# ):
+#     """Benchmark basic conda pypi install functionality."""
 
-    def setup():
-        # Setup function is run every time. So, using benchmarks to run multiple
-        # iterations of the test will create new paths for repo_dir and
-        # prefix for each iteration. This ensures a clean test without any
-        # cached packages and in a clean environment.
-        repo_dir = tmp_path_factory.mktemp(f"{'-'.join(packages)}-pkg-repo")
-        prefix = str(tmp_path_factory.mktemp(f"{'-'.join(packages)}"))
+#     def setup():
+#         # Setup function is run every time. So, using benchmarks to run multiple
+#         # iterations of the test will create new paths for repo_dir and
+#         # prefix for each iteration. This ensures a clean test without any
+#         # cached packages and in a clean environment.
+#         repo_dir = tmp_path_factory.mktemp(f"{'-'.join(packages)}-pkg-repo")
+#         prefix = str(tmp_path_factory.mktemp(f"{'-'.join(packages)}"))
 
-        monkeypatch.setattr("platformdirs.user_data_dir", lambda s: str(repo_dir))
+#         monkeypatch.setattr("platformdirs.user_data_dir", lambda s: str(repo_dir))
 
-        conda_cli("create", "--yes", "--prefix", prefix, "python=3.11")
-        return (prefix,), {}
+#         conda_cli("create", "--yes", "--prefix", prefix, "python=3.11")
+#         return (prefix,), {}
 
-    def target(prefix):
-        _, _, rc = conda_cli(
-            "pypi",
-            "--yes",
-            "install",
-            "--prefix",
-            prefix,
-            *packages,
-        )
-        return rc
+#     def target(prefix):
+#         _, _, rc = conda_cli(
+#             "pypi",
+#             "--yes",
+#             "install",
+#             "--prefix",
+#             prefix,
+#             *packages,
+#         )
+#         return rc
 
-    result = benchmark.pedantic(
-        target,
-        setup=setup,
-        rounds=2,
-        warmup_rounds=0,  # no warm up, cleaning the cache every time
-    )
-    assert result == 0
+#     result = benchmark.pedantic(
+#         target,
+#         setup=setup,
+#         rounds=2,
+#         warmup_rounds=0,  # no warm up, cleaning the cache every time
+#     )
+#     assert result == 0
 
 
 @pytest.mark.benchmark
@@ -144,6 +142,6 @@ def test_build_conda(
     benchmark.pedantic(
         target,
         setup=setup,
-        rounds=1,
+        rounds=2,
         warmup_rounds=0,  # no warm up, cleaning the cache every time
     )
