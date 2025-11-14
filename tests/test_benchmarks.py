@@ -1,7 +1,6 @@
 import pytest
 from pathlib import Path
 
-from pytest import MonkeyPatch
 
 from conda.testing.fixtures import CondaCLIFixture
 from conda.models.match_spec import MatchSpec
