@@ -62,6 +62,7 @@ conda-index = "*"
 "ruamel.yaml" = "*"
 requests = "*"
 pydantic = "*"
+pytest-codspeed = ">=3.0.0,<5"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }
@@ -91,7 +92,8 @@ sphinx-reredirects = "*"
 sphinx-sitemap = "*"
 
 [tool.pixi.feature.test.tasks]
-test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest'
+test = 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest -m "not benchmark"'
+benchmark= 'python -c "from conda_pypi.python_paths import ensure_externally_managed as e; e()" && python -mpytest --codspeed'
 pre-commit = 'pre-commit'
 
 [tool.pixi.feature.test.dependencies]
