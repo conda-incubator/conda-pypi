@@ -33,9 +33,7 @@ def test_extract_whl_sets_fn_correctly(
     # so fn will be "demo_package-0.1.0-pypi_0.whl" not "demo-package-0.1.0-pypi_0.whl"
     assert "fn" in index_data, "index.json should contain 'fn' field"
     # The fn field should include the build string and .whl extension
-    assert index_data["fn"].endswith("-pypi_0.whl"), (
-        f"fn should end with '-pypi_0.whl', got: {index_data['fn']}"
-    )
+    assert index_data["fn"].endswith("-pypi_0.whl")
     # Verify the format is name-version-build.whl
     fn_parts = index_data["fn"].replace(".whl", "").rsplit("-", 2)
     assert len(fn_parts) == 3
