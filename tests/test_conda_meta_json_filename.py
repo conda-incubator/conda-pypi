@@ -36,7 +36,6 @@ def test_extract_whl_sets_fn_correctly(
     assert index_data["fn"].endswith("-pypi_0.whl"), (
         f"fn should end with '-pypi_0.whl', got: {index_data['fn']}"
     )
-    assert ".whl" in index_data["fn"], f"fn should include .whl extension, got: {index_data['fn']}"
     # Verify the format is name-version-build.whl
     fn_parts = index_data["fn"].replace(".whl", "").rsplit("-", 2)
     assert len(fn_parts) == 3, (
