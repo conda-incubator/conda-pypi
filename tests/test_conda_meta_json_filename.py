@@ -23,7 +23,7 @@ def test_extract_whl_sets_fn_correctly(
 
     # Check that index.json was created with correct fn field
     index_json_path = tmp_path / "info" / "index.json"
-    assert index_json_path.exists(), f"index.json should exist at {index_json_path}"
+    assert index_json_path.exists()
 
     with open(index_json_path) as f:
         index_data = json.load(f)
