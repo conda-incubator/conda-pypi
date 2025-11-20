@@ -60,10 +60,10 @@ def test_install_output(tmp_env, conda_cli):
     with tmp_env("python=3.12") as prefix:
         out, err, rc = conda_cli(
             "pypi",
-            "--prefix",
-            prefix,
             "--yes",
             "install",
+            "--prefix",
+            prefix,
             "--override-channels",
             "scipy",
         )
