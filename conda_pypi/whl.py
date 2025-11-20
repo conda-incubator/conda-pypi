@@ -46,12 +46,6 @@ def add_whl_support() -> None:
 
     conda.core.prefix_data.CONDA_PACKAGE_EXTENSIONS = (".tar.bz2", ".conda", ".whl")
 
-    # Skip the check that name, version, build matches filename in prefix record json
-    from conda.core.prefix_data import PrefixData
-    from conda_pypi.pre_command.patched_load import _load_single_record
-
-    PrefixData._load_single_record = _load_single_record
-
     import conda.models.match_spec
 
     conda.models.match_spec.is_package_file = mocked_is_package_file
