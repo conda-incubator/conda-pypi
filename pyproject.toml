@@ -63,6 +63,7 @@ conda-index = "*"
 requests = "*"
 pydantic = "*"
 pytest-codspeed = ">=3.0.0,<5"
+conda-rattler-solver = ">=0.0.3,<0.0.4"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }
