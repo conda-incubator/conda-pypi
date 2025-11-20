@@ -111,7 +111,7 @@ unearth = ">=0.17.2"
 python-build = "*"
 pydantic = "*"
 python-installer = ">=0.7"
-conda-libmamba-solver = ">=24.9"
+conda-rattler-solver = "*"
 packaging = ">=24"
 # Dependencies for corpus tests
 sqlalchemy = "*"
