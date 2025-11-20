@@ -56,7 +56,7 @@ conda-pypi will analyze its dependency tree and:
   PyPI
 
 ```bash
-conda pypi install --override-channels some-package
+conda pypi install --ignore-channels some-package
 ```
 
 This forces dependency resolution to use only PyPI, bypassing conda channel

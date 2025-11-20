@@ -40,7 +40,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
 
         Install packages using only PyPI (skip configured conda channels)::
 
-            conda pypi install --override-channels fastapi
+            conda pypi install --ignore-channels fastapi
 
         Install packages from an alternative package index URL::
 
@@ -63,7 +63,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
         epilog=epilog,
     )
     install.add_argument(
-        "--override-channels",
+        "--ignore-channels",
         action="store_true",
         help="Do not search default or .condarc channels. Will search PyPI.",
     )
@@ -123,7 +123,7 @@ def execute(args: Namespace) -> int:
 
     converter = convert_tree.ConvertTree(
         prefix_path,
-        override_channels=args.override_channels,
+        override_channels=args.ignore_channels,
         finder=finder,
     )
 
@@ -151,7 +151,7 @@ def execute(args: Namespace) -> int:
         prefix_path,
         match_specs,
         channels=[channel_url],
-        override_channels=args.override_channels,
+        override_channels=args.ignore_channels,
         yes=args.yes,
         quiet=args.quiet,
         verbosity=args.verbosity,
