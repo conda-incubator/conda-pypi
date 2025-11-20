@@ -38,9 +38,7 @@ def test_extract_whl_sets_fn_correctly(
     )
     # Verify the format is name-version-build.whl
     fn_parts = index_data["fn"].replace(".whl", "").rsplit("-", 2)
-    assert len(fn_parts) == 3, (
-        f"fn should have format name-version-build.whl, got: {index_data['fn']}"
-    )
+    assert len(fn_parts) == 3
     fn_name, fn_version, fn_build = fn_parts
     assert fn_build == "pypi_0"
 
