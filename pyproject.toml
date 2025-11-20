@@ -62,6 +62,7 @@ conda-index = "*"
 "ruamel.yaml" = "*"
 requests = "*"
 pydantic = "*"
+conda-rattler-solver = ">=0.0.3,<0.0.4"
 
 [tool.pixi.pypi-dependencies]
 "conda-pypi" = { path  = ".", editable = true }
@@ -108,7 +109,7 @@ unearth = ">=0.17.2"
 python-build = "*"
 pydantic = "*"
 python-installer = ">=0.7"
-conda-libmamba-solver = ">=24.9"
+conda-rattler-solver = "*"
 packaging = ">=24"
 # Dependencies for corpus tests
 sqlalchemy = "*"
