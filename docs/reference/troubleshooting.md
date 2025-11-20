@@ -74,8 +74,8 @@ conda pypi install python-package-name  # instead of package-name
 
 **Solutions**:
 ```bash
-# Use --override-channels to simplify resolution
-conda pypi install --override-channels package-name
+# Use --ignore-channels to simplify resolution
+conda pypi install --ignore-channels package-name
 
 # Install dependencies from conda first
 conda install numpy pandas scipy

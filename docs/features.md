@@ -27,7 +27,7 @@ are handled as special cases and installed directly with `pip install --no-deps`
 You can preview what would be installed without making changes using
 `--dry-run`, install packages in editable development mode with `--editable`
 or `-e`, and force dependency resolution from PyPI without using conda
-channels using `--override-channels`.
+channels using `--ignore-channels`.
 
 ### `conda pypi convert`
 
@@ -36,7 +36,7 @@ installing them, which is useful for creating conda packages from PyPI
 distributions or preparing packages for offline installation. You can specify
 where to save the converted packages using `-d`, `--dest`, or `--output-dir`.
 The command supports converting multiple packages at once and can skip conda
-channel checks entirely with `--override-channels` to convert directly from
+channel checks entirely with `--ignore-channels` to convert directly from
 PyPI.
 
 Here are some common usage patterns:
@@ -49,7 +49,7 @@ conda pypi convert httpx cowsay
 conda pypi convert -d ./my_packages httpx cowsay
 
 # Convert without checking conda channels first
-conda pypi convert --override-channels some-pypi-only-package
+conda pypi convert --ignore-channels some-pypi-only-package
 ```
 
 ## PyPI-to-Conda Conversion Engine

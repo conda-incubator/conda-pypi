@@ -47,7 +47,7 @@ def test_index_urls(tmp_env, conda_cli, pypi_local_index):
             prefix,
             "--yes",
             "install",
-            "--override-channels",
+            "--ignore-channels",
             "--index-url",
             pypi_local_index,
             "demo-package",
@@ -64,7 +64,7 @@ def test_install_output(tmp_env, conda_cli):
             prefix,
             "--yes",
             "install",
-            "--override-channels",
+            "--ignore-channels",
             "scipy",
         )
 
