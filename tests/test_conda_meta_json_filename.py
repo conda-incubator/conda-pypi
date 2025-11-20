@@ -42,7 +42,7 @@ def test_extract_whl_sets_fn_correctly(
         f"fn should have format name-version-build.whl, got: {index_data['fn']}"
     )
     fn_name, fn_version, fn_build = fn_parts
-    assert fn_build == "pypi_0", f"build should be 'pypi_0', got: {fn_build}"
+    assert fn_build == "pypi_0"
 
     # Verify other fields
     # The name field uses the Python package name (with underscores)
