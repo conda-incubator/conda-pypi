@@ -59,6 +59,7 @@ jobs:
         run: |
           pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda config --add channels defaults
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda config --add channels conda-forge
       - name: Debug conda environment
         run: |
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
