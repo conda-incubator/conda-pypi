@@ -99,10 +99,6 @@ class ConvertTree:
                 missing_packages.update(set(parse_solver_error(e.message)))
 
             for package in sorted(missing_packages - fetched_packages):
-                # HACK: until we get conda 25.11.x
-                if str(package)[-1] == "=":
-                    package = MatchSpec(package.name)
-
                 find_and_fetch(self.finder, wheel_dir, package)
                 fetched_packages.add(package)
 

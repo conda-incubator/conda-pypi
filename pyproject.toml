@@ -25,7 +25,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  # "conda >=25.9.0",
+  # "conda >=25.11.0",
   "pip",
   "build",
   "conda-index",
@@ -54,7 +54,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64", "linux-aarch64"]
 [tool.pixi.dependencies]
 # must match project.dependencies (sans python and conda)
 python = ">=3.10"
-conda = ">=25.9"
+conda = ">=25.11"
 pip = "*"
 grayskull = "*"
 packaging = "*"
