@@ -39,10 +39,10 @@ jobs:
     env:
       PIXI_ENV_NAME: test-py${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
-      - uses: prefix-dev/setup-pixi@28eb668aafebd9dede9d97c4ba1cd9989a4d0004 # v0.9.2
+      - uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7 # v0.9.3
         with:
           environments: ${{ env.PIXI_ENV_NAME }}
       - name: Fix Ubuntu configuration
@@ -57,5 +57,37 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
-      - name: Run tests
-        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} -vv
+
+  linux-benchmarks:
+    name: benchmarks py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["312"]
+    env:
+      PIXI_ENV_NAME: test-py${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          fetch-depth: 0
+      - uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7 # v0.9.3
+        with:
+          environments: ${{ env.PIXI_ENV_NAME }}
+      - name: Fix Ubuntu configuration
+        run:
+          # Remove global pip config that interferes with isolated testing
+          # See: https://github.com/actions/runner-images/blob/6d025759810a/images/ubuntu/scripts/build/install-python.sh#L15-L21
+          sudo rm /etc/pip.conf
+      - name: Setup project
+        run: |
+          pixi reinstall --environment ${{ env.PIXI_ENV_NAME }} conda-pypi
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
+          echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@346a2d8a8d9d38909abd0bc3d23f773110f076ad # v4.4.1
+        with:
+          mode: instrumentation
+          token: ${{ secrets.CODSPEED_TOKEN }}
+          run: pixi run --environment ${{ env.PIXI_ENV_NAME }} benchmark
