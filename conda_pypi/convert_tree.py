@@ -205,9 +205,13 @@ class ConvertTree:
                 # maybe need to add repodata_fn, command args
             )
 
-            with get_spinner(self._get_converting_spinner_message(channels)):
-                changes = self._convert_loop(
-                    max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
-                )
-
-            return changes
+            try:
+                with get_spinner(self._get_converting_spinner_message(channels)):
+                    changes = self._convert_loop(
+                        max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
+                    )
+                return changes
+            finally:
+                # Explicitly clean up the solver to prevent Tokio runtime panics
+                # The RattlerSolver creates a Tokio runtime that needs proper cleanup
+                del solver
