@@ -39,10 +39,10 @@ jobs:
     env:
       PIXI_ENV_NAME: test-py${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
-      - uses: prefix-dev/setup-pixi@28eb668aafebd9dede9d97c4ba1cd9989a4d0004 # v0.9.2
+      - uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7 # v0.9.3
         with:
           environments: ${{ env.PIXI_ENV_NAME }}
       - name: Fix Ubuntu configuration
@@ -68,10 +68,10 @@ jobs:
     env:
       PIXI_ENV_NAME: test-py${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
-      - uses: prefix-dev/setup-pixi@28eb668aafebd9dede9d97c4ba1cd9989a4d0004 # v0.9.2
+      - uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7 # v0.9.3
         with:
           environments: ${{ env.PIXI_ENV_NAME }}
       - name: Fix Ubuntu configuration
@@ -86,7 +86,7 @@ jobs:
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@c6574d0c2a990bca2842ce9af71549c5bfd7fbe0 # v4.2.1
+        uses: CodSpeedHQ/action@346a2d8a8d9d38909abd0bc3d23f773110f076ad # v4.4.1
         with:
           mode: instrumentation
           token: ${{ secrets.CODSPEED_TOKEN }}
