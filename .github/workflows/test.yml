@@ -57,6 +57,8 @@ jobs:
           pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
           echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
           pixi run --environment ${{ env.PIXI_ENV_NAME }} conda info
+      - name: Run tests
+        run: pixi run --environment ${{ env.PIXI_ENV_NAME }} test --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} -vv
 
   linux-benchmarks:
     name: benchmarks py${{ matrix.python-version }}
