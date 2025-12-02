@@ -28,6 +28,7 @@ from unearth import PackageFinder
 
 from conda_pypi.build import build_conda
 from conda_pypi.downloader import find_and_fetch, get_package_finder
+from conda_pypi.exceptions import CondaPypiError
 from conda_pypi.index import update_index
 from conda_pypi.utils import SuppressOutput
 
@@ -103,8 +104,14 @@ class ConvertTree:
                 if str(package)[-1] == "=":
                     package = MatchSpec(package.name)
 
-                find_and_fetch(self.finder, wheel_dir, package)
-                fetched_packages.add(package)
+                try:
+                    find_and_fetch(self.finder, wheel_dir, package)
+                    fetched_packages.add(package)
+                except CondaPypiError as e:
+                    # Package doesn't exist on PyPI (e.g., conda-only packages like openssl)
+                    # Skip it and let the solver handle it from conda channels or fail appropriately
+                    log.debug(f"Skipping {package}: {e}")
+                    fetched_packages.add(package)  # Mark as fetched to avoid retrying
 
             for normal_wheel in wheel_dir.glob("*.whl"):
                 if normal_wheel in converted:
