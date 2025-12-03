@@ -35,14 +35,24 @@ from conda_pypi.utils import SuppressOutput
 log = logging.getLogger(__name__)
 
 NOTHING_PROVIDES_RE = re.compile(r"nothing provides (.*) needed by")
+RATTLER_NOTHING_PROVIDES_RE = re.compile(r"\b(.*), for which no candidates were found(.*)")
 
 
-def parse_solver_error(message: str):
+def parse_libmamba_solver_error(message: str):
     """
     Parse missing packages out of UnsatisfiableError message.
     """
     for line in message.splitlines():
         if match := NOTHING_PROVIDES_RE.search(line):
+            yield match.group(1)
+
+
+def parse_rattler_solver_error(message: str):
+    """
+    Parse missing packages out of UnsatisfiableError message.
+    """
+    for line in message.splitlines():
+        if match := RATTLER_NOTHING_PROVIDES_RE.search(line):
             yield match.group(1)
 
 
@@ -115,7 +125,7 @@ class ConvertTree:
             except UnsatisfiableError as e:
                 # parse message
                 log.debug("Unsatisfiable: %r", e)
-                missing_packages.update(set(parse_solver_error(e.message)))
+                missing_packages.update(set(parse_rattler_solver_error(e.message)))
 
             for package in sorted(missing_packages - fetched_packages):
                 find_and_fetch(self.finder, wheel_dir, package)
