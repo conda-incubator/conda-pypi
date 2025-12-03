@@ -40,14 +40,14 @@ def test_cli_plugin():
 
 
 def test_index_urls(tmp_env, conda_cli, pypi_local_index):
-    with tmp_env("python=3.10", "pip") as prefix:
+    with tmp_env("python=3.10") as prefix:
         out, err, rc = conda_cli(
             "pypi",
-            "--prefix",
-            prefix,
             "--yes",
             "install",
             "--ignore-channels",
+            "--prefix",
+            prefix,
             "--index-url",
             pypi_local_index,
             "demo-package",
