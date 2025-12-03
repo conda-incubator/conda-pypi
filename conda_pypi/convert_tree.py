@@ -8,6 +8,7 @@ import logging
 import pathlib
 import re
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Union, Optional, List
 
@@ -43,6 +44,24 @@ def parse_solver_error(message: str):
     for line in message.splitlines():
         if match := NOTHING_PROVIDES_RE.search(line):
             yield match.group(1)
+
+
+@contextmanager
+def patched_context_aggressive_update_packages():
+    original_aggressive_update_package = context.aggressive_update_packages
+    original_auto_update_conda = context.auto_update_conda
+
+    # patch the context to disable aggressive updated
+    import conda_rattler_solver.state
+    conda_rattler_solver.state.context._aggressive_update_packages = tuple()
+    conda_rattler_solver.state.context.auto_update_conda = False
+
+    try:
+        yield
+    finally:
+        # un-patch the context
+        conda_rattler_solver.state.context._aggressive_update_packages = original_aggressive_update_package
+        conda_rattler_solver.state.context.auto_update_conda = original_auto_update_conda
 
 
 # import / pupate / transmogrify / ...
@@ -201,8 +220,9 @@ class ConvertTree:
             )
 
             with get_spinner(self._get_converting_spinner_message(channels)):
-                changes = self._convert_loop(
-                    max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
-                )
+                with patched_context_aggressive_update_packages():
+                    changes = self._convert_loop(
+                        max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
+                    )
 
             return changes
