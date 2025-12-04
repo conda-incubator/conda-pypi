@@ -63,6 +63,7 @@ def patched_context_aggressive_update_packages():
 
     # patch the context to disable aggressive updated
     import conda_rattler_solver.state
+
     conda_rattler_solver.state.context._aggressive_update_packages = tuple()
     conda_rattler_solver.state.context.auto_update_conda = False
 
@@ -70,7 +71,9 @@ def patched_context_aggressive_update_packages():
         yield
     finally:
         # un-patch the context
-        conda_rattler_solver.state.context._aggressive_update_packages = original_aggressive_update_package
+        conda_rattler_solver.state.context._aggressive_update_packages = (
+            original_aggressive_update_package
+        )
         conda_rattler_solver.state.context.auto_update_conda = original_auto_update_conda
 
 

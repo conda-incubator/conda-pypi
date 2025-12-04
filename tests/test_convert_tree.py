@@ -9,7 +9,11 @@ from conda.models.match_spec import MatchSpec
 from conda.testing.fixtures import TmpEnvFixture
 from pytest_mock import MockerFixture
 
-from conda_pypi.convert_tree import ConvertTree, parse_libmamba_solver_error, parse_rattler_solver_error
+from conda_pypi.convert_tree import (
+    ConvertTree,
+    parse_libmamba_solver_error,
+    parse_rattler_solver_error,
+)
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.exceptions import CondaPypiError
 
