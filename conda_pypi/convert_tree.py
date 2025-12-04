@@ -35,7 +35,7 @@ from conda_pypi.utils import SuppressOutput
 log = logging.getLogger(__name__)
 
 NOTHING_PROVIDES_RE = re.compile(r"nothing provides (.*) needed by")
-RATTLER_NOTHING_PROVIDES_RE = re.compile(r"\b(.*), for which no candidates were found(.*)")
+RATTLER_NOTHING_PROVIDES_RE = re.compile(r"\b(.*), (.)* (n|N)o candidates were found(.*)")
 
 
 def parse_libmamba_solver_error(message: str):
@@ -186,7 +186,7 @@ class ConvertTree:
         )
 
     def convert_tree(
-        self, requested: List[MatchSpec], max_attempts: int = 20
+        self, requested: List[MatchSpec], max_attempts: int = 80
     ) -> tuple[tuple[PrefixRecord, ...], tuple[PrefixRecord, ...]] | None:
         """
         Preform a solve on the list of requested packages and converts the full dependency
