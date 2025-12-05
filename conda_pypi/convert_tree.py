@@ -8,7 +8,6 @@ import logging
 import pathlib
 import re
 import tempfile
-from contextlib import contextmanager
 from pathlib import Path
 from typing import Union, Optional, List
 
@@ -16,7 +15,7 @@ from conda_rattler_solver.solver import RattlerSolver
 
 import conda.exceptions
 import platformdirs
-from conda.base.context import context
+from conda.base.context import context, fresh_context
 from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
@@ -54,27 +53,6 @@ def parse_rattler_solver_error(message: str):
     for line in message.splitlines():
         if match := RATTLER_NOTHING_PROVIDES_RE.search(line):
             yield match.group(1)
-
-
-@contextmanager
-def patched_context_aggressive_update_packages():
-    original_aggressive_update_package = context.aggressive_update_packages
-    original_auto_update_conda = context.auto_update_conda
-
-    # patch the context to disable aggressive updated
-    import conda_rattler_solver.state
-
-    conda_rattler_solver.state.context._aggressive_update_packages = tuple()
-    conda_rattler_solver.state.context.auto_update_conda = False
-
-    try:
-        yield
-    finally:
-        # un-patch the context
-        conda_rattler_solver.state.context._aggressive_update_packages = (
-            original_aggressive_update_package
-        )
-        conda_rattler_solver.state.context.auto_update_conda = original_auto_update_conda
 
 
 # import / pupate / transmogrify / ...
@@ -232,8 +210,13 @@ class ConvertTree:
                 command="install",
             )
 
+            context_env = {
+                "CONDA_AGGRESSIVE_UPDATE_PACKAGES": "",
+                "CONDA_AUTO_UPDATE_CONDA": "false",
+            }
+
             with get_spinner(self._get_converting_spinner_message(channels)):
-                with patched_context_aggressive_update_packages():
+                with fresh_context(env=context_env):
                     changes = self._convert_loop(
                         max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
                     )
