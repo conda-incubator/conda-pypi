@@ -9,22 +9,20 @@ import pathlib
 import re
 import tempfile
 from pathlib import Path
-from typing import Iterable, Union, Optional, List
+from typing import Union, Optional, List
+
+from conda_rattler_solver.solver import RattlerSolver
 
 import conda.exceptions
 import platformdirs
-from conda.base.context import context
+from conda.base.context import context, fresh_context
 from conda.common.path import get_python_short_path
 from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
 from conda.models.records import PrefixRecord
 from conda.reporters import get_spinner
-from conda_libmamba_solver.solver import (
-    LibMambaIndexHelper,
-    LibMambaSolver,
-    LibMambaUnsatisfiableError,
-    SolverInputState,
-)
+from conda.core.solve import Solver
+from conda.exceptions import UnsatisfiableError
 
 from unearth import PackageFinder
 
@@ -36,44 +34,25 @@ from conda_pypi.utils import SuppressOutput
 log = logging.getLogger(__name__)
 
 NOTHING_PROVIDES_RE = re.compile(r"nothing provides (.*) needed by")
+RATTLER_NOTHING_PROVIDES_RE = re.compile(r"\b(.*), (.)* (n|N)o candidates were found(.*)")
 
 
-def parse_libmamba_error(message: str):
+def parse_libmamba_solver_error(message: str):
     """
-    Parse missing packages out of LibMambaUnsatisfiableError message.
+    Parse missing packages out of UnsatisfiableError message.
     """
     for line in message.splitlines():
         if match := NOTHING_PROVIDES_RE.search(line):
             yield match.group(1)
 
 
-class ReloadingLibMambaSolver(LibMambaSolver):
+def parse_rattler_solver_error(message: str):
     """
-    Reload channels as we add newly converted packages.
-    LibMambaIndexHelper appears to be addressing C++ singletons or global state.
+    Parse missing packages out of UnsatisfiableError message.
     """
-
-    def _collect_all_metadata(
-        self,
-        channels: Iterable[Channel],
-        conda_build_channels: Iterable[Channel],
-        subdirs: Iterable[str],
-        in_state: SolverInputState,
-    ) -> LibMambaIndexHelper:
-        index = LibMambaIndexHelper(
-            channels=[*conda_build_channels, *channels],
-            subdirs=subdirs,
-            repodata_fn=self._repodata_fn,
-            installed_records=(
-                *in_state.installed.values(),
-                *in_state.virtual.values(),
-            ),
-            pkgs_dirs=context.pkgs_dirs if context.offline else (),
-        )
-        for channel in channels:
-            # XXX filter by local channel we update
-            index.reload_channel(channel)
-        return index
+    for line in message.splitlines():
+        if match := RATTLER_NOTHING_PROVIDES_RE.search(line):
+            yield match.group(1)
 
 
 # import / pupate / transmogrify / ...
@@ -102,7 +81,7 @@ class ConvertTree:
     def _convert_loop(
         self,
         max_attempts: int,
-        solver: LibMambaSolver,
+        solver: Solver,
         tmp_path: Path,
     ) -> tuple[tuple[PrefixRecord, ...], tuple[PrefixRecord, ...]] | None:
         converted = set()
@@ -124,10 +103,10 @@ class ConvertTree:
             except conda.exceptions.PackagesNotFoundError as e:
                 missing_packages = set(e._kwargs["packages"])
                 log.debug(f"Missing packages: {missing_packages}")
-            except LibMambaUnsatisfiableError as e:
+            except UnsatisfiableError as e:
                 # parse message
                 log.debug("Unsatisfiable: %r", e)
-                missing_packages.update(set(parse_libmamba_error(e.message)))
+                missing_packages.update(set(parse_rattler_solver_error(e.message)))
 
             for package in sorted(missing_packages - fetched_packages):
                 find_and_fetch(self.finder, wheel_dir, package)
@@ -185,7 +164,7 @@ class ConvertTree:
         )
 
     def convert_tree(
-        self, requested: List[MatchSpec], max_attempts: int = 20
+        self, requested: List[MatchSpec], max_attempts: int = 80
     ) -> tuple[tuple[PrefixRecord, ...], tuple[PrefixRecord, ...]] | None:
         """
         Preform a solve on the list of requested packages and converts the full dependency
@@ -223,17 +202,23 @@ class ConvertTree:
             else:  # more wheels for us to convert
                 channels = [local_channel]
 
-            solver = ReloadingLibMambaSolver(
-                str(prefix),
-                channels,
-                context.subdirs,
-                requested,
-                [],
+            solver = RattlerSolver(
+                prefix=str(prefix),
+                channels=channels,
+                subdirs=context.subdirs,
+                specs_to_add=requested,
+                command="install",
             )
 
+            context_env = {
+                "CONDA_AGGRESSIVE_UPDATE_PACKAGES": "",
+                "CONDA_AUTO_UPDATE_CONDA": "false",
+            }
+
             with get_spinner(self._get_converting_spinner_message(channels)):
-                changes = self._convert_loop(
-                    max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
-                )
+                with fresh_context(env=context_env):
+                    changes = self._convert_loop(
+                        max_attempts=max_attempts, solver=solver, tmp_path=tmp_path
+                    )
 
             return changes
