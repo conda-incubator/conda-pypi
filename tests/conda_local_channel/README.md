@@ -7,8 +7,15 @@ This directory contains a mock conda channel used by the test suite to verify de
 - `noarch/` - Platform-independent packages subdirectory (standard conda channel structure)
   - `repodata.json` - Package metadata (moved from project root)
   - `*.whl` - Wheel files referenced in repodata.json (14 packages)
-- `provision_wheels.py` - Script to download missing wheel files from PyPI (TODO: change this to actual conda channel
-   later).
+- `osx-arm64/` - macOS Apple Silicon packages
+  - `repodata.json` - Package metadata for this platform
+  - `*.conda` - Conda packages (Python 3.12 + dependencies, ~16 packages)
+- `linux-64/` - Linux x86_64 packages
+  - `repodata.json` - Package metadata for this platform
+  - `*.conda` - Conda packages (Python 3.12 + dependencies, ~16 packages)
+- `provision_wheels.py` - Script to download wheel files from PyPI
+- `provision_conda_packages.py` - Script to download conda packages (Python + deps) from conda-forge
+- `generate_index.py` - Script to generate compressed indexes for all subdirectories
 - `README.md` - This file
 
 ## Setup
@@ -34,29 +41,78 @@ This will:
 
 The script is idempotent - if wheels already exist with correct checksums, they won't be re-downloaded.
 
+### Download Conda Packages (Python + Dependencies)
+
+To provision Python 3.12 and all its dependencies for both osx-arm64 and linux-64:
+
+```bash
+cd tests/conda_local_channel
+python provision_conda_packages.py
+```
+
+This will:
+- Resolve Python 3.12 dependencies using micromamba
+- Download ~16 packages per platform (~46MB total)
+- Verify checksums for all packages
+- Create basic repodata.json for each platform
+
+**Note:** This step is required for integration tests that need Python without external channels.
+
+### Platform Support
+
+The channel includes packages for:
+- `noarch` - Pure Python wheels (platform-independent)
+- `osx-arm64` - macOS Apple Silicon
+- `linux-64` - Linux x86_64
+
+To add additional platforms, edit `PLATFORMS` list in `provision_conda_packages.py`.
+
+### Complete Setup Process
+
+For a fully functional local conda channel:
+
+```bash
+cd tests/conda_local_channel
+
+# 1. Download conda packages (Python + deps)
+python provision_conda_packages.py
+
+# 2. Download Python wheels
+python provision_wheels.py
+
+# 3. (Optional) Generate compressed indexes
+python generate_index.py
+```
+
+After these steps, the channel contains:
+- Python 3.12 + 15 dependencies (osx-arm64 and linux-64)
+- 14 Python wheels (noarch)
+- Total: ~50MB
+
 ### Generate Compressed Indexes (Optional)
 
-To generate compressed index files for more realistic testing it is recommended to first update the
-`repodata.json` file manually and then run the following command to create a compressed copy of it:
+To generate compressed index files for more realistic testing, run:
 
-```shell
-cd tests/conda_local_channel/noarch
-ztsd repodata.json
+```bash
+cd tests/conda_local_channel
+python generate_index.py
 ```
+
+This creates compressed indexes (`.zst` files) for all subdirectories using conda-index. The fixture works fine without this step, but compressed indexes are more realistic.
 
 ## Usage in Tests
 
-The `conda_local_channel` pytest fixture starts an HTTP server serving this directory on port 8036.
+The `conda_local_channel` pytest fixture starts an HTTP server serving this directory on port 8037.
 
 ### Basic Usage
 
 ```python
 def test_with_conda_channel(conda_local_channel):
     """
-    conda_local_channel is "http://localhost:8036"
+    conda_local_channel is "http://localhost:8037"
     """
     # Use the channel URL in your test
-    assert conda_local_channel == "http://localhost:8036"
+    assert conda_local_channel == "http://localhost:8037"
 ```
 
 ### Accessing Channel Metadata
