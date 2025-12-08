@@ -2,8 +2,10 @@ from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 from pytest_mock import MockerFixture
 from conda_pypi.pre_command import extract_whl_or_tarball
 from conda_pypi.pre_command.extract_whl import extract_whl_as_conda_pkg
+from conda_pypi.whl import add_whl_support
 import pytest
 from pathlib import Path
+import conda.core.subdir_data
 
 
 WHL_HTTP_URL = "https://files.pythonhosted.org/packages/45/7f/0e961cf3908bc4c1c3e027de2794f867c6c89fb4916fc7dba295a0e80a2d/boltons-25.0.0-py3-none-any.whl"
@@ -54,3 +56,37 @@ def test_extract_whl_as_conda_pkg(
     tmp_path: Path,
 ):
     extract_whl_as_conda_pkg(pypi_demo_package_wheel_path, tmp_path)
+
+
+def test_packages_whl_reading(mocker: MockerFixture):
+    """
+    Test that conda can read packages.whl from server-hosted repodata.
+
+    This tests the patch in whl.py that merges packages.whl into packages
+    when conda reads repodata from a server channel.
+    """
+    mocker.patch.object(
+        conda.core.subdir_data.SubdirData,
+        "_process_raw_repodata",
+        side_effect=lambda self, repodata, state=None: repodata,
+    )
+
+    add_whl_support()
+
+    repodata = {
+        "packages": {},
+        "packages.whl": {
+            "demo_package-0.1.0-pypi_0.whl": {
+                "name": "demo_package",
+                "version": "0.1.0",
+                "fn": "demo_package-0.1.0-pypi_0.whl",
+            }
+        },
+    }
+
+    result = conda.core.subdir_data.SubdirData._process_raw_repodata(
+        mocker.Mock(), repodata.copy()
+    )
+
+    assert "demo_package-0.1.0-pypi_0.whl" in result["packages"]
+    assert result["packages"]["demo_package-0.1.0-pypi_0.whl"]["name"] == "demo_package"
