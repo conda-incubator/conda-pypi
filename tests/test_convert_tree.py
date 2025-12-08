@@ -9,7 +9,11 @@ from conda.models.match_spec import MatchSpec
 from conda.testing.fixtures import TmpEnvFixture
 from pytest_mock import MockerFixture
 
-from conda_pypi.convert_tree import ConvertTree
+from conda_pypi.convert_tree import (
+    ConvertTree,
+    parse_libmamba_solver_error,
+    parse_rattler_solver_error,
+)
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.exceptions import CondaPypiError
 
@@ -102,3 +106,13 @@ def test_package_without_wheel_should_fail_early(
         # Verify we get a meaningful error message
         error_msg = str(exc_info.value).lower()
         assert "wheel" in error_msg
+
+
+def test_parse_libmamba_solver_error():
+    error_message = "'Encountered problems while solving:\n  - nothing provides numpy <2.6,>=1.25.2 needed by scipy-1.16.3-pypi_0\n\nCould not solve for environment specs\nThe following package could not be installed\n└─ \x1b[31mscipy =* *\x1b[0m is not installable because it requires\n   └─ \x1b[31mnumpy <2.6,>=1.25.2 *\x1b[0m, which does not exist (perhaps a missing channel).'"
+    assert set(parse_libmamba_solver_error(error_message)) == {"numpy <2.6,>=1.25.2"}
+
+
+def test_parse_rattler_solver_error():
+    error_message = "'Cannot solve the request because of: scipy * cannot be installed because there are no viable options:\n└─ scipy 1.16.3 would require\n   └─ numpy <2.6,>=1.25.2, for which no candidates were found.\n'"
+    assert set(parse_rattler_solver_error(error_message)) == {"numpy <2.6,>=1.25.2"}
