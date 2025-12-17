@@ -29,14 +29,9 @@ dependencies = [
   "pip",
   "build",
   "conda-index",
-  "grayskull",
   "installer",
   "packaging",
   "platformdirs",
-  "pydantic",
-  "requests",
-  "ruamel.yaml",
-  "typer",
   "unearth",
 ]
 dynamic = ["version"]
@@ -56,12 +51,8 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64", "linux-aarch64"]
 python = ">=3.10"
 conda = ">=25.11"
 pip = "*"
-grayskull = "*"
 packaging = "*"
 conda-index = "*"
-"ruamel.yaml" = "*"
-requests = "*"
-pydantic = "*"
 pytest-codspeed = ">=3.0.0,<5"
 conda-rattler-solver = ">=0.0.3,<0.0.4"
 
@@ -105,11 +96,9 @@ conda-build = "*"
 pre-commit = "*"
 pytest-xprocess = "*"
 # Build system dependencies
-typer = "*"
 conda-package-streaming = ">=0.11"
 unearth = ">=0.17.2"
 python-build = "*"
-pydantic = "*"
 python-installer = ">=0.7"
 conda-rattler-solver = "*"
 packaging = ">=24"
