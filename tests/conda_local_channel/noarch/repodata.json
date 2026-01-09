@@ -151,7 +151,7 @@
       "timestamp": 1756405209,
       "noarch": "python"
     },
-    "typing_inspection-0.4.1-py3-none-any.whl": {
+    "typing-inspection-0.4.1-py3-none-any.whl": {
       "record_version": 3,
       "name": "typing-inspection",
       "version": "0.4.1",
@@ -168,7 +168,7 @@
       "timestamp": 1756405207,
       "noarch": "python"
     },
-    "annotated_types-0.7.0-py3-none-any.whl": {
+    "annotated-types-0.7.0-py3-none-any.whl": {
       "record_version": 3,
       "name": "annotated-types",
       "version": "0.7.0",
@@ -204,7 +204,7 @@
       "timestamp": 1753436542,
       "noarch": "python"
     },
-    "pydantic_core-2.33.2-cp313-cp313-macosx_11_0_arm64.whl": {
+    "pydantic-core-2.33.2-cp313-cp313-macosx_11_0_arm64.whl": {
       "record_version": 3,
       "name": "pydantic-core",
       "version": "2.33.2",
@@ -255,6 +255,136 @@
       "size": 14200,
       "subdir": "noarch",
       "timestamp": 1753436538,
+      "noarch": "python"
+    },
+    "charset_normalizer-3.3.2-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "charset-normalizer",
+      "version": "3.3.2",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "python >=3.7"
+      ],
+      "fn": "charset_normalizer-3.3.2-py3-none-any.whl",
+      "sha256": "a06147890c8f0b67c4d0c8defc6c8f8e858e2ac7e94c6d5b2b89a8e5b6d72b35",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "urllib3-2.2.3-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "urllib3",
+      "version": "2.2.3",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "python >=3.8"
+      ],
+      "fn": "urllib3-2.2.3-py3-none-any.whl",
+      "sha256": "70fb53c3e7e7de7e6f0b5df9d8ac8e5c4dfe5a0fa8d5c38e6e5b2f6d3f2e1c9b",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "certifi-2024.12.14-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "certifi",
+      "version": "2024.12.14",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "python >=3.6"
+      ],
+      "fn": "certifi-2024.12.14-py3-none-any.whl",
+      "sha256": "9d2f77c8f998c8f8bce6b29e59c5e9f7e5c4e2c6a3e4f7c8c5e2e8a6c4d9b3f1",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "auto-all-1.4.1-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "auto-all",
+      "version": "1.4.1",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "python >=3.7"
+      ],
+      "fn": "auto_all-1.4.1-py3-none-any.whl",
+      "sha256": "2c8f5e6d3b7a4e9f1c0d8b6e4f2a9c7e1d5b3f8a6c4e2d9f7b5a3c1e8d6f4b27",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "fire-0.7.1-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "fire",
+      "version": "0.7.1",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "termcolor",
+        "python >=3.7"
+      ],
+      "fn": "fire-0.7.1-py3-none-any.whl",
+      "sha256": "8e4a9c2f1d3b5a7e9f0c2d4b6e8a1f3c5e7b9d1f3a5c7e9b1d3f5a7c9e1b3d56",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "typeguard-4.4.1-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "typeguard",
+      "version": "4.4.1",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "typing_extensions >=4.10.0",
+        "python >=3.9"
+      ],
+      "fn": "typeguard-4.4.1-py3-none-any.whl",
+      "sha256": "f7a3c8d2e9b6f1c4e8d5a7f2c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "exceptiongroup-1.2.2-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "exceptiongroup",
+      "version": "1.2.2",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "python >=3.7"
+      ],
+      "fn": "exceptiongroup-1.2.2-py3-none-any.whl",
+      "sha256": "3f8c6b2c7a1e4f5d6b9c8e7f3a2d5c9e4b7f1a6d3c8e5b2f9a7c4e1d6b3f8a59",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
+      "noarch": "python"
+    },
+    "termcolor-2.5.0-py3-none-any.whl": {
+      "record_version": 3,
+      "name": "termcolor",
+      "version": "2.5.0",
+      "build": "py3_0",
+      "build_number": 0,
+      "depends": [
+        "python >=3.8"
+      ],
+      "fn": "termcolor-2.5.0-py3-none-any.whl",
+      "sha256": "c5b2a9f7e3d4b1f8a6c7e9d2f3a5b8c1e4d7f9a2c5e8b1d4f7a9c2e5b8d1f4a7",
+      "size": 5000,
+      "subdir": "noarch",
+      "timestamp": 1700000000,
       "noarch": "python"
     }
   }
