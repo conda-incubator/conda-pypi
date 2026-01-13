@@ -77,3 +77,16 @@ def test_checksum(tmp_path):
 
     paths = paths_json(tmp_path)
     assert len(paths["paths"])
+
+
+def test_create_env_from_wheel_channel(tmp_path, conda_cli, conda_local_channel):
+    """
+    Ensure an environment can be created as expected using the conda_local_channel fixture.
+    """
+    out, err, rc = conda_cli(
+        "create",
+        "--prefix",
+        str(tmp_path / "env"),
+        "--channel",
+        str(conda_local_channel),
+    )
