@@ -7,6 +7,10 @@ from pathlib import Path
 
 from conda.models.match_spec import MatchSpec
 from conda.testing.fixtures import TmpEnvFixture
+from conda.base.context import reset_context, context
+from conda.models.channel import Channel
+from conda_rattler_solver.solver import RattlerSolver
+
 from pytest_mock import MockerFixture
 
 from conda_pypi.convert_tree import (
@@ -16,6 +20,7 @@ from conda_pypi.convert_tree import (
 )
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.exceptions import CondaPypiError
+from conda_pypi.convert_tree import ConvertTree
 
 import pytest
 
@@ -116,3 +121,26 @@ def test_parse_libmamba_solver_error():
 def test_parse_rattler_solver_error():
     error_message = "'Cannot solve the request because of: scipy * cannot be installed because there are no viable options:\n└─ scipy 1.16.3 would require\n   └─ numpy <2.6,>=1.25.2, for which no candidates were found.\n'"
     assert set(parse_rattler_solver_error(error_message)) == {"numpy <2.6,>=1.25.2"}
+
+
+def test_convert_tree_with_repodata_v3(tmp_env, tmp_path, conda_local_channel, monkeypatch):
+    """
+    Test that packages in the packages.whl section of repodata are found
+    by the solver.
+    """
+    monkeypatch.setenv("CONDA_CHANNELS", conda_local_channel)
+    reset_context()
+
+    wheel_dir = tmp_path
+    requested = [MatchSpec("fastapi")]
+    with tmp_env("python") as prefix:
+        solver = RattlerSolver(
+            prefix=str(prefix),
+            channels=[Channel.from_url(conda_local_channel)],
+            subdirs=context.subdirs,
+            specs_to_add=requested,
+            command="install",
+        )
+        tree_converter = ConvertTree(prefix=prefix)
+        result = tree_converter._convert_loop(max_attempts=2, solver=solver, tmp_path=wheel_dir)
+        assert result
