@@ -227,8 +227,6 @@ The test suite uses local HTTP servers to avoid network dependencies:
 - **PyPI Server**: Serves packages from `tests/pypi_local_index/`
 - **Conda Channel Server**: Serves packages from `tests/conda_local_channel/`
 
-Both servers are automatically started and stopped by pytest using the `xprocess` plugin.
-
 For more information on the conda channel server, see the [Mock Channel Server Guide](mock-channel-server.md).
 
 ### Test Data
@@ -263,14 +261,6 @@ If you see "fixture not found" errors:
 1. Check that `tests/conftest.py` is present
 2. Verify the fixture name is correct
 3. Ensure the pytest plugin is loaded (`pytest_plugins` in conftest.py)
-
-### Port Already in Use
-
-If local test servers fail to start:
-
-1. Check if another test run is still active
-2. Kill any hanging test processes
-3. The ports used are 8035 (PyPI) and 8037 (Conda Channel)
 
 ```{toctree}
 :hidden:

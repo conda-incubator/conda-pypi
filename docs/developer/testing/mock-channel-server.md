@@ -50,7 +50,7 @@ def test_with_mock_channel(conda_local_channel):
 ```
 
 The fixture automatically:
-1. Starts an HTTP server on port 8037
+1. Starts an HTTP server on a port automatically 
 2. Serves the `tests/conda_local_channel/` directory
 3. Returns the server URL
 4. Cleans up the server after the test completes
@@ -171,43 +171,6 @@ The mock channel currently includes:
 
 ## Implementation Details
 
-### Server Setup
-
-The mock channel server is implemented in `tests/conftest.py`:
-
-```python
-@pytest.fixture(scope="session")
-def conda_local_channel(xprocess):
-    """
-    Runs a local conda channel by serving the folder "tests/conda_local_channel"
-    This provides a mock conda channel with pre-converted packages for testing
-    dependency resolution without requiring network access.
-    """
-    port = "8037"
-
-    class Starter(ProcessStarter):
-        pattern = "Serving HTTP on"
-        timeout = 10
-        args = [
-            sys.executable,
-            "-m",
-            "http.server",
-            "-d",
-            HERE / "conda_local_channel",
-            port,
-        ]
-        env = os.environ.copy()
-        env["PYTHONUNBUFFERED"] = "1"
-
-    xprocess.ensure("conda_local_channel", Starter)
-
-    yield f"http://localhost:{port}"
-
-    xprocess.getinfo("conda_local_channel").terminate()
-```
-
-The server uses Python's built-in `http.server` module, making it lightweight and dependency-free.
-
 ### Wheel Support in Repodata
 
 `conda-pypi` extends conda's repodata format to support wheel files. The repodata includes a `packages.whl` section alongside the standard `packages` and `packages.conda` sections:
@@ -258,15 +221,6 @@ The mock channel includes packages for multiple platforms:
 Ensure packages exist for the platforms where tests will run, or make tests platform-conditional.
 
 ## Troubleshooting
-
-### Server Won't Start
-
-**Problem**: The mock channel server fails to start with "port already in use"
-
-**Solution**:
-- Kill any existing test processes using port 8037
-- Check for hanging pytest-xprocess instances
-- Run `pkill -f "http.server.*8037"` to force cleanup
 
 ### Package Not Found
 
