@@ -4,8 +4,10 @@ Tests that use run `conda pypi install` use `conda_cli` as the primary caller
 
 from __future__ import annotations
 
+from conda.base.context import reset_context
 from conda.testing.fixtures import CondaCLIFixture
 
+import json
 import re
 import pytest
 
@@ -108,3 +110,23 @@ def test_install_editable_without_packages_succeeds(conda_cli: CondaCLIFixture):
     project = "tests/packages/has-build-dep"
     out, err, rc = conda_cli("pypi", "install", "-e", project)
     assert rc == 0
+
+
+def test_json_output(tmp_env, monkeypatch, conda_cli):
+    """Ensure that conda-pypi output respects conda's `--json` config"""
+    monkeypatch.setenv("CONDA_JSON", True)
+    reset_context()
+
+    with tmp_env("python=3.10") as prefix:
+        out, err, rc = conda_cli(
+            "pypi",
+            "--yes",
+            "install",
+            "--prefix",
+            prefix,
+            "imagesize",
+        )
+        json_actions = json.loads(out)
+        assert rc == 0
+        assert json_actions["prefix"] == str(prefix)
+        assert json_actions["success"]

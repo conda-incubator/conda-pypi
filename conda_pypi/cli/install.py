@@ -4,6 +4,7 @@ from pathlib import Path
 
 from conda.auxlib.ish import dals
 from conda.models.match_spec import MatchSpec
+from conda.base.context import context
 
 from conda_pypi import convert_tree, build, installer
 from conda_pypi.downloader import get_package_finder
@@ -141,10 +142,12 @@ def execute(args: Namespace) -> int:
         for pkg in packages_to_install
         if pkg.channel.canonical_name == channel_url
     ]
-    if converted_packages:
-        converted_packages_dashed = "\n - ".join(converted_packages)
-        print(f"Converted packages\n - {converted_packages_dashed}\n")
-    print("Installing environment")
+
+    if not context.json:
+        if converted_packages:
+            converted_packages_dashed = "\n - ".join(converted_packages)
+            print(f"Converted packages\n - {converted_packages_dashed}\n")
+        print("Installing environment")
 
     # Install converted packages to current conda environment
     return run_conda_install(
