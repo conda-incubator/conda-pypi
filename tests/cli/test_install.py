@@ -129,4 +129,4 @@ def test_json_output(tmp_env, monkeypatch, conda_cli):
         json_actions = json.loads(out)
         assert rc == 0
         assert json_actions["prefix"] == str(prefix)
-        assert json_actions["success"] == True 
+        assert json_actions["success"]
