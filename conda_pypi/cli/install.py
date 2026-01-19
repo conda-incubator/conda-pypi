@@ -159,7 +159,7 @@ def execute(args: Namespace) -> int:
         for pkg in packages_to_install
         if pkg.channel.canonical_name == channel_url
     ]
-    
+
     if not context.json:
         if converted_packages:
             converted_packages_dashed = "\n - ".join(converted_packages)
