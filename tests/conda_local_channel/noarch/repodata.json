@@ -8,11 +8,11 @@
   "repodata_version": 1,
   "signatures": {},
   "packages.whl": {
-    "requests-2.32.5-py3-none-any.whl": {
+    "requests-2.32.5-py3_none_any_0": {
       "record_version": 3,
       "name": "requests",
       "version": "2.32.5",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "charset-normalizer <4,>=2",
@@ -28,11 +28,11 @@
       "timestamp": 1764005009,
       "noarch": "python"
     },
-    "abqpy-2023.7.10-py3-none-any.whl": {
+    "abqpy-2023.7.10-py3_none_any_0": {
       "record_version": 3,
       "name": "abqpy",
       "version": "2023.7.10",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "auto-all",
@@ -49,11 +49,11 @@
       "timestamp": 1763676339,
       "noarch": "python"
     },
-    "anyio-4.9.0-py3-none-any.whl": {
+    "anyio-4.9.0-py3_none_any_0": {
       "record_version": 3,
       "name": "anyio",
       "version": "4.9.0",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "exceptiongroup >=1.0.2",
@@ -69,11 +69,11 @@
       "timestamp": 1756406576,
       "noarch": "python"
     },
-    "setuptools-78.1.1-py3-none-any.whl": {
+    "setuptools-78.1.1-py3_none_any_0": {
       "record_version": 3,
       "name": "setuptools",
       "version": "78.1.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.9"
@@ -85,11 +85,11 @@
       "timestamp": 1756405218,
       "noarch": "python"
     },
-    "starlette-0.47.2-py3-none-any.whl": {
+    "starlette-0.47.2-py3_none_any_0": {
       "record_version": 3,
       "name": "starlette",
       "version": "0.47.2",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "anyio <5,>=3.6.2",
@@ -103,11 +103,11 @@
       "timestamp": 1756405214,
       "noarch": "python"
     },
-    "typing_extensions-4.14.1-py3-none-any.whl": {
+    "typing_extensions-4.14.1-py3_none_any_0": {
       "record_version": 3,
       "name": "typing_extensions",
       "version": "4.14.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.9"
@@ -119,11 +119,11 @@
       "timestamp": 1756405213,
       "noarch": "python"
     },
-    "wheel-0.45.1-py3-none-any.whl": {
+    "wheel-0.45.1-py3_none_any_0": {
       "record_version": 3,
       "name": "wheel",
       "version": "0.45.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.8"
@@ -135,11 +135,11 @@
       "timestamp": 1756405212,
       "noarch": "python"
     },
-    "sniffio-1.3.1-py3-none-any.whl": {
+    "sniffio-1.3.1-py3_none_any_0": {
       "record_version": 3,
       "name": "sniffio",
       "version": "1.3.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.7"
@@ -151,11 +151,11 @@
       "timestamp": 1756405209,
       "noarch": "python"
     },
-    "typing-inspection-0.4.1-py3-none-any.whl": {
+    "typing-inspection-0.4.1-py3_none_any_0": {
       "record_version": 3,
       "name": "typing-inspection",
       "version": "0.4.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "typing_extensions >=4.12.0",
@@ -168,11 +168,11 @@
       "timestamp": 1756405207,
       "noarch": "python"
     },
-    "annotated-types-0.7.0-py3-none-any.whl": {
+    "annotated-types-0.7.0-py3_none_any_0": {
       "record_version": 3,
       "name": "annotated-types",
       "version": "0.7.0",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "typing_extensions >=4.0.0",
@@ -185,11 +185,11 @@
       "timestamp": 1756405206,
       "noarch": "python"
     },
-    "fastapi-0.116.1-py3-none-any.whl": {
+    "fastapi-0.116.1-py3_none_any_0": {
       "record_version": 3,
       "name": "fastapi",
       "version": "0.116.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "starlette <0.48.0,>=0.40.0",
@@ -204,11 +204,11 @@
       "timestamp": 1753436542,
       "noarch": "python"
     },
-    "pydantic-core-2.33.2-cp313-cp313-macosx_11_0_arm64.whl": {
+    "pydantic-core-2.33.2-py3_none_any_0": {
       "record_version": 3,
       "name": "pydantic-core",
       "version": "2.33.2",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "typing_extensions !=4.7.0,>=4.6.0",
@@ -221,11 +221,11 @@
       "timestamp": 1753436541,
       "noarch": "python"
     },
-    "idna-3.10-py3-none-any.whl": {
+    "idna-3.10-py3_none_any_0": {
       "record_version": 3,
       "name": "idna",
       "version": "3.10",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.6"
@@ -237,11 +237,11 @@
       "timestamp": 1753436539,
       "noarch": "python"
     },
-    "pydantic-2.11.7-py3-none-any.whl": {
+    "pydantic-2.11.7-py3_none_any_0": {
       "record_version": 3,
       "name": "pydantic",
       "version": "2.11.7",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "annotated-types >=0.6.0",
@@ -257,11 +257,11 @@
       "timestamp": 1753436538,
       "noarch": "python"
     },
-    "charset_normalizer-3.3.2-py3-none-any.whl": {
+    "charset_normalizer-3.3.2-py3_none_any_0": {
       "record_version": 3,
       "name": "charset-normalizer",
       "version": "3.3.2",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.7"
@@ -273,11 +273,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "urllib3-2.2.3-py3-none-any.whl": {
+    "urllib3-2.2.3-py3_none_any_0": {
       "record_version": 3,
       "name": "urllib3",
       "version": "2.2.3",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.8"
@@ -289,11 +289,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "certifi-2024.12.14-py3-none-any.whl": {
+    "certifi-2024.12.14-py3_none_any_0": {
       "record_version": 3,
       "name": "certifi",
       "version": "2024.12.14",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.6"
@@ -305,11 +305,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "auto-all-1.4.1-py3-none-any.whl": {
+    "auto-all-1.4.1-py3_none_any_0": {
       "record_version": 3,
       "name": "auto-all",
       "version": "1.4.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.7"
@@ -321,11 +321,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "fire-0.7.1-py3-none-any.whl": {
+    "fire-0.7.1-py3_none_any_0": {
       "record_version": 3,
       "name": "fire",
       "version": "0.7.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "termcolor",
@@ -338,11 +338,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "typeguard-4.4.1-py3-none-any.whl": {
+    "typeguard-4.4.1-py3_none_any_0": {
       "record_version": 3,
       "name": "typeguard",
       "version": "4.4.1",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "typing_extensions >=4.10.0",
@@ -355,11 +355,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "exceptiongroup-1.2.2-py3-none-any.whl": {
+    "exceptiongroup-1.2.2-py3_none_any_0": {
       "record_version": 3,
       "name": "exceptiongroup",
       "version": "1.2.2",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.7"
@@ -371,11 +371,11 @@
       "timestamp": 1700000000,
       "noarch": "python"
     },
-    "termcolor-2.5.0-py3-none-any.whl": {
+    "termcolor-2.5.0-py3_none_any_0": {
       "record_version": 3,
       "name": "termcolor",
       "version": "2.5.0",
-      "build": "py3_0",
+      "build": "py3_none_any_0",
       "build_number": 0,
       "depends": [
         "python >=3.8"
