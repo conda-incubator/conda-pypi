@@ -5,10 +5,12 @@ from pathlib import Path
 from conda.auxlib.ish import dals
 from conda.models.match_spec import MatchSpec
 from conda.base.context import context
+from packaging.requirements import InvalidRequirement, Requirement
 
 from conda_pypi import convert_tree, build, installer
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.main import run_conda_install
+from conda_pypi.translate import pypi_to_conda_name
 from conda_pypi.utils import get_prefix
 
 
@@ -129,7 +131,20 @@ def execute(args: Namespace) -> int:
     )
 
     # Convert package strings to MatchSpec objects
-    match_specs = [MatchSpec(pkg) for pkg in args.packages]
+    # Translate PyPI names to conda names to ensure proper package resolution
+    match_specs = []
+    for pkg in args.packages:
+        try:
+            # Try to parse as a requirement to extract the package name
+            req = Requirement(pkg)
+            conda_name = pypi_to_conda_name(req.name)
+            # Reconstruct the spec with the conda name
+            pkg_spec = pkg.replace(req.name, conda_name, 1)
+            match_specs.append(MatchSpec(pkg_spec))
+        except InvalidRequirement:
+            # Not a valid PyPI requirement, treat as conda-style spec
+            match_specs.append(MatchSpec(pkg))
+
     changes = converter.convert_tree(match_specs)
     channel_url = converter.repo.as_uri()
 
