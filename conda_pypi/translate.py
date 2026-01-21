@@ -135,10 +135,10 @@ class CondaMetadata:
         # 'summary', 'tags', 'conda_private', 'doc_source_url', 'license_url']
 
         about = {
-            "summary": metadata.get("summary"),
-            "description": metadata.get("description"),
+            "summary": metadata.get("summary") or "",
+            "description": metadata.get("description") or "",
             # https://packaging.python.org/en/latest/specifications/core-metadata/#license-expression
-            "license": metadata.get("license_expression") or metadata.get("license"),
+            "license": metadata.get("license_expression") or metadata.get("license") or "",
         }
 
         if project_urls := metadata.get_all("project-url"):
