@@ -8,6 +8,7 @@ from conda_pypi.translate import (
     MatchSpec,
     conda_to_requires,
     pypi_to_conda_name,
+    remap_match_spec_name,
 )
 from importlib.metadata import PathDistribution
 from pathlib import Path
@@ -31,6 +32,28 @@ Version: 0.0.1
 def test_translate_twine():
     requirement = conda_to_requires(MatchSpec("twine==6.0.0"))
     assert requirement.name == "twine"
+
+
+def test_conda_to_requires_remaps_names():
+    requirement = conda_to_requires(MatchSpec("typing_extensions"))
+    assert requirement.name == "typing-extensions"
+
+
+def test_conda_to_requires_formats_exact_versions():
+    requirement = conda_to_requires(MatchSpec("twine=6.0.0"))
+    assert str(requirement) == "twine==6.0.0"
+
+
+def test_remap_matchspec_name_noop_for_unmapped():
+    spec = MatchSpec("requests")
+    remapped = remap_match_spec_name(spec, pypi_to_conda_name)
+    assert remapped == spec
+
+
+def test_remap_matchspec_name_maps_when_needed():
+    spec = MatchSpec("typing-extensions")
+    remapped = remap_match_spec_name(spec, pypi_to_conda_name)
+    assert remapped.name == "typing_extensions"
 
 
 def test_pypi_to_conda_name_with_hyphens():

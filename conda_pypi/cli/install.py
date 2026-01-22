@@ -10,7 +10,7 @@ from packaging.requirements import InvalidRequirement, Requirement
 from conda_pypi import convert_tree, build, installer
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.main import run_conda_install
-from conda_pypi.translate import pypi_to_conda_name
+from conda_pypi.translate import pypi_to_conda_name, remap_match_spec_name
 from conda_pypi.utils import get_prefix
 
 
@@ -129,6 +129,7 @@ def execute(args: Namespace) -> int:
         override_channels=args.ignore_channels,
         finder=finder,
     )
+    channel_url = converter.repo.as_uri()
 
     # Convert package strings to MatchSpec objects
     # Translate PyPI names to conda names to ensure proper package resolution
@@ -140,14 +141,13 @@ def execute(args: Namespace) -> int:
             conda_name = pypi_to_conda_name(req.name)
             # Reconstruct the spec with the conda name
             pkg_spec = pkg.replace(req.name, conda_name, 1)
-            match_specs.append(MatchSpec(pkg_spec))
+            match_specs.append(MatchSpec(pkg_spec, channel=channel_url))
         except InvalidRequirement:
             # Not a valid PyPI requirement, treat as conda-style spec
-            match_specs.append(MatchSpec(pkg))
+            remapped = remap_match_spec_name(MatchSpec(pkg), pypi_to_conda_name)
+            match_specs.append(MatchSpec(remapped, channel=channel_url))
 
     changes = converter.convert_tree(match_specs)
-    channel_url = converter.repo.as_uri()
-
     if changes is None:
         packages_to_install = ()
     else:
