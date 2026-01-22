@@ -1,3 +1,4 @@
+from tempfile import TemporaryDirectory
 from argparse import Namespace, _SubParsersAction
 from pathlib import Path
 
@@ -5,7 +6,7 @@ from conda.auxlib.ish import dals
 from conda.base.context import context
 from conda.exceptions import ArgumentError
 
-from conda_pypi import build
+from conda_pypi import build, paths
 
 
 def configure_parser(parser: _SubParsersAction) -> None:
@@ -60,7 +61,7 @@ def configure_parser(parser: _SubParsersAction) -> None:
     convert.add_argument(
         "project_path",
         metavar="PROJECT",
-        help="Convert named path/url as wheel converted to conda.",
+        help="Convert named path as conda package.",
     )
     convert.add_argument(
         "-e",
@@ -81,12 +82,28 @@ def execute(args: Namespace) -> int:
     output_folder = Path(args.output_folder).expanduser()
     output_folder.mkdir(parents=True, exist_ok=True)
 
-    distribution = "editable" if args.editable else "wheel"
-    package_path = build.pypa_to_conda(
-        project_path,
-        distribution=distribution,
-        output_path=output_folder,
-        prefix=prefix_path,
-    )
+    # Handle wheel files directly without building
+    if project_path.suffix == ".whl":
+        if args.editable:
+            raise ArgumentError("Cannot create editable package from a wheel file.")
+
+        python_executable = str(paths.get_python_executable(prefix_path))
+        with TemporaryDirectory(prefix="conda") as build_path:
+            package_path = build.build_conda(
+                project_path,
+                Path(build_path),
+                output_folder,
+                python_executable,
+            )
+    else:
+        # Build from source (project directory or sdist)
+        distribution = "editable" if args.editable else "wheel"
+        package_path = build.pypa_to_conda(
+            project_path,
+            distribution=distribution,
+            output_path=output_folder,
+            prefix=prefix_path,
+        )
+
     print(f"Conda package at {package_path} built successfully. Output folder: {output_folder}.")
     return 0
