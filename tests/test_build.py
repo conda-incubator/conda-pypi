@@ -47,3 +47,8 @@ def test_build_conda_package(
         # Ensure that the path.json file matches the packages up paths
         for path in paths_json_paths:
             assert path in included_package_paths
+
+            # Ensure that the process didn't create pyc files.
+            # This is mostly a regression test, in case "installer" was to change its behavior.
+            assert "__pycache__" not in path, "build_conda should not have created __pycache__"
+            assert not path.endswith(".pyc"), "build_conda should not have created .pyc files"
