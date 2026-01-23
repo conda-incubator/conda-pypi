@@ -104,7 +104,7 @@ class CondaMetadata:
     def from_distribution(cls, distribution: Distribution):
         metadata = distribution.metadata
 
-        python_version = metadata["requires-python"]
+        python_version = metadata.get("requires-python")
         requires_python = "python"
         if python_version:
             requires_python = f"python {python_version}"
@@ -146,9 +146,9 @@ class CondaMetadata:
                     about[conda_name] = urls[py_name]
 
         name = pypi_to_conda_name(
-            getattr(distribution, "name", None) or distribution.metadata["name"]
+            getattr(distribution, "name", None) or distribution.metadata.get("name")
         )
-        version = getattr(distribution, "version", None) or distribution.metadata["version"]
+        version = getattr(distribution, "version", None) or distribution.metadata.get("version")
 
         package_record = PackageRecord(
             build_number=0,
@@ -231,6 +231,8 @@ def conda_to_requires(match_spec: MatchSpec) -> Requirement | None:
         version_str = str(version)
         if version_str == "*":
             return Requirement(name)
+        if version_str.endswith(".*"):
+            version_str = version_str[:-2]
         if version_str and version_str[0] not in "<>=!~":
             version_str = f"=={version_str}"
         return Requirement(f"{name}{version_str}")
