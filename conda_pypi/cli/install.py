@@ -143,11 +143,11 @@ def execute(args: Namespace) -> int:
             extras = f"[{','.join(req.extras)}]" if req.extras else ""
             version_spec = str(req.specifier) if req.specifier else ""
             pkg_spec = f"{conda_name}{extras}{version_spec}"
-            match_specs.append(MatchSpec(pkg_spec, channel=channel_url))
+            match_specs.append(MatchSpec(pkg_spec))
         except InvalidRequirement:
             # Not a valid PyPI requirement, treat as conda-style spec
             remapped = remap_match_spec_name(MatchSpec(pkg), pypi_to_conda_name)
-            match_specs.append(MatchSpec(remapped, channel=channel_url))
+            match_specs.append(MatchSpec(remapped))
 
     changes = converter.convert_tree(match_specs)
     if changes is None:
