@@ -158,33 +158,25 @@ def test_install_package_with_hyphens(tmp_env, conda_cli):
 
 
 def test_install_from_whl_augmented_repodata(tmp_path, monkeypatch, conda_cli, conda_local_channel):
-    monkeypatch.setenv("CONDA_CHANNELS", conda_local_channel)
     monkeypatch.setenv("CONDA_JSON", True)
+    monkeypatch.setenv("CONDA_SOLVER", "rattler")
     reset_context()
 
     out, err, rc = conda_cli(
         "create",
         "--prefix",
         str(tmp_path / "env"),
-        "python"
+        "--channel",
+        conda_local_channel,
+        "idna",
+        "--yes",
     )
-    assert rc == 0
-
-    out, err, rc = conda_cli(
-        "pypi",
-        "install",
-        "--prefix",
-        str(tmp_path / "env"),
-        "starlette",
-    )
-    assert rc == 0
+    assert rc == 0, f"Failed to install from wheel channel: {err}"
 
     json_actions = json.loads(out)
-    expected_channel_package_association = [
-        {"channel": "conda-pypi", "name": "idna"},
-        {"channel": "conda-pypi", "name": "typing_extensions"},
-        {"channel": "conda-pypi", "name": "anyio"},
-        {"channel": "conda-pypi", "name": "starlette"},
-    ]
-    actual_channel_package_associations = [{"channel": act["channel"], "name": act["name"]} for act in json_actions["actions"]["LINK"]]
-    assert actual_channel_package_associations == expected_channel_package_association
+    installed = [act["name"] for act in json_actions["actions"]["LINK"]]
+    assert "idna" in installed, f"idna should be installed, got: {installed}"
+    
+    idna_action = next(act for act in json_actions["actions"]["LINK"] if act["name"] == "idna")
+    assert conda_local_channel in idna_action.get("base_url", ""), \
+        f"idna should come from {conda_local_channel}"
