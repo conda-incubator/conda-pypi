@@ -25,7 +25,7 @@ def test_cli(conda_cli):
     # Test that convert subcommand exists and help works
     out, err, rc = conda_cli("pypi", "convert", "--help", raises=SystemExit)
     assert rc.value.code == 0
-    assert "Convert named path/url as wheel converted to conda" in out
+    assert "Convert named path as conda package" in out
 
 
 def test_cli_plugin():
