@@ -8,13 +8,7 @@ import logging
 import pkgutil
 import sys
 import time
-from importlib.metadata import Distribution, PathDistribution
-
-try:
-    from importlib.metadata import PackageMetadata
-except ImportError:
-    # Python < 3.10 compatibility
-    PackageMetadata = Distribution
+from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
 from typing import Any, Optional, List, Dict, Callable
 
@@ -235,6 +229,8 @@ def conda_to_requires(match_spec: MatchSpec) -> Requirement | None:
     version = match_spec.version
     if version:
         version_str = str(version)
+        if version_str == "*":
+            return Requirement(name)
         if version_str and version_str[0] not in "<>=!~":
             version_str = f"=={version_str}"
         return Requirement(f"{name}{version_str}")
