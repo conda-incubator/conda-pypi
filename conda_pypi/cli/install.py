@@ -5,10 +5,12 @@ from pathlib import Path
 from conda.auxlib.ish import dals
 from conda.models.match_spec import MatchSpec
 from conda.base.context import context
+from packaging.requirements import InvalidRequirement, Requirement
 
 from conda_pypi import convert_tree, build, installer
 from conda_pypi.downloader import get_package_finder
 from conda_pypi.main import run_conda_install
+from conda_pypi.translate import pypi_to_conda_name, remap_match_spec_name
 from conda_pypi.utils import get_prefix
 
 
@@ -127,12 +129,27 @@ def execute(args: Namespace) -> int:
         override_channels=args.ignore_channels,
         finder=finder,
     )
-
-    # Convert package strings to MatchSpec objects
-    match_specs = [MatchSpec(pkg) for pkg in args.packages]
-    changes = converter.convert_tree(match_specs)
     channel_url = converter.repo.as_uri()
 
+    # Convert package strings to MatchSpec objects
+    # Translate PyPI names to conda names to ensure proper package resolution
+    match_specs = []
+    for pkg in args.packages:
+        try:
+            # Try to parse as a requirement to extract the package name
+            req = Requirement(pkg)
+            conda_name = pypi_to_conda_name(req.name)
+            # Reconstruct properly using packaging's API
+            extras = f"[{','.join(req.extras)}]" if req.extras else ""
+            version_spec = str(req.specifier) if req.specifier else ""
+            pkg_spec = f"{conda_name}{extras}{version_spec}"
+            match_specs.append(MatchSpec(pkg_spec))
+        except InvalidRequirement:
+            # Not a valid PyPI requirement, treat as conda-style spec
+            remapped = remap_match_spec_name(MatchSpec(pkg), pypi_to_conda_name)
+            match_specs.append(MatchSpec(remapped))
+
+    changes = converter.convert_tree(match_specs)
     if changes is None:
         packages_to_install = ()
     else:
