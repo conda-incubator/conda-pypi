@@ -8,18 +8,12 @@ import logging
 import pkgutil
 import sys
 import time
-from importlib.metadata import Distribution, PathDistribution
-
-try:
-    from importlib.metadata import PackageMetadata
-except ImportError:
-    # Python < 3.10 compatibility
-    PackageMetadata = Distribution
+from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
-from typing import Any, Optional, List, Dict
+from typing import Any, Optional, List, Dict, Callable
 
 from conda.models.match_spec import MatchSpec
-from packaging.requirements import InvalidRequirement, Requirement
+from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 log = logging.getLogger(__name__)
@@ -110,7 +104,7 @@ class CondaMetadata:
     def from_distribution(cls, distribution: Distribution):
         metadata = distribution.metadata
 
-        python_version = metadata["requires-python"]
+        python_version = metadata.get("requires-python")
         requires_python = "python"
         if python_version:
             requires_python = f"python {python_version}"
@@ -135,10 +129,10 @@ class CondaMetadata:
         # 'summary', 'tags', 'conda_private', 'doc_source_url', 'license_url']
 
         about = {
-            "summary": metadata.get("summary"),
-            "description": metadata.get("description"),
+            "summary": metadata.get("summary") or "",
+            "description": metadata.get("description") or "",
             # https://packaging.python.org/en/latest/specifications/core-metadata/#license-expression
-            "license": metadata.get("license_expression") or metadata.get("license"),
+            "license": metadata.get("license_expression") or metadata.get("license") or "",
         }
 
         if project_urls := metadata.get_all("project-url"):
@@ -152,9 +146,9 @@ class CondaMetadata:
                     about[conda_name] = urls[py_name]
 
         name = pypi_to_conda_name(
-            getattr(distribution, "name", None) or distribution.metadata["name"]
+            getattr(distribution, "name", None) or distribution.metadata.get("name")
         )
-        version = getattr(distribution, "version", None) or distribution.metadata["version"]
+        version = getattr(distribution, "version", None) or distribution.metadata.get("version")
 
         package_record = PackageRecord(
             build_number=0,
@@ -226,21 +220,36 @@ def requires_to_conda(requires: Optional[List[str]]):
     # yield f"{requirement.name} {requirement.specifier}"
 
 
-def conda_to_requires(matchspec: MatchSpec):
-    name = matchspec.name
-    if isinstance(name, str):
-        pypi_name = conda_to_pypi_name(name)
-        # XXX ugly 'omits = for exact version'
-        # .spec omits package[version='>=1.0'] bracket format when possible
-        best_format = str(matchspec)
-        if "version=" in best_format:
-            best_format = matchspec.spec
-        try:
-            return Requirement(best_format.replace(name, pypi_name))
-        except InvalidRequirement:
-            # attempt to catch 'httpcore 1.*' style conda requirement
-            best_format = "==".join(matchspec.spec.split())
-            return Requirement(best_format.replace(name, pypi_name))
+def conda_to_requires(match_spec: MatchSpec) -> Requirement | None:
+    match_spec = remap_match_spec_name(match_spec, conda_to_pypi_name)
+
+    name = match_spec.name
+    if name == "*":
+        return None
+    version = match_spec.version
+    if version:
+        version_str = str(version)
+        if version_str == "*":
+            return Requirement(name)
+        if version_str.endswith(".*"):
+            version_str = version_str[:-2]
+        if version_str and version_str[0] not in "<>=!~":
+            version_str = f"=={version_str}"
+        return Requirement(f"{name}{version_str}")
+
+    return Requirement(name)
+
+
+def remap_match_spec_name(match_spec: MatchSpec, name_map: Callable[[str], str]) -> MatchSpec:
+    name = match_spec.name
+    if name == "*":
+        return match_spec
+
+    mapped_name = name_map(name)
+    if mapped_name == name:
+        return match_spec
+
+    return MatchSpec(match_spec, name=mapped_name)
 
 
 def pypi_to_conda_name(pypi_name: str):
