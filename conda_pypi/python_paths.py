@@ -5,8 +5,6 @@ Since functions in this module might be called to facilitate installation of the
 this module MUST only use the Python stdlib. No 3rd party allowed (except for importlib-resources).
 """
 
-from conda.common.compat import on_win
-
 import os
 import sys
 import sysconfig
@@ -15,6 +13,8 @@ from logging import getLogger
 from pathlib import Path
 from subprocess import check_output
 from typing import Iterator
+
+on_win = sys.platform == "win32"
 
 
 logger = getLogger(__name__)
