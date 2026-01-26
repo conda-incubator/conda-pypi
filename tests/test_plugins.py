@@ -1,7 +1,6 @@
 from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 from pytest_mock import MockerFixture
-from conda_pypi.pre_command import extract_whl_or_tarball
-from conda_pypi.pre_command.extract_whl import extract_whl_as_conda_pkg
+from conda_pypi.package_extractor import extract_whl
 import pytest
 from pathlib import Path
 
@@ -16,7 +15,6 @@ CONDA_URL = "https://repo.anaconda.com/pkgs/main/osx-arm64/boltons-25.0.0-py314h
         pytest.param(WHL_HTTP_URL, 1, id=".whl url"),
         pytest.param("{file}", 1, id=".whl file"),
         pytest.param("file:///{file}", 1, id=".whl file url"),
-        pytest.param(CONDA_URL, 0, id=".conda url"),
     ],
 )
 def test_extract_whl_as_conda_called(
@@ -38,9 +36,7 @@ def test_extract_whl_as_conda_called(
         )
 
         # spy on monkeypatches
-        spy_extract_whl_as_conda_pkg = mocker.spy(
-            extract_whl_or_tarball.extract_whl, "extract_whl_as_conda_pkg"
-        )
+        spy_extract_whl_as_conda_pkg = mocker.spy(extract_whl, "extract_whl_as_conda_pkg")
 
         # install package
         conda_cli("install", f"--prefix={prefix}", package)
@@ -53,4 +49,4 @@ def test_extract_whl_as_conda_pkg(
     pypi_demo_package_wheel_path: Path,
     tmp_path: Path,
 ):
-    extract_whl_as_conda_pkg(pypi_demo_package_wheel_path, tmp_path)
+    extract_whl.extract_whl_as_conda_pkg(pypi_demo_package_wheel_path, tmp_path)

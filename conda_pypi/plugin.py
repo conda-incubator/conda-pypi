@@ -9,8 +9,6 @@ from conda_pypi.main import ensure_target_env_has_externally_managed
 from conda.plugins.types import CondaPackageExtractor
 from conda_pypi.package_extractor.extract_whl import extract_whl_as_conda_pkg
 
-# from conda_pypi.whl import add_whl_support
-
 
 @hookimpl
 def conda_subcommands():
