@@ -5,6 +5,8 @@ Since functions in this module might be called to facilitate installation of the
 this module MUST only use the Python stdlib. No 3rd party allowed (except for importlib-resources).
 """
 
+from conda.common.compat import on_win
+
 import os
 import sys
 import sysconfig
@@ -20,7 +22,7 @@ logger = getLogger(__name__)
 
 def get_env_python(prefix: os.PathLike = None) -> Path:
     prefix = Path(prefix or sys.prefix)
-    if os.name == "nt":
+    if on_win:
         return prefix / "python.exe"
     return prefix / "bin" / "python"
 
@@ -58,7 +60,7 @@ def get_externally_managed_path(prefix: os.PathLike = None, python_version: str 
         python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
     # Construct the path directly
-    if os.name == "nt":
+    if on_win:
         return prefix / "Lib" / "EXTERNALLY-MANAGED"
     else:
         return prefix / "lib" / f"python{python_version}" / "EXTERNALLY-MANAGED"
@@ -84,7 +86,7 @@ def get_externally_managed_paths(prefix: os.PathLike = None) -> Iterator[Path]:
     This does NOT invoke python's sysconfig because Python  might not be installed (anymore).
     """
     prefix = Path(prefix or sys.prefix)
-    if os.name == "nt":
+    if on_win:
         yield prefix / "Lib" / "EXTERNALLY-MANAGED"
     else:
         for python_dir in sorted(Path(prefix, "lib").glob("python*")):
