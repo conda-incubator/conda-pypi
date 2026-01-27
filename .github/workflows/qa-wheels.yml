@@ -1,0 +1,79 @@
+name: QA - Wheel Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'PyPI packages to test (one per line)'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version to test'
+        required: false
+        default: '311'
+        type: choice
+        options:
+          - '310'
+          - '311'
+          - '312'
+          - '313'
+
+jobs:
+  qa-test:
+    name: QA Test - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    env:
+      PIXI_ENV_NAME: test-py${{ inputs.python-version }}
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7 # v0.9.3
+        with:
+          environments: ${{ env.PIXI_ENV_NAME }}
+
+      - name: Fix Ubuntu configuration
+        if: startswith(matrix.os, 'ubuntu-')
+        run: sudo rm /etc/pip.conf
+
+      - name: Setup project
+        run: |
+          pixi reinstall --environment ${{ env.PIXI_ENV_NAME }} conda-pypi
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} dev
+          echo "channels: [conda-forge]" > .pixi/envs/${{ env.PIXI_ENV_NAME }}/.condarc
+
+      - name: Parse package list and run QA tests
+        shell: bash
+        run: |
+          # Parse multiline input into array
+          IFS=$' ' read -rd '' -a packages <<< "${{ inputs.packages }}" || true
+
+          # Build pytest command with --qa-packages for each package
+          pytest_args="-m qa -v --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} tests/test_qa_wheels.py"
+          for pkg in "${packages[@]}"; do
+            # Trim whitespace
+            pkg=$(echo "$pkg" | xargs)
+            if [ -n "$pkg" ]; then
+              pytest_args="$pytest_args --qa-packages $pkg"
+            fi
+          done
+
+          # Run tests
+          echo "Running: pytest $pytest_args"
+          pixi run --environment ${{ env.PIXI_ENV_NAME }} python -mpytest $pytest_args
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-test-results-${{ matrix.os }}-py${{ inputs.python-version }}
+          path: |
+            ${{ runner.temp }}/**/*.log
+          retention-days: 7
