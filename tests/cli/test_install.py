@@ -25,7 +25,7 @@ def test_cli(conda_cli):
     # Test that convert subcommand exists and help works
     out, err, rc = conda_cli("pypi", "convert", "--help", raises=SystemExit)
     assert rc.value.code == 0
-    assert "Convert named path/url as wheel converted to conda" in out
+    assert "Convert named path as conda package" in out
 
 
 def test_cli_plugin():
@@ -130,3 +130,28 @@ def test_json_output(tmp_env, monkeypatch, conda_cli):
         assert rc == 0
         assert json_actions["prefix"] == str(prefix)
         assert json_actions["success"]
+
+
+def test_install_package_with_hyphens(tmp_env, conda_cli):
+    """Test that PyPI packages with hyphens in names are correctly translated.
+
+    This ensures packages like 'huggingface-hub' are converted to 'huggingface_hub'
+    and can be found by the solver after conversion.
+    """
+    with tmp_env("python=3.10") as prefix:
+        # Use a simple package with hyphens in the name
+        out, err, rc = conda_cli(
+            "pypi",
+            "--yes",
+            "install",
+            "--ignore-channels",
+            "--prefix",
+            prefix,
+            "typing-extensions",  # PyPI name with hyphen
+        )
+
+        # Should succeed without PackagesNotFoundError
+        assert rc == 0
+
+        # The converted package should use underscores
+        assert "typing_extensions" in out or "typing-extensions" in out

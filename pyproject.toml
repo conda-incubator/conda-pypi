@@ -52,7 +52,7 @@ python = ">=3.10"
 conda = ">=25.11"
 pip = "*"
 packaging = "*"
-conda-index = "*"
+conda-index = ">=0.7.0"
 pytest-codspeed = ">=3.0.0,<5"
 conda-rattler-solver = ">=0.0.3,<0.0.4"
 

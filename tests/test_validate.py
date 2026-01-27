@@ -6,7 +6,7 @@ import pytest
 from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 from pytest_mock import MockerFixture
 
-from conda_pypi.python_paths import get_env_python, get_current_externally_managed_path
+from conda_pypi.python_paths import get_env_python, get_externally_managed_path
 
 
 @pytest.mark.skip(reason="conda-pypi install needs to do more work to support this test.")
@@ -18,12 +18,12 @@ def test_externally_managed(
     We also need to place it in _new_ environments created by conda.
     """
     monkeypatch.setenv("CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "0")
-    text = get_current_externally_managed_path(sys.prefix).read_text().strip()
+    text = get_externally_managed_path(sys.prefix).read_text().strip()
     assert text.startswith("[externally-managed]")
     assert "conda pypi" in text
     with tmp_env("python", "pip>=23.0.1") as prefix:
         conda_cli("pypi", "-p", prefix, "--yes", "install", "requests")
-        externally_managed_file = get_current_externally_managed_path(prefix)
+        externally_managed_file = get_externally_managed_path(prefix)
 
         # Check if EXTERNALLY-MANAGED file was created by conda-pip
         assert externally_managed_file.exists()

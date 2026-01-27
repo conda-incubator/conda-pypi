@@ -10848,8 +10848,8 @@ packages:
   timestamp: 1751548225624
 - pypi: ./
   name: conda-pypi
-  version: 0.1.dev149+g31f36fdec.d20260126
-  sha256: 52286cde7206ad2b957fce942eeb070d08988c07ba4d84260b1c1b92d97945ac
+  version: 0.3.1.dev41+g3122473bd
+  sha256: e76ce0d046fd9672fa64dd311cd17a062be32a3babd7f0ee0875f07bdf72f203
   requires_dist:
   - build
   - conda-index
