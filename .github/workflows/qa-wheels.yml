@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           # Parse multiline input into array
-          IFS=$'\n' read -rd '' -a packages <<< "${{ inputs.packages }}" || true
+          IFS=$' ' read -rd '' -a packages <<< "${{ inputs.packages }}" || true
 
           # Build pytest command with --qa-packages for each package
           pytest_args="-m qa -v --basetemp=${{ runner.os == 'Windows' && 'D:\\temp' || runner.temp }} tests/test_qa_wheels.py"
