@@ -13,6 +13,16 @@ pytest_plugins = (
 HERE = Path(__file__).parent
 
 
+def pytest_addoption(parser):
+    """Register --qa-packages command line option"""
+    parser.addoption(
+        "--qa-packages",
+        action="append",
+        default=[],
+        help="PyPI package names for QA testing (can be specified multiple times)",
+    )
+
+
 @pytest.fixture(autouse=True)
 def do_not_register_envs(monkeypatch):
     """Do not register environments created during tests"""
