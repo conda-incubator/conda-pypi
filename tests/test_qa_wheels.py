@@ -89,13 +89,13 @@ def check_import_in_env(prefix: Path, import_name: str) -> tuple[bool, str]:
         [str(python), "-c", f"import {import_name}"],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=30,
     )
-    return (result.returncode == 0, result.stderr)
+    return result.returncode == 0, result.stderr
 
 
 @pytest.mark.qa
-def test_qa_install_and_import(package_name: str, tmp_env, conda_cli, request):
+def test_qa_install_and_import(package_name: str, tmp_path, conda_cli, request):
     """
     QA test: Install PyPI package via conda pypi and verify import.
 
@@ -109,37 +109,49 @@ def test_qa_install_and_import(package_name: str, tmp_env, conda_cli, request):
     if not request.config.getoption("--qa-packages"):
         pytest.skip("No packages specified via --qa-packages")
 
+    prefix = tmp_path / "env"
+
+    conda_cli(
+        "create",
+        "--prefix",
+        str(tmp_path / "env"),
+        "--channel",
+        "defaults",
+        "--override-channels",
+        "-y",
+        "python",
+    )
+
     # Phase 1: Install package
-    with tmp_env("python=3.11") as prefix:
-        out, err, rc = conda_cli(
-            "pypi",
-            "--yes",
-            "install",
-            "--ignore-channels",
-            "--prefix",
-            prefix,
-            package_name,
-        )
+    out, err, rc = conda_cli(
+        "pypi",
+        "--yes",
+        "install",
+        "--ignore-channels",
+        "--prefix",
+        str(prefix),
+        package_name,
+    )
 
-        # Check install success
-        assert rc == 0, f"Install failed for {package_name}:\n{err}\n{out}"
+    # Check install success
+    assert rc == 0, f"Install failed for {package_name}:\n{err}\n{out}"
 
-        # Phase 2: Determine import names and test imports
-        import_names = get_import_names_from_metadata(prefix, package_name)
+    # Phase 2: Determine import names and test imports
+    import_names = get_import_names_from_metadata(prefix, package_name)
 
-        # Try importing all top-level modules
-        import_results = []
-        for import_name in import_names:
-            success, error_msg = check_import_in_env(prefix, import_name)
-            import_results.append((import_name, success, error_msg))
+    # Try importing all top-level modules
+    import_results = []
+    for import_name in import_names:
+        success, error_msg = check_import_in_env(prefix, import_name)
+        import_results.append((import_name, success, error_msg))
 
-        # Report results
-        successful_imports = [name for name, success, _ in import_results if success]
-        failed_imports = [(name, msg) for name, success, msg in import_results if not success]
+    # Report results
+    successful_imports = [name for name, success, _ in import_results if success]
+    failed_imports = [(name, msg) for name, success, msg in import_results if not success]
 
-        # Assert at least one module imported successfully
-        assert successful_imports, (
-            f"Import failed for {package_name}. "
-            f"Tried: {import_names}. "
-            f"Failures:\n" + "\n".join(f"  {name}: {msg}" for name, msg in failed_imports)
-        )
+    # Assert at least one module imported successfully
+    assert successful_imports, (
+        f"Import failed for {package_name}. "
+        f"Tried: {import_names}. "
+        f"Failures:\n" + "\n".join(f"  {name}: {msg}" for name, msg in failed_imports)
+    )
