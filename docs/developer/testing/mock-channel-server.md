@@ -7,8 +7,7 @@ The mock channel server is a local HTTP server that serves a conda channel with 
 The mock channel server is located in `tests/conda_local_channel/` and provides:
 
 - **Conda packages**: Pre-built `.conda` packages for common dependencies
-- **Wheel files**: Python wheels that can be served directly from the channel
-- **Repodata**: Channel metadata in `repodata.json` and `repodata.json.zst` formats
+- **Repodata**: Channel metadata in `repodata.json` and/or `repodata.json.zst` formats
 - **Multiple platforms**: Support for `linux-64`, `osx-arm64`, and `noarch` subdirectories
 
 ## Directory Structure
@@ -114,43 +113,22 @@ conda-index tests/conda_local_channel/
 
 ### Adding Wheel Files
 
-The mock channel supports serving wheel files directly. To add a wheel:
+The mock channel supports serving wheel files from pypi. To add a wheel
+you'll need to update the repodata in order to include the new wheels
+you with to support. This is done by using the `tests/conda_local_channel/generate_noarch_wheel_repodata.py` script.
 
-1. **Place the wheel** in the `noarch/` directory:
+1. **Update the list of wheels** in the `generate_noarch_wheel_repodata.py` script:
 
-```bash
-cp package-1.0.0-py3-none-any.whl tests/conda_local_channel/noarch/
+```python
+repodata_packages = [ 
+  # add you new packages here as a tuple of package name and version
+]
 ```
 
-2. **Update the repodata.json** to include wheel metadata. The repodata format for wheels includes a `packages.whl` section:
-
-```json
-{
-  "packages.whl": {
-    "package-1.0.0-py3-none-any.whl": {
-      "record_version": 3,
-      "name": "package",
-      "version": "1.0.0",
-      "build": "py3_0",
-      "build_number": 0,
-      "depends": [
-        "python >=3.8"
-      ],
-      "fn": "package-1.0.0-py3-none-any.whl",
-      "sha256": "<sha256-hash>",
-      "size": 12345,
-      "subdir": "noarch",
-      "timestamp": 1234567890,
-      "noarch": "python"
-    }
-  }
-}
-```
-
-3. **Regenerate the index**:
+2. **Regenerate the index**:
 
 ```bash
-pixi run conda-index tests/conda_local_channel/
+pixi run python tests/conda_local_channel/generate_noarch_wheel_repodata.py
 ```
 
 ### Current Test Packages
