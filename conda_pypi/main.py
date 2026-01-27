@@ -25,6 +25,7 @@ from conda.models.records import PackageRecord
 from conda.exceptions import CondaError
 from packaging.requirements import Requirement
 from packaging.tags import parse_tag
+from packaging.version import Version
 
 from conda_pypi.python_paths import (
     ensure_externally_managed,
@@ -163,12 +164,21 @@ def ensure_target_env_has_externally_managed(command: str):
         # ensure target env has pip installed
         if not list(prefix_data.query("pip")):
             return
+
+        # Get Python version from the installed packages
+        python_version = None
+        python_records = list(prefix_data.query("python"))
+        if python_records:
+            version = Version(python_records[0].version)
+            python_version = f"{version.major}.{version.minor}"
+
         # Check if there are some leftover EXTERNALLY-MANAGED files from other Python versions
         if command != "create" and os.name != "nt":
             for path in get_externally_managed_paths(target_prefix):
                 if path.exists():
                     path.unlink()
-        ensure_externally_managed(target_prefix)
+
+        ensure_externally_managed(target_prefix, python_version=python_version)
     elif command == "remove":
         if list(prefix_data.query("pip")):
             # leave in place if pip is still installed

@@ -14,13 +14,15 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Iterator
 
+on_win = sys.platform == "win32"
+
 
 logger = getLogger(__name__)
 
 
 def get_env_python(prefix: os.PathLike = None) -> Path:
     prefix = Path(prefix or sys.prefix)
-    if os.name == "nt":
+    if on_win:
         return prefix / "python.exe"
     return prefix / "bin" / "python"
 
@@ -46,6 +48,24 @@ def get_env_site_packages(prefix: os.PathLike = None) -> Path:
     return _get_env_sysconfig_path("purelib", prefix)
 
 
+def get_externally_managed_path(prefix: os.PathLike = None, python_version: str = None) -> Path:
+    """
+    Returns the path for EXTERNALLY-MANAGED for the given Python installation in 'prefix'.
+    Not guaranteed to exist.
+    """
+    prefix = Path(prefix or sys.prefix)
+
+    # Get the Python version (either provided or from current Python)
+    if python_version is None:
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+
+    # Construct the path directly
+    if on_win:
+        return prefix / "Lib" / "EXTERNALLY-MANAGED"
+    else:
+        return prefix / "lib" / f"python{python_version}" / "EXTERNALLY-MANAGED"
+
+
 def get_current_externally_managed_path(prefix: os.PathLike = None) -> Path:
     """
     Returns the path for EXTERNALLY-MANAGED for the given Python installation in 'prefix'.
@@ -66,7 +86,7 @@ def get_externally_managed_paths(prefix: os.PathLike = None) -> Iterator[Path]:
     This does NOT invoke python's sysconfig because Python  might not be installed (anymore).
     """
     prefix = Path(prefix or sys.prefix)
-    if os.name == "nt":
+    if on_win:
         yield prefix / "Lib" / "EXTERNALLY-MANAGED"
     else:
         for python_dir in sorted(Path(prefix, "lib").glob("python*")):
@@ -74,15 +94,16 @@ def get_externally_managed_paths(prefix: os.PathLike = None) -> Iterator[Path]:
                 yield Path(python_dir, "EXTERNALLY-MANAGED")
 
 
-def ensure_externally_managed(prefix: os.PathLike = None) -> Path:
+def ensure_externally_managed(prefix: os.PathLike = None, python_version: str = None) -> Path:
     """
     conda-pypi places its own EXTERNALLY-MANAGED file when it is installed in an environment.
     We also need to place it in _new_ environments created by conda. We do this by implementing
     some extra plugin hooks.
     """
-    target_path = get_current_externally_managed_path(prefix)
+    target_path = get_externally_managed_path(prefix, python_version)
     if not target_path.exists():
         logger.info("Placing EXTERNALLY-MANAGED in %s", target_path.parent)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
         resource = importlib_files("conda_pypi") / "data" / "EXTERNALLY-MANAGED"
         target_path.write_text(resource.read_text())
     return target_path
