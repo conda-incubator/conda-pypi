@@ -13,7 +13,6 @@ This is a **community-maintained** project under the [conda](https://github.com/
 ### Getting Help
 
 - **Bug reports & feature requests**: [GitHub Issues](https://github.com/conda/conda-pypi/issues)
-- **General questions**: [conda Discourse](https://conda.discourse.group/)
 - **Real-time chat**: [conda Zulip](https://conda.zulipchat.com/)
 
 ## What is this?
