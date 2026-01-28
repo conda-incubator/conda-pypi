@@ -1,21 +1,8 @@
 import requests
 import json
-from datetime import datetime
 from typing import Dict, Any, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
-repodata_packages = [
-    ('requests', '2.32.5'), ('anyio', '4.9.0'), 
-    ('setuptools', '78.1.1'), ('starlette', '0.47.2'), 
-    ('typing_extensions', '4.14.1'), 
-    ('wheel', '0.45.1'), ('sniffio', '1.3.1'), 
-    ('typing-inspection', '0.4.1'), ('annotated-types', '0.7.0'), 
-    ('fastapi', '0.116.1'), ('idna', '3.10'), 
-    ('charset_normalizer', '3.3.2'), ('urllib3', '2.2.3'),
-    ('certifi', '2024.12.14'), ('auto-all', '1.4.1'), 
-    ('fire', '0.7.1'), ('typeguard', '4.4.1'), 
-    ('exceptiongroup', '1.2.2'), ('termcolor', '2.5.0'),
-]
 
 def pypi_to_repodata_whl_entry(pypi_data: Dict[str, Any], url_index: int = 0) -> Optional[Dict[str, Any]]:
     """
@@ -84,10 +71,31 @@ if __name__ == "__main__":
     
     pkg_whls = {}
 
-    for pkg_tuple in repodata_packages:
-        name = pkg_tuple[0]
-        version = pkg_tuple[1]
-        pkg_whls[f"{name}-{version}-py3_none_any_0"] = get_repodata_entry(name, version)
+    repodata_packages = []
+    requested_wheel_packages_file = HERE / "wheel_packages.txt"
+    with open(requested_wheel_packages_file) as f:
+        pkgs_data = f.read()
+        for pkg in pkgs_data.splitlines():
+            repodata_packages.append(tuple(pkg.split("@")))
+
+    # Run in parallel using ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=25) as executor:
+        # Map each package to its repodata entry
+        futures = {
+            executor.submit(get_repodata_entry, pkg_tuple[0], pkg_tuple[1]): pkg_tuple
+            for pkg_tuple in repodata_packages
+        }
+        
+        # Collect results as they complete
+        for future in as_completed(futures):
+            pkg_tuple = futures[future]
+            name, version = pkg_tuple
+            try:
+                result = future.result()
+                if result:
+                    pkg_whls[f"{name}-{version}-py3_none_any_0"] = result
+            except Exception as e:
+                print(f"Error processing {name} {version}: {e}")
     
     repodata_output = {
         "info": {
@@ -98,7 +106,7 @@ if __name__ == "__main__":
         "removed": [],
         "repodata_version": 1,
         "signatures": {},
-        "packages.whl": pkg_whls,
+        "packages.whl": {key: value for key, value in sorted(pkg_whls.items())},
     }
 
     with open(wheel_repodata, "w") as f:

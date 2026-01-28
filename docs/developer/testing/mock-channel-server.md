@@ -117,12 +117,11 @@ The mock channel supports serving wheel files from pypi. To add a wheel
 you'll need to update the repodata in order to include the new wheels
 you with to support. This is done by using the `tests/conda_local_channel/generate_noarch_wheel_repodata.py` script.
 
-1. **Update the list of wheels** in the `generate_noarch_wheel_repodata.py` script:
+1. **Update the list of wheels** in tests/conda_local_channel/wheel_packages.txt. Add your package in the form `<name>@<version>`, 
+for example
 
-```python
-repodata_packages = [ 
-  # add you new packages here as a tuple of package name and version
-]
+```
+abstractcp@1.0.0
 ```
 
 2. **Regenerate the index**:
