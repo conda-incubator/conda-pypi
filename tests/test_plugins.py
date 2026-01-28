@@ -1,3 +1,4 @@
+from conda.base.context import context
 from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
 from pytest_mock import MockerFixture
 from conda_pypi.package_extractor import extract_whl
@@ -27,6 +28,9 @@ def test_extract_whl_as_conda_called(
     package: str,
     call_count: int,
 ):
+    # Check .whl extractor is registered
+    assert context.plugin_manager.get_package_extractor(".whl")
+
     package = package.format(file=pypi_demo_package_wheel_path)
     with tmp_env() as prefix:
         # mock python installed in prefix
@@ -35,14 +39,16 @@ def test_extract_whl_as_conda_called(
             return_value=("3.10", str(tmp_path)),
         )
 
-        # spy on monkeypatches
-        spy_extract_whl_as_conda_pkg = mocker.spy(extract_whl, "extract_whl_as_conda_pkg")
+        # spy on extract_package to check if called with ".whl" file
+        spy = mocker.spy(context.plugin_manager, "extract_package")
 
         # install package
-        conda_cli("install", f"--prefix={prefix}", package)
+        _, _, err = conda_cli("install", f"--prefix={prefix}", package)
+        assert not err
 
         # wheel extraction only happens for .whl
-        assert spy_extract_whl_as_conda_pkg.call_count == call_count
+        assert spy.call_count == call_count
+        assert spy.call_args.args[0].endswith(".whl")
 
 
 def test_extract_whl_as_conda_pkg(
