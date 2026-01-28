@@ -3,6 +3,7 @@ import json
 import os
 from os import PathLike
 
+import installer.install
 from installer.records import RecordEntry, Hash
 from installer.sources import WheelFile
 from installer.destinations import WheelDestination
