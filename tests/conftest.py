@@ -50,3 +50,26 @@ def pypi_local_index(xprocess):
     yield f"http://localhost:{port}"
 
     xprocess.getinfo("pypi_local_index").terminate()
+
+
+@pytest.fixture(scope="session")
+def conda_local_channel(xprocess):
+    """
+    Runs a local conda channel by serving the folder "tests/conda_local_channel"
+    This provides a mock conda channel with pre-converted packages for testing
+    dependency resolution without requiring network access.
+    """
+    port = "8037"
+
+    class Starter(ProcessStarter):
+        pattern = "Serving HTTP on"
+        timeout = 10
+        args = [sys.executable, "-m", "http.server", "-d", HERE / "conda_local_channel", port]
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
+
+    xprocess.ensure("conda_local_channel", Starter)
+
+    yield f"http://localhost:{port}"
+
+    xprocess.getinfo("conda_local_channel").terminate()
