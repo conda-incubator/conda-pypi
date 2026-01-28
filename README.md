@@ -6,6 +6,15 @@ Better PyPI interoperability for the conda ecosystem.
 > This project is still in early stages of development. Don't use it in production (yet).
 > We do welcome feedback on what the expected behaviour should have been if something doesn't work!
 
+## Project Status
+
+This is a **community-maintained** project under the [conda](https://github.com/conda) organization.
+
+### Getting Help
+
+- **Bug reports & feature requests**: [GitHub Issues](https://github.com/conda/conda-pypi/issues)
+- **Real-time chat**: [conda Zulip](https://conda.zulipchat.com/)
+
 ## What is this?
 
 Includes:
