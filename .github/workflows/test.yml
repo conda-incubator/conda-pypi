@@ -11,7 +11,7 @@ on:
       - "conda_pypi/**"
       - "tests/**"
       - "pyproject.toml"
-      - "pixi.toml"
+      - "pixi.lock"
 
 concurrency:
   # Concurrency group that uses the workflow name and PR number if available
