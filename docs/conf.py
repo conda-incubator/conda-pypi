@@ -102,7 +102,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/conda-incubator/conda-pypi",
+            "url": "https://github.com/conda/conda-pypi",
             "icon": "fa-brands fa-square-github",
             "type": "fontawesome",
         },
@@ -122,13 +122,13 @@ html_theme_options = {
 }
 
 html_context = {
-    "github_user": "conda-incubator",
+    "github_user": "conda",
     "github_repo": "conda-pypi",
     "github_version": "main",
     "doc_path": "docs",
 }
 
-html_baseurl = "https://conda-incubator.github.io"
+html_baseurl = "https://conda.github.io"
 
 # We don't have a locale set, so we can safely ignore that for the sitemaps.
 sitemap_locales = [None]

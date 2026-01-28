@@ -52,8 +52,8 @@ test:
     - python -m pip install requests && exit 1 || exit 0
 
 about:
-  home: https://github.com/conda-incubator/conda-pypi
+  home: https://github.com/conda/conda-pypi
   license: MIT
   license_file: LICENSE
   summary: Better PyPI interoperability for the conda ecosystem
-  dev_url: https://github.com/conda-incubator/conda-pypi
+  dev_url: https://github.com/conda/conda-pypi

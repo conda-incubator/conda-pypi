@@ -152,7 +152,7 @@ conda -vvvv pip install package-name
 If you encounter issues not covered here:
 
 1. **Check the version**: Ensure you're using the latest version of `conda-pypi`
-2. **Search existing issues**: Check the [GitHub repository](https://github.com/conda-incubator/conda-pypi) for similar problems
+2. **Search existing issues**: Check the [GitHub repository](https://github.com/conda/conda-pypi) for similar problems
 3. **Report issues**: When reporting issues please to include all the relevant details
 
 Remember that `conda-pypi` is still in early development, so feedback about unexpected behavior is valuable for improving the tool.
