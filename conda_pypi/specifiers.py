@@ -18,7 +18,7 @@ def specifier_bounds_to_conda(specifier: SpecifierSet) -> str:
 
     Converts PEP 440 comparative operator ``~=`` Specifiers to Conda equivalent. For example: ``~=X.Y.Z``
     becomes ``<X.(Y + 1).0a0,>=X.Y.Z``. Matches all versions greater than or equal to original version as
-    long as the second-to-last release segment stays the same.
+    long as the release segments above the last stay the same.
     """
 
     bounds = []
