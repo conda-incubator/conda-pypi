@@ -202,6 +202,7 @@ def test_pypi_to_repodata_converts_specifiers_to_conda():
 
 def test_python_depend_from_requires_python_converts_specifiers_to_conda():
     assert python_depend_from_requires_python(">=2.0,<3.12.0") == "python <3.12.0a0,>=2.0"
+    assert python_depend_from_requires_python("~=3.2") == "python <4.0a0,>=3.2"
 
 
 def test_pypi_to_repodata_appends_python_when_requires_python_invalid():

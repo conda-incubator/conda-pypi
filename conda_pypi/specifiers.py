@@ -15,12 +15,26 @@ def specifier_bounds_to_conda(specifier: SpecifierSet) -> str:
     ``3.12.0rc1``. ``<3.12a0`` excludes them.
 
     Bounds are sorted the same way as ``str(SpecifierSet)`` so the output is deterministic.
+
+    Converts PEP 440 comparative operator ``~=`` Specifiers to Conda equivalent. For example: ``~=X.Y.Z``
+    becomes ``<X.(Y + 1).0a0,>=X.Y.Z``. Matches all versions greater than or equal to original version as
+    long as the second-to-last release segment stays the same.
     """
+
     bounds = []
     for spec in sorted(specifier, key=str):
         new_bound = f"{spec.operator}{spec.version}"
         if spec.operator == "<" and not Version(spec.version).is_prerelease:
             new_bound += "a0"
+        # Adapted from Reroll (https://github.com/intentionally-left-nil/reroll)
+        # Original Author: intentionally-left-nil
+        if spec.operator == "~=":
+            version = Version(spec.version)
+            epoch = f"{version.epoch}!" if version.epoch else ""
+            segments = list(version.release)
+            segments[-2] += 1
+            new_bound = f'<{epoch}{".".join(str(release_segment) for release_segment in segments[:-1])}.0a0,>={spec.version}'
+
         bounds.append(new_bound)
 
     return ",".join(bounds)
@@ -31,7 +45,10 @@ def specifier_bounds_to_pep440(specifier: SpecifierSet) -> str:
 
     PEP 440 exclusive upper bounds that have ``a0`` appended will enable matching prereleases.
     Removing the ``a0`` added from specifier_bounds_to_conda ensures that the PEP 440 compares specifications as intended.
+
+    Affected bounds that have ``a0`` stripped will exclude all versions such as ``X.Y.devN``.
     """
+
     bounds = []
     for spec in sorted(specifier, key=str):
         version = spec.version

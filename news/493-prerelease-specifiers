@@ -1,6 +1,6 @@
 ### Enhancements
 
-* <news item>
+* Convert PEP 440 `~=` compatible-release specifiers to an explicit conda range (`~=X.Y.Z`→`<X.(Y+1).0a0,>=X.Y.Z`).
 
 ### Bug fixes
 

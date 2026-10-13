@@ -412,7 +412,9 @@ def test_install_converts_specifiers_to_conda(tmp_path, monkeypatch, mocker, con
             "--prefix",
             tmp_path,
             "httpx>=2.0,<3.12.0",
+            "requests~=3.12.0",
         )
 
     match_specs = run_install.call_args.args[1]
     assert str(match_specs[0]) == "httpx[version='<3.12.0a0,>=2.0']"
+    assert str(match_specs[1]) == "requests[version='<3.13.0a0,>=3.12.0']"
