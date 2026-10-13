@@ -33,7 +33,7 @@ def specifier_bounds_to_conda(specifier: SpecifierSet) -> str:
             epoch = f"{version.epoch}!" if version.epoch else ""
             segments = list(version.release)
             segments[-2] += 1
-            new_bound = f'<{epoch}{".".join(str(release_segment) for release_segment in segments[:-1])}.0a0,>={spec.version}'
+            new_bound = f"<{epoch}{'.'.join(str(release_segment) for release_segment in segments[:-1])}.0a0,>={spec.version}"
 
         bounds.append(new_bound)
 

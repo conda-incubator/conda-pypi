@@ -1,7 +1,6 @@
 """Tests for the specifiers module."""
 
 import pytest
-
 from conda.models.version import VersionSpec
 from packaging.specifiers import SpecifierSet
 
@@ -54,20 +53,14 @@ def test_specifier_bounds_to_conda_ignores_inclusive_upper_bound():
         # Two components: only the last one may change
         pytest.param("~=2.2", "2.9", True, id="two-components-newer"),
         pytest.param("~=2.2", "3.0", False, id="two-components-too-high"),
-        pytest.param(
-            "~=2.2", "3.0rc1", False, id="two-components-prerelease-of-boundary"
-        ),
-        pytest.param(
-            "~=2.2.1.post1", "2.2.6", True, id="post-spec-newer-last-component"
-        ),
+        pytest.param("~=2.2", "3.0rc1", False, id="two-components-prerelease-of-boundary"),
+        pytest.param("~=2.2.1.post1", "2.2.6", True, id="post-spec-newer-last-component"),
         # Epoch should carry through conversion
         pytest.param("~=1!2.2.1", "1!2.2.2", True, id="epoch-inside-range"),
         pytest.param("~=1!2.2.1", "2.2.1", False, id="epoch-0-version"),
         pytest.param("~=1!2.2.1", "1!2.2.0", False, id="epoch-too-low"),
         pytest.param("~=1!2.2.1", "1!2.3.0", False, id="epoch-too-high"),
-        pytest.param(
-            "~=1!2.2.1", "1!2.3.0rc1", False, id="epoch-prerelease-of-upper-boundary"
-        ),
+        pytest.param("~=1!2.2.1", "1!2.3.0rc1", False, id="epoch-prerelease-of-upper-boundary"),
     ],
 )
 def test_compatible_releases_match_pep_440(spec, version, expected):
@@ -78,9 +71,7 @@ def test_compatible_releases_match_pep_440(spec, version, expected):
 
 
 def test_specifier_bounds_to_conda_compatible_release_with_epoch():
-    assert (
-        specifier_bounds_to_conda(SpecifierSet("~=1!2.2.1")) == "<1!2.3.0a0,>=1!2.2.1"
-    )
+    assert specifier_bounds_to_conda(SpecifierSet("~=1!2.2.1")) == "<1!2.3.0a0,>=1!2.2.1"
 
 
 def test_specifier_bounds_to_conda_compatible_release_without_epoch():
