@@ -144,6 +144,22 @@ def test_requires_to_conda_marker_extra_and_platform():
     assert requires == []
 
 
+def test_requires_to_conda_excludes_upper_bound_prereleases():
+    """Test that ``a0`` appended to < requirements that are not pre-releases"""
+    requires, _ = requires_to_conda(
+        ["httpx<=3.12", "pytorch<3.12.0rc1", "requests>=2,<3.12.0"],
+    )
+    assert requires == ["httpx<=3.12", "pytorch<3.12.0rc1", "requests<3.12.0a0,>=2"]
+
+
+def test_requires_to_conda_converts_compatible_releases():
+    """Test that ``~=`` is converted to ``<`` and ``>=`` specifiers"""
+    requires, _ = requires_to_conda(
+        ["httpx<=3.12", "pytorch<3.12.0rc1", "requests~=3.12.0"],
+    )
+    assert requires == ["httpx<=3.12", "pytorch<3.12.0rc1", "requests<3.13.0a0,>=3.12.0"]
+
+
 class _EntryPointDistribution(FileDistribution):
     """FileDistribution that also serves an ``entry_points.txt``.
 
