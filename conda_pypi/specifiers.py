@@ -26,8 +26,6 @@ def specifier_bounds_to_conda(specifier: SpecifierSet) -> str:
         new_bound = f"{spec.operator}{spec.version}"
         if spec.operator == "<" and not Version(spec.version).is_prerelease:
             new_bound += "a0"
-        # Adapted from Reroll (https://github.com/intentionally-left-nil/reroll)
-        # Original Author: intentionally-left-nil
         if spec.operator == "~=":
             version = Version(spec.version)
             epoch = f"{version.epoch}!" if version.epoch else ""

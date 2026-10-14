@@ -76,9 +76,10 @@ for more details.
 
 ## Attribution
 
-- This project now incorporates [conda-pupa](https://github.com/dholth/conda-pupa)
+- This project incorporates [conda-pupa](https://github.com/dholth/conda-pupa)
 by Daniel Holth, which provides the core wheel-to-conda conversion functionality.
 - The conda-pypi platypus logo is by [James Turner](http://www.eruditebaboon.co.uk/).
+- Ideas for improved version specifier conversion comes from [reroll](https://github.com/intentionally-left-nil/reroll) by Anil Kulkarni.
 
 ## Contributing
 
