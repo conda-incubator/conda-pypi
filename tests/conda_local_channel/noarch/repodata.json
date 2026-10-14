@@ -320,7 +320,7 @@
         "extra_depends": {
           "doc": [
             "packaging",
-            "sphinx~=8.2",
+            "sphinx<9.0a0,>=8.2",
             "sphinx-rtd-theme",
             "sphinx-autodoc-typehints>=1.2.0"
           ],
