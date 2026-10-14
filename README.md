@@ -8,7 +8,7 @@ Better PyPI interoperability for the conda ecosystem.
 
 > [!IMPORTANT]
 > This project is still in early stages of development. Don't use it in production (yet).
-> We do welcome feedback on what the expected behaviour should have been if something doesn't work!
+> We do welcome feedback on what the expected behavior should have been if something doesn't work!
 
 ## Project Status
 
