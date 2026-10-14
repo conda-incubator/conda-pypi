@@ -6340,7 +6340,7 @@ environments:
     - url: https://conda.anaconda.org/conda-canary/label/dev/
     packages:
       linux-64:
-      - conda: https://conda.anaconda.org/conda-canary/label/dev/linux-64/conda-26.7.2.156+g1c9236206-py313_0.conda
+      - conda: https://conda.anaconda.org/conda-canary/label/dev/linux-64/conda-26.9.2.35+gb5b87931e-py313_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/backports.zstd-1.6.0-py313h18e8e13_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/brotli-python-1.2.0-py313hf159716_1.conda
@@ -6422,13 +6422,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.9-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-index-0.13.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.4.2-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.5.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-streaming-0.13.0-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.12.0-pyh5ded981_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.13.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-rattler-solver-0.2.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.3.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.13.14-py313hd8ed1ab_100.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/docutils-0.23-pyhcf101f3_0.conda
@@ -6490,7 +6490,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/vcs_versioning-2.5.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
       linux-aarch64:
-      - conda: https://conda.anaconda.org/conda-canary/label/dev/linux-aarch64/conda-26.7.2.156+g1c9236206-py313_0.conda
+      - conda: https://conda.anaconda.org/conda-canary/label/dev/linux-aarch64/conda-26.9.2.35+gb5b87931e-py313_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/backports.zstd-1.6.0-py313h5c42d0f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/brotli-python-1.2.0-py313hb260801_1.conda
@@ -6572,13 +6572,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.9-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-index-0.13.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.4.2-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.5.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-streaming-0.13.0-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.12.0-pyh5ded981_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.13.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-rattler-solver-0.2.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.3.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.13.14-py313hd8ed1ab_100.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/docutils-0.23-pyhcf101f3_0.conda
@@ -6640,7 +6640,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/vcs_versioning-2.5.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
       osx-arm64:
-      - conda: https://conda.anaconda.org/conda-canary/label/dev/osx-arm64/conda-26.7.2.156+g1c9236206-py313_0.conda
+      - conda: https://conda.anaconda.org/conda-canary/label/dev/osx-arm64/conda-26.9.2.35+gb5b87931e-py313_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.7.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.14.2-pyhcf101f3_0.conda
@@ -6653,13 +6653,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.9-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-index-0.13.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.4.2-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.5.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-streaming-0.13.0-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.12.0-pyh5ded981_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.13.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-rattler-solver-0.2.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.3.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.13.14-py313hd8ed1ab_100.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/docutils-0.23-pyhcf101f3_0.conda
@@ -6783,7 +6783,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstandard-0.25.0-py313h9734d34_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
       win-64:
-      - conda: https://conda.anaconda.org/conda-canary/label/dev/win-64/conda-26.7.2.156+g1c9236206-py313_0.conda
+      - conda: https://conda.anaconda.org/conda-canary/label/dev/win-64/conda-26.9.2.35+gb5b87931e-py313_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.7.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.14.2-pyhcf101f3_0.conda
@@ -6797,13 +6797,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-index-0.13.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-launchers-24.7.1-74da2fe_gcc_5.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.4.2-pyhcf101f3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.7.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.5.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-package-streaming-0.13.0-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.12.0-pyh5ded981_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.13.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/conda-rattler-solver-0.2.0-pyh5ded981_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.2.1-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.3.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.13.14-py313hd8ed1ab_100.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/docutils-0.23-pyhcf101f3_0.conda
@@ -9832,20 +9832,20 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstandard-0.25.0-py314hc5dbbe4_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
 packages:
-- conda: https://conda.anaconda.org/conda-canary/label/dev/linux-64/conda-26.7.2.156+g1c9236206-py313_0.conda
-  sha256: 9355a8f76dab1a31bd5d26dff6659806dea2e1e9aba4d23ae7ce77cdcffe22c9
-  md5: 8c1811eb26d00b2f2bb58ac18796b41b
+- conda: https://conda.anaconda.org/conda-canary/label/dev/linux-64/conda-26.9.2.35+gb5b87931e-py313_0.conda
+  sha256: 701e1441da1cb8a1ff12c97dc22fd4d94af87b4e62d14474f9c5317cb7d633ad
+  md5: f56a33dcc23fdaae2c355f256184404c
   depends:
   - archspec >=0.2.3
   - backports.zstd >=1.3.0
   - boltons >=23.0.0
   - charset-normalizer
-  - conda-libmamba-solver >=26.4.1
-  - conda-lockfiles >=0.2.0
+  - conda-libmamba-solver >=26.7.0
+  - conda-lockfiles >=0.2.2
   - conda-package-handling >=2.2.0
-  - conda-pypi >=0.10.1
-  - conda-rattler-solver >=0.1.1
-  - conda-self >=0.2.0
+  - conda-pypi >=0.13.0
+  - conda-rattler-solver >=0.2.0
+  - conda-self >=0.3.0
   - distro >=1.5.0
   - frozendict >=2.4.2
   - menuinst >=2
@@ -9866,22 +9866,22 @@ packages:
   - conda-content-trust >=0.3.0
   - conda-env >=2.6
   license: BSD-3-Clause
-  size: 1392212
-  timestamp: 1790594740545
-- conda: https://conda.anaconda.org/conda-canary/label/dev/linux-aarch64/conda-26.7.2.156+g1c9236206-py313_0.conda
-  sha256: b72de744e0e3dd7921e6d19d5f7dec45fc41cc436660fa90853b60295d46d3b0
-  md5: afda80740e915f63e2457be4bf7e42fa
+  size: 1400222
+  timestamp: 1791902769928
+- conda: https://conda.anaconda.org/conda-canary/label/dev/linux-aarch64/conda-26.9.2.35+gb5b87931e-py313_0.conda
+  sha256: 9c83faf04c1ed57d05f7e0a1db61c1499455023fe6044a09c6f876c444305030
+  md5: 531a9ea66b76da54975916749f63b0fa
   depends:
   - archspec >=0.2.3
   - backports.zstd >=1.3.0
   - boltons >=23.0.0
   - charset-normalizer
-  - conda-libmamba-solver >=26.4.1
-  - conda-lockfiles >=0.2.0
+  - conda-libmamba-solver >=26.7.0
+  - conda-lockfiles >=0.2.2
   - conda-package-handling >=2.2.0
-  - conda-pypi >=0.10.1
-  - conda-rattler-solver >=0.1.1
-  - conda-self >=0.2.0
+  - conda-pypi >=0.13.0
+  - conda-rattler-solver >=0.2.0
+  - conda-self >=0.3.0
   - distro >=1.5.0
   - frozendict >=2.4.2
   - menuinst >=2
@@ -9902,22 +9902,22 @@ packages:
   - conda-content-trust >=0.3.0
   - conda-env >=2.6
   license: BSD-3-Clause
-  size: 1393448
-  timestamp: 1790594692381
-- conda: https://conda.anaconda.org/conda-canary/label/dev/osx-arm64/conda-26.7.2.156+g1c9236206-py313_0.conda
-  sha256: 5f6a40adf7ea560ca1b5381f2836fd84bb2c06024b3c89b5aba6f7f932be0a73
-  md5: 1d5c4b83e835497f3562b574991a332c
+  size: 1399958
+  timestamp: 1791902812851
+- conda: https://conda.anaconda.org/conda-canary/label/dev/osx-arm64/conda-26.9.2.35+gb5b87931e-py313_0.conda
+  sha256: 948a94bc93b4070369ce5ec8a9eb3c00f903543d04e21a2e05b3645657d79314
+  md5: 93796388e263634806028423d09362e7
   depends:
   - archspec >=0.2.3
   - backports.zstd >=1.3.0
   - boltons >=23.0.0
   - charset-normalizer
-  - conda-libmamba-solver >=26.4.1
-  - conda-lockfiles >=0.2.0
+  - conda-libmamba-solver >=26.7.0
+  - conda-lockfiles >=0.2.2
   - conda-package-handling >=2.2.0
-  - conda-pypi >=0.10.1
-  - conda-rattler-solver >=0.1.1
-  - conda-self >=0.2.0
+  - conda-pypi >=0.13.0
+  - conda-rattler-solver >=0.2.0
+  - conda-self >=0.3.0
   - distro >=1.5.0
   - frozendict >=2.4.2
   - menuinst >=2
@@ -9938,23 +9938,23 @@ packages:
   - conda-content-trust >=0.3.0
   - conda-env >=2.6
   license: BSD-3-Clause
-  size: 1395384
-  timestamp: 1790594749569
-- conda: https://conda.anaconda.org/conda-canary/label/dev/win-64/conda-26.7.2.156+g1c9236206-py313_0.conda
-  sha256: 78ef85083d20985e44ddfe6ac429342b5de613be81b3d12bbffddd60cd079e90
-  md5: 09375c66abd6f62c0a45ea436410b4ce
+  size: 1399314
+  timestamp: 1791902949013
+- conda: https://conda.anaconda.org/conda-canary/label/dev/win-64/conda-26.9.2.35+gb5b87931e-py313_0.conda
+  sha256: ef15ed25cc324060397f671464a6f240d635e3f0b02ea898b066a1a4b356fc86
+  md5: 2d8e3cf32ccccb030207c21022aed62c
   depends:
   - archspec >=0.2.3
   - backports.zstd >=1.3.0
   - boltons >=23.0.0
   - charset-normalizer
   - conda-launchers >=24.7.1
-  - conda-libmamba-solver >=26.4.1
-  - conda-lockfiles >=0.2.0
+  - conda-libmamba-solver >=26.7.0
+  - conda-lockfiles >=0.2.2
   - conda-package-handling >=2.2.0
-  - conda-pypi >=0.10.1
-  - conda-rattler-solver >=0.1.1
-  - conda-self >=0.2.0
+  - conda-pypi >=0.13.0
+  - conda-rattler-solver >=0.2.0
+  - conda-self >=0.3.0
   - distro >=1.5.0
   - frozendict >=2.4.2
   - menuinst >=2
@@ -9975,8 +9975,8 @@ packages:
   - conda-content-trust >=0.3.0
   - conda-env >=2.6
   license: BSD-3-Clause
-  size: 1418812
-  timestamp: 1790595126907
+  size: 1503818
+  timestamp: 1791903529219
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
   sha256: 1dd3fffd892081df9726d7eb7e0dea6198962ba775bd88842135a4ddb4deb3c9
@@ -17203,20 +17203,23 @@ packages:
   - pkg:pypi/conda-libmamba-solver?source=hash-mapping
   size: 61278
   timestamp: 1782932216756
-- conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.1-pyhd8ed1ab_0.conda
-  sha256: eb20fc63ce6438e10d7c64890bd23d0c68f62a479f2bae8b3c892e13949daf03
-  md5: 7f1b127b170f9f0d01eca4b54a046ee5
+- conda: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.7.0-pyhcf101f3_0.conda
+  sha256: b7cc67470a361330edd8d9e331cafd4807dd77bc766ca197a3783ed3db66dfeb
+  md5: 49592004caf4336815fd5282bbb72172
   depends:
-  - conda >=26.3.0
-  - pydantic >=2.12.5,<3
   - python >=3.10
-  - ruamel.yaml
+  - libmambapy >=2.0.0,!=2.6.2
+  - boltons >=23.0.0
+  - python
+  constrains:
+  - conda >=26.5
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/conda-lockfiles?source=hash-mapping
-  size: 20633
-  timestamp: 1783438353470
+  - pkg:pypi/conda-libmamba-solver?source=hash-mapping
+  run_exports: {}
+  size: 46828
+  timestamp: 1784200590190
 - conda: https://conda.anaconda.org/conda-forge/noarch/conda-lockfiles-0.2.2-pyhd8ed1ab_0.conda
   sha256: d5ab401d80ae2d0782e2ad27f44d25b2f9476e7469f28bec6c99d2da37ac7fac
   md5: dcd81bbc99124087023c0a9d884d8181
@@ -17301,6 +17304,28 @@ packages:
   run_exports: {}
   size: 252672
   timestamp: 1790358347253
+- conda: https://conda.anaconda.org/conda-forge/noarch/conda-pypi-0.13.0-pyh5ded981_0.conda
+  sha256: b95c9f3be8859b37433520f95fe5c0d788c1dc089b295bb23f9824176ceaf509
+  md5: dd3434a97de7de0b8996f7cdc777601d
+  depends:
+  - python >=3.11
+  - packaging
+  - unearth
+  - python-build
+  - python-installer >=1.0
+  - platformdirs
+  - conda-index >=0.13.0
+  - conda-package-streaming >=0.11
+  - python
+  constrains:
+  - conda >=26.1.0
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/conda-pypi?source=compressed-mapping
+  run_exports: {}
+  size: 253235
+  timestamp: 1790703648701
 - conda: https://conda.anaconda.org/conda-forge/noarch/conda-rattler-solver-0.2.0-pyh5ded981_0.conda
   sha256: 2b458c32b2380f02a4462524a28300d53f885c5dcc07cfa4660ed0e60c253009
   md5: 7595241fe6e72f28c6324349d516cf91
@@ -17316,18 +17341,6 @@ packages:
   run_exports: {}
   size: 40057
   timestamp: 1790349122798
-- conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.2.1-pyhd8ed1ab_0.conda
-  sha256: efd3b7b79a0e3993a174ab0140794479e2479b59fd053605acaaa25718f0f013
-  md5: ac705504abf28bb924a021a3d5f4b55f
-  depends:
-  - conda >=26.1.1
-  - python >=3.10
-  license: BSD-3-Clause
-  license_family: BSD
-  purls:
-  - pkg:pypi/conda-self?source=hash-mapping
-  size: 22510
-  timestamp: 1784724984642
 - conda: https://conda.anaconda.org/conda-forge/noarch/conda-self-0.3.0-pyhd8ed1ab_0.conda
   sha256: ba6e0a634471934a5d2e4ef264c0ff012c8be9c4d0e9dafb5ad7abdf57fa199a
   md5: f041b3104d0b01d187d72b1a71af79d3
