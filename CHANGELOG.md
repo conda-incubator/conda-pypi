@@ -21,9 +21,7 @@
 
 * @bingliscodes
 * @danyeaw
-* @dependabot[bot] made their first commit in https://github.com/conda/conda-pypi/pull/131
 * @jezdez
-* @pre-commit-ci[bot] made their first commit in https://github.com/conda/conda-pypi/pull/71
 
 
 ## 0.13.0 (2026-09-28)
