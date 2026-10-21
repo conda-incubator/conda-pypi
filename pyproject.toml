@@ -28,6 +28,7 @@ requires-python = ">=3.10"
 dependencies = [
   # "conda >=25.11.0",
   "build",
+  # Transitive dependency, excludes the compromised eMudhra CA bundle (conda/conda#16880)
   "certifi >=2026.10.19",
   "conda-index >=0.13.0",
   "conda-package-streaming >=0.11",
