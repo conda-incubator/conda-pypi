@@ -1,3 +1,0 @@
-### Bug fixes
-
-* Require `certifi >=2026.10.19` so Unearth package index requests use an updated CA bundle following the eMudhra certificate compromise. (conda/conda#16880)
