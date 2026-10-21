@@ -4,7 +4,7 @@
 
 ### Bug fixes
 
-* Apply conda's `ssl_verify` (including `truststore` and custom CA bundles), `client_ssl_cert`, `client_ssl_cert_key`, `proxy_servers`, and timeout settings to package index lookups, which previously used unearth's default HTTP client.
+* Apply conda's `ssl_verify` (including `truststore` and custom CA bundles), `client_ssl_cert`, `client_ssl_cert_key`, `proxy_servers`, and timeout settings to package index lookups, which previously used unearth's default HTTP client (#560).
 
 ### Deprecations
 
