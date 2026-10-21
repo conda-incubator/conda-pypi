@@ -101,7 +101,7 @@ def get_package_finder(
     target_python = TargetPython(py_ver=py_ver)
     index_urls = tuple(index_urls)
     return PackageFinder(
-        session=get_pypi_client(index_urls),
+        session=get_pypi_client(index_urls),  # type: ignore # unearth's Fetcher protocol does not match httpx.Client
         target_python=target_python,
         only_binary=":all:",
         index_urls=index_urls,
