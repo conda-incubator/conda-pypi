@@ -2,6 +2,28 @@
 
 [//]: # (current developments)
 
+## 0.13.1 (2026-10-21)
+
+### Enhancements
+
+* Convert PEP 440 `~=` compatible-release specifiers to an explicit conda range (`~=X.Y.Z`→`<X.(Y+1).0a0,>=X.Y.Z`). (#493 via #548)
+
+### Bug fixes
+
+* Append `a0` to non-pre-release `<` bounds in version specifiers so conda excludes pre-releases consistent with PEP 440 (e.g. `<3.12.0` → `<3.12.0a0` no longer matches `3.12.0rc1`). (#493 via #548)
+* Require `certifi >=2026.10.19` so Unearth package index requests use an updated CA bundle following the [eMudhra certificate compromise](https://emudhra.we-have-a-problem.com/). (#559)
+
+### Other
+
+* Fix conda-index import error when regenerating the conda local channel for tests. (#552)
+
+### Contributors
+
+* @bingliscodes
+* @danyeaw
+* @jezdez
+
+
 ## 0.13.0 (2026-09-28)
 
 ### Enhancements
