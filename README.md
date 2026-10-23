@@ -65,12 +65,12 @@ conda and wheels and work with cutting-edge plugin features.
 You can use the following commands with the `conda pypi` subcommand to do more
 with the `conda-pypi` plugin:
 
-- `conda pypi install`: Converts wheels from PyPI and other package indexes to `.conda` format for safer installation. PyPI is the default index. Use `--index-url` to select another index.
-- `conda pypi install -e .`: Converts a path to an editable `.conda` format package.
 - `conda pypi convert`: Convert Python projects to `.conda` format without installing them.
 - `conda pypi index`: Index a local directory of `.whl` files to create a local conda channel.
 - `conda install` from wheel channels (experimental): channels can serve pure Python wheels directly in `repodata.json`.
 - A warning when running `conda create` or `conda install` with `pip` in the environment.
+
+`conda pypi install` is pending deprecation. See the [features documentation](docs/features.md) for its remaining use cases, such as editable installs.
 
 ## Why?
 

@@ -35,7 +35,7 @@ conda env list
 conda create -n myenv python=3.10
 
 # Use correct environment name or path
-conda pypi install -n myenv package-name
+conda install -n myenv package-name
 ```
 
 ### Restored environment shows `<unknown>` for wheel packages
@@ -126,11 +126,10 @@ The `conda pypi` subcommands are the only ones that translate PyPI names.
 
 **Solutions**:
 ```bash
-# Check package name on PyPI
-pip search package-name  # or visit pypi.org
+# Check the project name on pypi.org
 
-# Try common name variations
-conda pypi install python-package-name  # instead of package-name
+# Try common name variations with convert
+conda pypi convert python-package-name  # instead of package-name
 ```
 
 ### Dependency resolution timeout
@@ -148,11 +147,11 @@ conda pypi install --ignore-channels package-name
 
 # Install dependencies from conda first
 conda install numpy pandas scipy
-conda pypi install your-package
+conda install your-package
 
 # Try installing packages individually
-conda pypi install package1
-conda pypi install package2
+conda install package1
+conda install package2
 ```
 
 ### Conflicting dependencies
@@ -162,7 +161,7 @@ conda pypi install package2
 **Solutions**:
 ```bash
 # Preview what would be installed
-conda pypi install --dry-run package-name
+conda install --dry-run package-name
 
 # Check existing packages
 conda list
@@ -170,7 +169,7 @@ conda list
 # Create a fresh environment for testing
 conda create -n test python=3.10 pip
 conda activate test
-conda pypi install package-name
+conda install package-name
 ```
 
 ## Network and Connectivity Issues
@@ -190,7 +189,7 @@ conda pypi install package-name
 ping pypi.org
 
 # Try with verbose output to see connection details
-conda -v pypi install package-name
+conda -v install package-name
 
 # Check conda's network configuration
 conda config --show channels
@@ -204,16 +203,16 @@ For detailed debugging information:
 
 ```bash
 # Basic verbose output
-conda -v pypi install package-name
+conda -v install package-name
 
 # INFO level logging (repeat -v twice)
-conda -vv pypi install package-name
+conda -vv install package-name
 
 # DEBUG level logging (repeat -v three times) - most useful for troubleshooting
-conda -vvv pypi install package-name
+conda -vvv install package-name
 
 # TRACE level logging (repeat -v four times) - maximum detail
-conda -vvvv pypi install package-name
+conda -vvvv install package-name
 ```
 
 ## When to Seek Further Help
