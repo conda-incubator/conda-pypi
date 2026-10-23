@@ -27,6 +27,11 @@ that makes pure Python packages from PyPI available through `conda install`.
 After you add this channel, conda's solver can find and install these packages
 alongside your regular conda packages in a single step.
 
+`conda install` resolves conda package names. conda does not translate PyPI
+project names for this command, so a package whose PyPI and conda names differ
+must be installed by its conda name. For example, `jupyterlab-code-formatter`
+on PyPI is `jupyterlab_code_formatter` on conda-forge.
+
 For instructions on how to set up the `conda-pypi` channel, see
 the {doc}`quickstart`.
 

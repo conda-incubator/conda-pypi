@@ -100,6 +100,22 @@ the conda channel when available. For example, `django-modern-rest` depends on
 `django` and `typing_extensions`. If both are available in your conda channel, those
 dependencies will be installed from conda rather than PyPI.
 
+### Package names
+
+`conda install` uses conda package names, not PyPI project names. When a PyPI
+project is published under a different conda name, install it by the conda
+name. For example, the PyPI project `jupyterlab-code-formatter` is published on
+conda-forge as `jupyterlab_code_formatter`:
+
+```bash
+conda install jupyterlab_code_formatter
+```
+
+If a solve fails with `PackagesNotFoundInChannelsError`, check the package name
+on [anaconda.org](https://anaconda.org) before assuming the package is
+unavailable. The `conda pypi` subcommands accept PyPI names and translate them;
+`conda install` requires the conda name.
+
 ## Advanced usage
 
 :::{admonition} `conda pypi install` is pending deprecation

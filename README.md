@@ -50,6 +50,12 @@ After configuring, you can use packages from PyPI alongside conda packages in
 your normal conda workflows, without needing to convert the wheel files
 to conda files.
 
+`conda install` uses conda package names, which sometimes differ from the PyPI
+project name. For example, the PyPI project `jupyterlab-code-formatter` is
+published on conda-forge as `jupyterlab_code_formatter`, so run
+`conda install jupyterlab_code_formatter`. The `conda pypi` subcommands accept
+PyPI names and translate them.
+
 ## Advanced options
 
 `conda-pypi` includes more advanced subcommand controls for working with Python

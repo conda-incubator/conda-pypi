@@ -93,6 +93,28 @@ conda create --dry-run -n conda-pypi-test django-modern-rest
 If a dry-run solve or install also fails while using conda 26.7 or newer and
 the Rattler solver, report the full error in the GitHub issue tracker.
 
+### `PackagesNotFoundInChannelsError` for a package that exists on PyPI
+
+**Problem**: `conda install some-package` fails with
+`PackagesNotFoundInChannelsError`, but the package is available on PyPI and
+perhaps on conda-forge as well.
+
+**Cause**: The name you used does not match the conda package name.
+`conda install` matches names literally and does not translate PyPI project
+names. Many PyPI projects use a different conda name, often replacing hyphens
+with underscores.
+
+**Solution**: Look up the conda name on [anaconda.org](https://anaconda.org)
+and install that name. For example, the PyPI project
+`jupyterlab-code-formatter` is published as `jupyterlab_code_formatter`:
+
+```bash
+conda install jupyterlab_code_formatter
+```
+
+The `conda pypi` subcommands are the only ones that translate PyPI names.
+`conda pypi install jupyterlab-code-formatter` accepts the PyPI spelling.
+
 ### Package not found on PyPI
 
 **Problem**: Package doesn't exist or has a different name on PyPI.
