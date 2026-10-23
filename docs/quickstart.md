@@ -103,18 +103,17 @@ dependencies will be installed from conda rather than PyPI.
 ### Package names
 
 `conda install` uses conda package names, not PyPI project names. When a PyPI
-project is published under a different conda name, install it by the conda
-name. For example, the PyPI project `jupyterlab-code-formatter` is published on
-conda-forge as `jupyterlab_code_formatter`:
+project appears under a different conda name, install it by the conda
+name. For example, conda-forge publishes the PyPI project
+`jupyterlab-code-formatter` as `jupyterlab_code_formatter`:
 
 ```bash
 conda install jupyterlab_code_formatter
 ```
 
 If a solve fails with `PackagesNotFoundInChannelsError`, check the package name
-on [anaconda.org](https://anaconda.org) before assuming the package is
-unavailable. The `conda pypi` subcommands accept PyPI names and translate them;
-`conda install` requires the conda name.
+on [anaconda.org](https://anaconda.org). The `conda pypi` subcommands accept
+PyPI names and translate them; `conda install` requires the conda name.
 
 ## Advanced usage
 
@@ -128,7 +127,7 @@ You can also use the `conda pypi install` command without the `conda-pypi`
 channel. It downloads missing wheels from PyPI and other package indexes,
 converts them to `.conda` format, and installs them. Use `--index-url` to select
 another index for wheel downloads, including missing dependencies. Repeat the
-option to search multiple indexes. Providing this option replaces the default
+option to search multiple indexes. This replaces the default
 PyPI index list. Use `--ignore-channels` to fetch wheels without searching the
 configured conda channels first.
 

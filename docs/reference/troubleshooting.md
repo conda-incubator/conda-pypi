@@ -105,8 +105,8 @@ names. Many PyPI projects use a different conda name, often replacing hyphens
 with underscores.
 
 **Solution**: Look up the conda name on [anaconda.org](https://anaconda.org)
-and install that name. For example, the PyPI project
-`jupyterlab-code-formatter` is published as `jupyterlab_code_formatter`:
+and install that name. For example, conda-forge publishes the PyPI project
+`jupyterlab-code-formatter` as `jupyterlab_code_formatter`:
 
 ```bash
 conda install jupyterlab_code_formatter
@@ -114,6 +114,7 @@ conda install jupyterlab_code_formatter
 
 The `conda pypi` subcommands are the only ones that translate PyPI names.
 `conda pypi install jupyterlab-code-formatter` accepts the PyPI spelling.
+This command is pending deprecation.
 
 ### Package not found on PyPI
 

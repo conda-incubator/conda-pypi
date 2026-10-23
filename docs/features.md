@@ -73,8 +73,8 @@ remains the only way to install editable local projects with `-e`, and it suppor
 
 The install command fetches missing wheels from the configured package indexes
 and converts them to `.conda` format. Dependencies use a conda-first approach:
-packages available on conda channels are installed with `conda`, and missing
-ones are converted from wheels.
+conda installs packages that exist on conda channels, and conda-pypi converts
+missing ones from wheels.
 
 PyPI is the default index. Use `--index-url` to select another index, repeat
 the option to search multiple indexes, or use `--ignore-channels` to skip conda
